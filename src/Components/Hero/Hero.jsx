@@ -8,9 +8,8 @@ export function Hero() {
     <section
       id="home"
       className="
-        pt-32 pb-20 
-        bg-linear-to-br from-[#F8FAFC] via-white to-blue-50
-        dark:from-bg-secondary-dark dark:via-bg-secondary-dark dark:to-primary
+        pt-32 pb-20 bg-white
+       dark:bg-bg-secondary-dark
         transition-all duration-300 min-h-screen flex items-center
       "
     >

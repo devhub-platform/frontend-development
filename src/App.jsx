@@ -26,10 +26,6 @@ function App() {
       element: <Layout />,
       children: [
         {
-          index: true,
-          element: <Landing />,
-        },
-        {
           path: "login",
           element: <Login />,
         },
@@ -49,11 +45,11 @@ function App() {
         { path: "notification", element: <Notifications /> },
         { path: "write", element: <Write /> },
         { path: "profile", element: <Profile /> },
+        {
+          path: "*",
+          element: <NotFound />,
+        },
       ],
-    },
-    {
-      path: "*",
-      element: <NotFound />,
     },
   ]);
   return (

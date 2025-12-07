@@ -4,6 +4,7 @@ import { Features } from "../../Components/Features/Features";
 import { HowItWorks } from "../../Components/HowItWorks/HowItWorks";
 import { About } from "../../Components/About/About";
 import { Fade } from "react-awesome-reveal";
+import Footer from "../../Components/Footer/Footer";
 import Helmet from "react-helmet";
 
 const Landing = () => {
@@ -28,6 +29,9 @@ const Landing = () => {
 
       <Fade triggerOnce direction="up">
         <About />
+      </Fade>
+      <Fade triggerOnce direction="up">
+        <Footer/>
       </Fade>
     </>
   );

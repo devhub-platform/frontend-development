@@ -39,55 +39,43 @@ export function NavbarLandingPage() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <NavLink to="/">
-              <button
-                onClick={() => scrollToSection("home")}
-                className="text-[#0F172A] hover:text-text-light transition-all duration-200 dark:text-gray-100 dark:hover:text-blue-400 "
-              >
-                Home
-              </button>
-            </NavLink>
-            <NavLink to="/#features">
-              <button
-                onClick={() => scrollToSection("features")}
-                className="text-[#0F172A] hover:text-text-light transition-all duration-200 dark:text-gray-100 dark:hover:text-blue-400"
-              >
-                Features
-              </button>
-            </NavLink>
-            <NavLink to="/#how-it-works">
-              <button
-                onClick={() => scrollToSection("how-it-works")}
-                className="text-[#0F172A] hover:text-text-light transition-all duration-200 dark:text-gray-100 dark:hover:text-blue-400"
-              >
-                How It Works
-              </button>
-            </NavLink>
-            <NavLink to="/#about">
-              <button
-                onClick={() => scrollToSection("about")}
-                className="text-[#0F172A] hover:text-text-light transition-all duration-200 dark:text-gray-100 dark:hover:text-blue-400"
-              >
-                About
-              </button>
-            </NavLink>
+            <button
+              onClick={() => scrollToSection("home")}
+              className="text-[#0F172A] hover:text-text-light transition-all duration-200 dark:text-gray-100 dark:hover:text-blue-400 "
+            >
+              Home
+            </button>
+            <button
+              onClick={() => scrollToSection("features")}
+              className="text-[#0F172A] hover:text-text-light transition-all duration-200 dark:text-gray-100 dark:hover:text-blue-400"
+            >
+              Features
+            </button>
+            <button
+              onClick={() => scrollToSection("how-it-works")}
+              className="text-[#0F172A] hover:text-text-light transition-all duration-200 dark:text-gray-100 dark:hover:text-blue-400"
+            >
+              How It Works
+            </button>
+            <button
+              onClick={() => scrollToSection("about")}
+              className="text-[#0F172A] hover:text-text-light transition-all duration-200 dark:text-gray-100 dark:hover:text-blue-400"
+            >
+              About
+            </button>
           </div>
 
           {/* Desktop Buttons */}
           <div className="hidden md:flex items-center gap-4">
             {/* Updated Register Button */}
             <Link to="/register">
-              <button
-                className="px-5 py-2 text-[#0F172A] hover:text-text-light transition-colors duration-200 dark:text-gray-100 dark:hover:text-blue-400"
-              >
+              <button className="px-5 py-2 text-[#0F172A] hover:text-text-light transition-colors duration-200 dark:text-gray-100 dark:hover:text-blue-400">
                 Register
               </button>
             </Link>
 
             <Link to="/login">
-              <button
-                className="px-6 py-2 bg-primary text-white rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
-              >
+              <button className="px-6 py-2 bg-primary text-white rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
                 Login Now
               </button>
             </Link>
@@ -144,17 +132,13 @@ export function NavbarLandingPage() {
             <div className="flex flex-col gap-3 mt-4 border-t border-gray-300 dark:border-gray-600 pt-4">
               {/* Updated Mobile Register Button */}
               <Link to="/register">
-                <button
-                  className="px-5 py-2 text-[#0F172A] hover:text-[#2563EB] transition-all duration-200 text-left dark:text-gray-100 dark:hover:text-blue-400 hover:-translate-y-1"
-                >
+                <button className="px-5 py-2 text-[#0F172A] hover:text-[#2563EB] transition-all duration-200 text-left dark:text-gray-100 dark:hover:text-blue-400 hover:-translate-y-1">
                   Register
                 </button>
               </Link>
 
               <Link to="/login">
-                <button
-                  className="px-6 py-2 bg-primary text-white rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
-                >
+                <button className="px-6 py-2 bg-primary text-white rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
                   Login Now
                 </button>
               </Link>

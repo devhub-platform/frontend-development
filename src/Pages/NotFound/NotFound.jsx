@@ -45,7 +45,7 @@ export default function NotFound() {
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 {/* Primary Button */}
-                <NavLink to="/" className="w-full sm:w-auto">
+                <NavLink to="/home" className="w-full sm:w-auto">
                   <button
                     className="group w-full sm:w-auto px-8 py-4 bg-primary text-white rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-3"
                     style={{

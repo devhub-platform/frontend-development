@@ -4,7 +4,7 @@ import Helmet from "react-helmet";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, Link } from "react-router-dom";
 import { UserPlus } from "lucide-react";
 import { UserContext } from "../../context/UserContext";
 
@@ -283,12 +283,12 @@ export default function Register() {
 
             <div className="text-center mt-6 text-sm text-gray-500 dark:text-white/95">
               Already have an account?
-              <a
-                href="/login"
+              <Link
+                to="/login"
                 className="font-bold text-text-light ml-1 hover:underline hover:text-primary dark:text-text-dark dark:hover:text-text-light"
               >
                 Login
-              </a>
+              </Link>
             </div>
           </div>
         </div>
