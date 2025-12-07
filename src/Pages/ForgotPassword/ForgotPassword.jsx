@@ -1,5 +1,6 @@
 import { Mail, ArrowLeft } from "lucide-react";
 import Helmet from "react-helmet";
+import { Link } from "react-router-dom";
 
 export default function ForgotPassword() {
   const handleSubmit = (e) => {
@@ -45,12 +46,14 @@ export default function ForgotPassword() {
               </div>
 
               {/* Main button */}
-              <button
-                type="submit"
-                className="w-full h-12 mt-2 rounded-xl bg-primary text-white font-bold text-lg shadow-lg hover:-translate-y-1 transition-all"
-              >
-                Send Verification Code
-              </button>
+              <Link to="/otp-verification">
+                <button
+                  type="submit"
+                  className="w-full h-12 mt-2 rounded-xl bg-primary text-white font-bold text-lg shadow-lg hover:-translate-y-1 transition-all"
+                >
+                  Send Verification Code
+                </button>
+              </Link>
 
               <div>
                 <div className="text-center">

@@ -14,6 +14,7 @@ import Notifications from "./Pages/Notifications/Notifications";
 import Write from "./Pages/Write/Write";
 import Profile from "./Pages/Profile/Profile";
 import UserContextProvider from "./context/UserContext";
+import OTPVerification from "./Pages/OTPVerification/OTPVerification";
 
 function App() {
   let routers = createBrowserRouter([
@@ -45,6 +46,7 @@ function App() {
         { path: "notification", element: <Notifications /> },
         { path: "write", element: <Write /> },
         { path: "profile", element: <Profile /> },
+        { path: "otp-verification", element: <OTPVerification/> },
         {
           path: "*",
           element: <NotFound />,
