@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #003890;
+  --color-text-light: #0063b0;
+  --color-text-dark: #51a2ff;
+  --color-bg-primary-dark: #1e2939;
+  --color-bg-secondary-dark: #101828;
+  --color-bg-light: #f9fafb;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Roboto", sans-serif;
+  scroll-behavior: smooth;
+}
