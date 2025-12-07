@@ -1,4 +1,4 @@
-import { createHashRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Landing from "./Pages/Landing/Landing";
 import Login from "./Pages/Login/Login";
 import Register from "./Pages/Register/Register";
@@ -16,26 +16,44 @@ import Profile from "./Pages/Profile/Profile";
 import UserContextProvider from "./context/UserContext";
 
 function App() {
-  let routers = createHashRouter([
+  let routers = createBrowserRouter([
     {
-      path: "",
+      path: "/frontend-development",
+      element: <Landing />,
+    },
+    {
+      path: "/",
       element: <Layout />,
       children: [
-        // {index:true, element:<Home/>},
-        { index: true, element: <Landing /> },
-        { path: "home", element: <Home/> },
-        { path: "login", element: <Login /> },
-        { path: "register", element: <Register /> },
-        { path: "login/forgotpassword", element: <ForgotPassword /> },
-        { path: "trending", element: <Trending/> },
-        { path: "qa", element: <QA/> },
-        { path: "aichat", element: <AIChat/> },
-        { path: "code", element: <Code/> },
-        { path: "notification", element: <Notifications/> },
-        { path: "write", element: <Write/> },
-        { path: "profile", element: <Profile/> },
-        { path: "*", element: <NotFound /> },
+        {
+          index: true,
+          element: <Landing />,
+        },
+        {
+          path: "login",
+          element: <Login />,
+        },
+        {
+          path: "register",
+          element: <Register />,
+        },
+        {
+          path: "login/forgotpassword",
+          element: <ForgotPassword />,
+        },
+        { path: "home", element: <Home /> },
+        { path: "trending", element: <Trending /> },
+        { path: "qa", element: <QA /> },
+        { path: "aichat", element: <AIChat /> },
+        { path: "code", element: <Code /> },
+        { path: "notification", element: <Notifications /> },
+        { path: "write", element: <Write /> },
+        { path: "profile", element: <Profile /> },
       ],
+    },
+    {
+      path: "*",
+      element: <NotFound />,
     },
   ]);
   return (
