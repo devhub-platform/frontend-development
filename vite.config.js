@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 
 export default defineConfig({
-  darkMode: 'class',
+  darkMode: "class",
   plugins: [react(), tailwindcss()],
-})
+  base: "/frontend-development/",
+});

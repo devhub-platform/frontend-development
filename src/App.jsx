@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createHashRouter, RouterProvider } from "react-router-dom";
 import Landing from "./Pages/Landing/Landing";
 import Login from "./Pages/Login/Login";
 import Register from "./Pages/Register/Register";
@@ -16,7 +16,7 @@ import Profile from "./Pages/Profile/Profile";
 import UserContextProvider from "./context/UserContext";
 
 function App() {
-  let routers = createBrowserRouter([
+  let routers = createHashRouter([
     {
       path: "",
       element: <Layout />,
