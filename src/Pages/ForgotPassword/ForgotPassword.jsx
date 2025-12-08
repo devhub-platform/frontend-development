@@ -1,12 +1,28 @@
 import { Mail, ArrowLeft } from "lucide-react";
 import Helmet from "react-helmet";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 export default function ForgotPassword() {
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const navigate = useNavigate();
+  const handleEmail = (values) => {
+    console.log(values);
+    navigate("/otp-verification",{ state: { email: values.email } });
   };
+  const validationSchema = Yup.object({
+    email: Yup.string()
+      .email("Invalid email address")
+      .required("Email is required"),
+  });
 
+  let formik = useFormik({
+    initialValues: {
+      email: "",
+    },
+    validationSchema,
+    onSubmit: handleEmail,
+  });
   return (
     <>
       <Helmet>
@@ -24,7 +40,7 @@ export default function ForgotPassword() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={formik.handleSubmit} className="space-y-6">
               {/* Email */}
               <div className="space-y-2">
                 <label
@@ -36,34 +52,39 @@ export default function ForgotPassword() {
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-gray-400 transition-colors dark:text-text-dark" />
                   <input
+                    value={formik.values.email}
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
                     id="email"
                     type="email"
                     placeholder="you@example.com"
                     className="w-full rounded-xl h-12 pl-12 pr-4 border-2 border-gray-200 text-gray-600 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none transition-all bg-white dark:bg-bg-primary-dark dark:text-gray-50 dark:border-gray-700 dark:hover:border-text-light dark:focus:border-primary dark:focus:ring-blue-900"
-                    required
                   />
                 </div>
               </div>
+              {formik.errors.email && formik.touched.email && (
+                <p className="mb-3 text-xs text-red-500">
+                  {formik.errors.email}
+                </p>
+              )}
 
               {/* Main button */}
-              <Link to="/otp-verification">
-                <button
-                  type="submit"
-                  className="w-full h-12 mt-2 rounded-xl bg-primary text-white font-bold text-lg shadow-lg hover:-translate-y-1 transition-all"
-                >
-                  Send Verification Code
-                </button>
-              </Link>
+              <button
+                type="submit"
+                className="w-full h-12 mt-2 rounded-xl bg-primary text-white font-bold text-lg shadow-lg hover:-translate-y-1 transition-all"
+              >
+                Send Verification Code
+              </button>
 
               <div>
                 <div className="text-center">
-                  <a
-                    href="/login"
+                  <Link
+                    to="/login"
                     className="inline-flex font-semibold -ml-2 items-center gap-2 text-text-light hover:text-primary dark:text-text-dark dark:hover:text-text-light"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Login
-                  </a>
+                  </Link>
                 </div>
               </div>
             </form>
