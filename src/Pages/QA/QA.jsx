@@ -1,9 +1,14 @@
 import React from 'react'
 
 const QA = () => {
-  return (
+  return <>
     <div>QA</div>
-  )
+    <div>QA</div>
+    <div>QA</div>
+    <div>QA</div>
+    <div>QA</div>
+    <div>QA</div>
+  </>
 }
 
 export default QA
