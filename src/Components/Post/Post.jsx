@@ -12,22 +12,23 @@ const reactionEmojis = [
 ];
 
 export function Post({
-  image,
-  author,
-  date,
-  readingTime,
-  title,
-  excerpt,
+  // image,
+  // author,
+  // date,
+  // readingTime,
+  // title,
+  // excerpt,
   tags = ["React", "JavaScript", "Web Development"],
-  reactions,
-  comments,
+  // reactions,
+  // comments,
 }) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [selectedReaction, setSelectedReaction] = useState(null);
   const [showReactions, setShowReactions] = useState(false);
 
   return (
-    <article className="w-full bg-white border-b border-gray-400 hover:bg-gray-50 transition p-5 my-2 dark:bg-bg-secondary-dark dark:border-gray-700 dark:hover:bg-bg-secondary-dark">
+    <article className="w-full bg-white border-b border-gray-400 hover:bg-gray-50 transition p-5 my-2
+                      dark:bg-bg-secondary-dark dark:border-gray-700 dark:hover:bg-bg-secondary-dark">
       <div className="flex gap-6">
         {/* Left */}
         <div className="flex-1 flex flex-col gap-3">

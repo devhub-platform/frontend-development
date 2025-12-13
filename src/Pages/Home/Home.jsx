@@ -5,7 +5,7 @@ const Home = () => {
   return <>
   <div className='flex dark:bg-bg-primary-dark'>
     <div className='w-[24%] my-5'> Message Box </div>
-  <div className='flex flex-col justify-center items-center w-[50%] mx-auto dark:bg-bg-secondary-dark my-5 rounded-lg'>
+  <div className='flex flex-col justify-center items-center w-[50%] mx-auto dark:bg-bg-secondary-dark my-5 rounded-lg dark:shadow-2xl dark:shadow-gray-500/20'>
     <Post/>
     <Post/>
     <Post/>
