@@ -79,7 +79,7 @@ export default function Navbar() {
                 />
                 <input
                   type="text"
-                  className="w-full rounded-full py-1.5 border-2 border-gray-200 bg-gray-100 pl-9 dark:bg-bg-primary-dark dark:text-gray-50 dark:border-gray-700 cursor-pointer text-sm"
+                  className="w-full rounded-full py-1.5 border-2 text-bg-secondary-dark border-gray-200 bg-gray-100 pl-9 dark:bg-bg-primary-dark dark:text-gray-50 dark:border-gray-700 cursor-pointer text-sm"
                   placeholder="Search..."
                   disabled
                 />
@@ -112,7 +112,7 @@ export default function Navbar() {
               <DarkMode />
 
               <Link to="/profile">
-                <div className="text-white bg-primary rounded-full p-2">
+                <div className="text-white bg-primary rounded-full p-2 overflow-hidden">
                   <UserRoundPen size={18} strokeWidth={3} />
                 </div>
               </Link>
