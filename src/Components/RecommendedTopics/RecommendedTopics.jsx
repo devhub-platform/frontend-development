@@ -10,11 +10,10 @@ const topics = [
 
 export function RecommendedTopics() {
   return <>
-    <div className="bg-white rounded-md p-5 border border-gray-200 shadow-sm mb-5
-                        dark:bg-bg-secondary-dark dark:border-gray-900  dark:shadow-gray-700/30">
+    <div className="bg-white rounded-md p-5 border border-gray-200 shadow-sm mb-5">
       <div className="flex items-center gap-2 mb-4">
-        <Lightbulb className="w-4 h-4 text-text-light dark:text-text-dark" />
-        <h2 className="text-gray-900 dark:text-white">Recommended Topics</h2>
+        <Lightbulb className="w-4 h-4" />
+        <h2 className="text-gray-900">Recommended Topics</h2>
       </div>
       
       <div className="flex flex-col gap-1">
@@ -22,10 +21,9 @@ export function RecommendedTopics() {
           <a
             key={topic.name}
             href="#"
-            className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors group
-                        dark:hover:bg-bg-primary-dark"
+            className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors group"
           >
-            <span className="text-gray-700 group-hover:text-text-light transition-colors text-sm dark:text-gray-300 dark:group-hover:text-text-dark">
+            <span className="text-gray-700 group-hover:text-text-light transition-colors text-sm">
               {topic.name}
             </span>
             <span className="text-gray-400 text-xs">{topic.followers}</span>
