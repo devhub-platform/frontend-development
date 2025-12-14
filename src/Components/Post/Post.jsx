@@ -27,14 +27,14 @@ export function Post({
   const [showReactions, setShowReactions] = useState(false);
 
   return (
-    <article className="w-full bg-white border-b border-gray-400 hover:bg-gray-50 transition p-5 my-2
+    <article className="w-full bg-white border-b border-gray-400 hover:bg-gray-50 transition p-5 mt-2 shadow-sm
                       dark:bg-bg-secondary-dark dark:border-gray-700 dark:hover:bg-bg-secondary-dark">
       <div className="flex gap-6">
         {/* Left */}
         <div className="flex-1 flex flex-col gap-3">
           {/* Author */}
           <div className="flex items-center gap-2 text-sm">
-            <div className="bg-blue-500 rounded-full overflow-hidden w-9 h-9 flex justify-center items-center text-white">
+            <div className="bg-text-light rounded-full overflow-hidden w-9 h-9 flex justify-center items-center text-white">
                 <UserRoundPen size={30} strokeWidth={2}/>
             </div>
             <span className="text-gray-900 dark:text-white">Jhon Doe</span>
@@ -130,7 +130,7 @@ export function Post({
         </div>
 
         {/* Image */}
-        <div className="w-[110px] h-[110px] flex-shrink-0">
+        <div className="w-[110px] h-[110px] shrink-0">
           <img
             src={img}
             alt="Post Image"
