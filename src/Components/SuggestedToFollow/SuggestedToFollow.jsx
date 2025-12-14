@@ -20,10 +20,11 @@ const users = [
 
 export function SuggestedToFollow() {
   return (
-    <div className="bg-white rounded-md p-5 border border-gray-200 shadow-sm mb-5">
+    <div className="bg-white rounded-md p-5 border border-gray-200 shadow-sm mb-5
+                        dark:bg-bg-secondary-dark dark:border-gray-900  dark:shadow-gray-700/30">
       <div className="flex items-center gap-2 mb-4">
-        <UserPlus className="w-4 h-4 text-text-light" />
-        <h2 className="text-gray-900">Suggested to Follow</h2>
+        <UserPlus className="w-4 h-4 text-text-light dark:text-text-dark" />
+        <h2 className="text-gray-900 dark:text-white">Suggested to Follow</h2>
       </div>
 
       
@@ -35,8 +36,8 @@ export function SuggestedToFollow() {
       </div>
             
             <div className="flex-1 min-w-0">
-              <h3 className="text-gray-900 text-sm mb-0.5">{user.name}</h3>
-              <p className="text-gray-500 text-xs line-clamp-1">{user.bio}</p>
+              <h3 className="text-gray-900 text-sm mb-0.5 dark:text-gray-100">{user.name}</h3>
+              <p className="text-gray-500 text-xs line-clamp-1 dark:text-gray-300">{user.bio}</p>
             </div>
             
             <button
