@@ -8,10 +8,19 @@
   --color-bg-primary-dark: #1e2939;
   --color-bg-secondary-dark: #101828;
   --color-bg-light: #f9fafb;
+  --toast-bg: #ffffff;
+  --toast-text: #0f172a;
+  --toast-border: rgba(15, 23, 42, 0.12);
 }
 
 * {
   box-sizing: border-box;
   font-family: "Roboto", sans-serif;
   scroll-behavior: smooth;
+}
+
+.dark {
+  --toast-bg: var(--color-bg-primary-dark);
+  --toast-text: #ffffff;
+  --toast-border: rgba(255, 255, 255, 0.12);
 }

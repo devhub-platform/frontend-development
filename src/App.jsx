@@ -16,6 +16,7 @@ import Profile from "./Pages/Profile/Profile";
 import UserContextProvider from "./context/UserContext";
 import OTPVerification from "./Pages/OTPVerification/OTPVerification";
 import ResetPassword from "./Pages/ResetPassword/ResetPassword";
+import EditorGuide from "./Pages/EditorGuide";
 
 function App() {
   
@@ -39,6 +40,7 @@ function App() {
               <Route path="profile" element={<Profile />} />
               <Route path="otp-verification" element={<OTPVerification />} />
               <Route path="reset-password" element={<ResetPassword />} />
+              <Route path="editor-guide" element={<EditorGuide />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
