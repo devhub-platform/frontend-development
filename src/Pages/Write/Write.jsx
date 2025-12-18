@@ -59,7 +59,7 @@ export default function Write() {
             color: "var(--toast-text)",
             border: "1px solid var(--toast-border)",
             borderRadius: "12px",
-            padding: "12px 14px",
+            padding: "12px 14px", 
             boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
           },
           success: {

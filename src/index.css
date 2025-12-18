@@ -24,3 +24,15 @@
   --toast-text: #ffffff;
   --toast-border: rgba(255, 255, 255, 0.12);
 }
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
