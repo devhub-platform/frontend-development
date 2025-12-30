@@ -22,10 +22,10 @@ export function RecommendedTopics() {
           <a
             key={topic.name}
             href="#"
-            className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors group
+            className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors group
                     dark:hover:bg-bg-primary-dark"
           >
-            <span className="text-gray-700 group-hover:text-text-light transition-colors text-sm dark:text-gray-300 dark:group-hover:text-text-dark">
+            <span className="text-gray-700 transition-colors text-sm dark:text-gray-300">
               {topic.name}
             </span>
             <span className="text-gray-400 text-xs">{topic.followers}</span>

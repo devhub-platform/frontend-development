@@ -1,11 +1,15 @@
 import React from "react";
+import { useState } from "react";
 import Post from "../../Components/Post/Post";
+import { posts } from "../../context/PostsData";
 import { PopularTags } from "../../Components/PopularTags/PopularTags";
 import { RecommendedTopics } from "../../Components/RecommendedTopics/RecommendedTopics";
 import { SuggestedToFollow } from "../../Components/SuggestedToFollow/SuggestedToFollow";
 import { Messages } from "../../Components/Messages/Messages";
 
 const Home = () => {
+    const [openReactionId, setOpenReactionId] = useState(null);
+
   return (
     <>
       <div className="flex dark:bg-bg-primary-dark relative">
@@ -19,14 +23,16 @@ const Home = () => {
           <Messages />
         </div>
 
-        <div className="flex flex-col justify-center items-center lg:w-[50%] mx-5 dark:bg-bg-secondary-dark my-15 rounded-lg dark:shadow-2xl dark:shadow-gray-500/20 shadow-sm bg-white mb-2 sm:w-full">
-          <Post />
-          <Post />
-          <Post />
-          <Post />
-          <Post />
-          <Post />
-        </div>
+              {/* Posts Section */}
+              <div className="lg:w-[50%] mx-5 my-5">
+                <div className="flex flex-col items-center  bg-white dark:bg-bg-secondary-dark rounded-lg shadow-md">
+                  {posts.map((post) => (
+                    <Post key={post.id} post={post}
+                          isReactionOpen={openReactionId === post.id}
+                          setOpenReactionId={setOpenReactionId} />
+                  ))}
+                </div>
+              </div>
 
         <div className="w-[22%] my-10 mr-3 hidden lg:block">
           <RecommendedTopics />

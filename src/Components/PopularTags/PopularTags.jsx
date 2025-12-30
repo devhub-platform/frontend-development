@@ -23,11 +23,11 @@ export function PopularTags() {
           <a
             key={tag.name}
             href="#"
-            className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors group
+            className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors group
                     dark:hover:bg-bg-primary-dark"
           >
             <div className="flex items-center gap-2">
-              <span className="text-gray-700 group-hover:text-text-light transition-colors dark:text-gray-300 dark:group-hover:text-text-dark">
+              <span className="text-gray-700 transition-colors dark:text-gray-300">
                 #{tag.name}
               </span>
             </div>
