@@ -17,6 +17,7 @@ import UserContextProvider from "./context/UserContext";
 import OTPVerification from "./Pages/OTPVerification/OTPVerification";
 import ResetPassword from "./Pages/ResetPassword/ResetPassword";
 import EditorGuide from "./Pages/EditorGuide";
+import PostDetails from "./Pages/PostDetails/PostDetails";
 
 function App() {
   
@@ -31,6 +32,7 @@ function App() {
               <Route path="register" element={<Register />} />
               <Route path="login/forgotpassword" element={<ForgotPassword />} />
               <Route path="home" element={<Home />} />
+              <Route path="post/:id" element={<PostDetails />} />
               <Route path="trending" element={<Trending />} />
               <Route path="qa" element={<QA />} />
               <Route path="aichat" element={<AIChat />} />

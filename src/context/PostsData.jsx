@@ -1,5 +1,7 @@
 // src/data/posts.js
 import img from "../assets/images/teamimage.png";
+import img2 from "../assets/images/heroImage.jpg";
+import img3 from "../assets/images/aboutImage.jpg";
 
 export const posts = [
   {
@@ -14,6 +16,8 @@ export const posts = [
     tags: ["React", "JavaScript", "Web Development"],
     reactionsCount: 120,
     commentsCount: 45,
+    views: 301,
+
   },
   {
     id: 1,
@@ -23,10 +27,11 @@ export const posts = [
     author: "Jane Smith",
     date: "Nov 10, 2025",
     readingTime: "8 min",
-    image: img,
+    image: img2,
     tags: ["PHP", "Performance", "Frontend"],
     reactionsCount: 98,
     commentsCount: 32,
+    views: 263,
   },
   {
     id: 2,
@@ -36,9 +41,10 @@ export const posts = [
     author: "Jane Smith",
     date: "Sep 10, 2025",
     readingTime: "10 min",
-    image: img,
+    image: img3,
     tags: ["React", "Backend", "Frontend"],
     reactionsCount: 148,
     commentsCount: 61,
+    views: 452,
   },
 ];

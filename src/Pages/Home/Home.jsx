@@ -24,8 +24,8 @@ const Home = () => {
         </div>
 
               {/* Posts Section */}
-              <div className="lg:w-[50%] mx-5 my-5">
-                <div className="flex flex-col items-center  bg-white dark:bg-bg-secondary-dark rounded-lg shadow-md">
+              <div className="lg:w-[50%] lg:mx-5 my-5 mx-auto">
+                <div className="flex flex-col items-center bg-white dark:bg-bg-secondary-dark rounded-lg shadow-md">
                   {posts.map((post) => (
                     <Post key={post.id} post={post}
                           isReactionOpen={openReactionId === post.id}

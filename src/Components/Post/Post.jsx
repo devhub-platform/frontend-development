@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { MessageCircle, Share2, Bookmark, UserRoundPen } from "lucide-react";
+import { MessageCircle, Share2, Bookmark, UserRoundPen, Eye } from "lucide-react";
 
 const reactionEmojis = [
   { emoji: "👍", label: "Like" },
@@ -36,14 +36,18 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
         <div className="flex-1 flex flex-col gap-3">
           {/* Author */}
           <div className="flex items-center gap-2 text-sm">
-            <div className="bg-text-light rounded-full w-9 h-9 flex justify-center items-center text-white">
+            <div className="bg-text-light rounded-full min-w-9 min-h-9 flex justify-center items-center text-white">
               <UserRoundPen size={20} />
             </div>
-            <span className="dark:text-white">{post.author}</span>
-            <span className="text-gray-400">•</span>
-            <span className="text-gray-500 dark:text-gray-300">{post.date}</span>
-            <span className="text-gray-400">•</span>
-            <span className="text-gray-500 dark:text-gray-300">{post.readingTime}</span>
+            <div className="flex gap-2 flex-wrap">
+              <span className="dark:text-white">{post.author}</span>
+              <span className="text-gray-400 hidden md:block">•</span>
+              <div className="flex gap-2">
+                <span className="text-gray-500 dark:text-gray-300">{post.date}</span>
+                <span className="text-gray-400">•</span>
+                <span className="text-gray-500 dark:text-gray-300">{post.readingTime}</span>
+              </div>
+            </div>
           </div>
 
           {/* Title */}
@@ -59,7 +63,7 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
           {/* Tags */}
           <div className="flex gap-2 flex-wrap">
             {post.tags.map((tag, index) => (
-              <span key={index} className="bg-gray-100 text-xs px-2 py-1 rounded-full dark:bg-gray-800 dark:text-gray-100">
+              <span key={index} className="bg-gray-100 text-xs px-2 py-1 rounded-full dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700">
                 {tag}
               </span>
             ))}
@@ -95,14 +99,23 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
                 <span>{post.commentsCount}</span>
               </button>
 
-              {/* Share */}
-              <Share2 size={18} className="cursor-pointer"/>
+              {/* Views */}
+              <div className="flex items-center gap-1 ">
+                <Eye size={18} />
+                <span>{post.views}</span>
+              </div>
             </div>
 
+            
+          <div className="flex gap-3 items-center">
             {/* Bookmark */}
             <button onClick={() => setIsBookmarked(!isBookmarked)} className="cursor-pointer text-text-light dark:text-text-dark">
               <Bookmark size={20} fill={isBookmarked ? "currentColor" : "none"} />
             </button>
+
+              {/* Share */}
+              <Share2 size={18} className="cursor-pointer text-gray-500 dark:text-gray-300"/>
+          </div>
           </div>
         </div>
 
