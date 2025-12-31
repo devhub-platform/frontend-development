@@ -17,6 +17,8 @@ import Profile from "./Pages/Profile/Profile";
 import OTPVerification from "./Pages/OTPVerification/OTPVerification";
 import ResetPassword from "./Pages/ResetPassword/ResetPassword";
 import EditorGuide from "./Pages/EditorGuide";
+import AskQuestionPage from "./Pages/AskQuestion/AskQuestionPage";
+import QuestionPage from "./Pages/Question/QuestionPage";
 
 function App() {
   
@@ -32,6 +34,8 @@ function App() {
               <Route path="trending" element={<Trending />} />
               <Route path="post/:id" element={<Post />} />
               <Route path="qa" element={<QA />} />
+              <Route path="ask" element={<AskQuestionPage />} />
+              <Route path="/questions/:id" element={<QuestionPage />} />;
               <Route path="aichat" element={<AIChat />} />
               <Route path="code" element={<Code />} />
               <Route path="notification" element={<Notifications />} />

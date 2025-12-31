@@ -17,6 +17,7 @@
     "@tailwindcss/vite": "^4.1.17",
     "axios": "^1.13.2",
     "formik": "^2.4.9",
+    "framer-motion": "^12.23.26",
     "helmet": "^8.1.0",
     "lucide-react": "^0.555.0",
     "motion": "^12.23.26",
