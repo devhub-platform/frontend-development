@@ -7,24 +7,21 @@ import Layout from "./Components/Layout/Layout";
 import NotFound from "./Pages/NotFound/NotFound";
 import Home from "./Pages/Home/Home";
 import Trending from "./Pages/Trending/Trending";
+import Post from "./Pages/PostDetails/PostDetails";
 import QA from "./Pages/QA/QA";
 import AIChat from "./Pages/AIChat/AIChat";
 import Code from "./Pages/Code/Code";
 import Notifications from "./Pages/Notifications/Notifications";
 import Write from "./Pages/Write/Write";
 import Profile from "./Pages/Profile/Profile";
-import UserContextProvider from "./context/UserContext";
 import OTPVerification from "./Pages/OTPVerification/OTPVerification";
 import ResetPassword from "./Pages/ResetPassword/ResetPassword";
 import EditorGuide from "./Pages/EditorGuide";
-import PostDetails from "./Pages/PostDetails/PostDetails";
 
 function App() {
   
   return (
-    <>
-      <UserContextProvider>
-        <BrowserRouter basename="/frontend-development">
+    <>        <BrowserRouter basename="/frontend-development">
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/" element={<Layout />}>
@@ -32,8 +29,8 @@ function App() {
               <Route path="register" element={<Register />} />
               <Route path="login/forgotpassword" element={<ForgotPassword />} />
               <Route path="home" element={<Home />} />
-              <Route path="post/:id" element={<PostDetails />} />
               <Route path="trending" element={<Trending />} />
+              <Route path="post/:id" element={<Post />} />
               <Route path="qa" element={<QA />} />
               <Route path="aichat" element={<AIChat />} />
               <Route path="code" element={<Code />} />
@@ -47,7 +44,6 @@ function App() {
             </Route>
           </Routes>
         </BrowserRouter>
-      </UserContextProvider>
     </>
   );
 }
