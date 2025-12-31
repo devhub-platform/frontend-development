@@ -13,39 +13,40 @@ import Code from "./Pages/Code/Code";
 import Notifications from "./Pages/Notifications/Notifications";
 import Write from "./Pages/Write/Write";
 import Profile from "./Pages/Profile/Profile";
-import UserContextProvider from "./context/UserContext";
 import OTPVerification from "./Pages/OTPVerification/OTPVerification";
 import ResetPassword from "./Pages/ResetPassword/ResetPassword";
 import EditorGuide from "./Pages/EditorGuide";
+import AskQuestionPage from "./Pages/AskQuestion/AskQuestionPage";
+import QuestionPage from "./Pages/Question/QuestionPage";
 
 function App() {
   
   return (
     <>
-      <UserContextProvider>
-        <BrowserRouter basename="/frontend-development">
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/" element={<Layout />}>
-              <Route path="login" element={<Login />} />
-              <Route path="register" element={<Register />} />
-              <Route path="login/forgotpassword" element={<ForgotPassword />} />
-              <Route path="home" element={<Home />} />
-              <Route path="trending" element={<Trending />} />
-              <Route path="qa" element={<QA />} />
-              <Route path="aichat" element={<AIChat />} />
-              <Route path="code" element={<Code />} />
-              <Route path="notification" element={<Notifications />} />
-              <Route path="write" element={<Write />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="otp-verification" element={<OTPVerification />} />
-              <Route path="reset-password" element={<ResetPassword />} />
-              <Route path="editor-guide" element={<EditorGuide />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </UserContextProvider>
+      <BrowserRouter basename="/frontend-development">
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/" element={<Layout />}>
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route path="login/forgotpassword" element={<ForgotPassword />} />
+            <Route path="home" element={<Home />} />
+            <Route path="trending" element={<Trending />} />
+            <Route path="qa" element={<QA />} />
+            <Route path="ask" element={<AskQuestionPage />} />
+            <Route path="/questions/:id" element={<QuestionPage />} />;
+            <Route path="aichat" element={<AIChat />} />
+            <Route path="code" element={<Code />} />
+            <Route path="notification" element={<Notifications />} />
+            <Route path="write" element={<Write />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="otp-verification" element={<OTPVerification />} />
+            <Route path="reset-password" element={<ResetPassword />} />
+            <Route path="editor-guide" element={<EditorGuide />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
     </>
   );
 }
