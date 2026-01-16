@@ -53,7 +53,7 @@ export default function OTPVerification() {
         <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 dark:bg-bg-secondary-dark">
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center dark:bg-blue-900/40">
-              <Mail className="w-8 h-8 text-blue-600 dark:text-blue-300" />
+              <Mail className="w-8 h-8 text-text-light dark:text-text-dark" />
             </div>
           </div>
 
@@ -100,12 +100,12 @@ export default function OTPVerification() {
           <div className="text-center mb-8">
             {isTimerActive && timer > 0 ? (
               <p className="text-gray-600 dark:text-gray-400 text-sm">
-                Resend code in <span className="text-blue-600">{timer}s</span>
+                Resend code in <span className="text-text-light dark:text-text-dark">{timer}s</span>
               </p>
             ) : (
               <button
                 onClick={handleResend}
-                className="text-blue-600 hover:text-blue-700 dark:text-blue-300 text-sm font-medium transition-colors"
+                className="text-primary hover:text-text-light dark:text-text-light text-sm font-medium transition-colors"
               >
                 Resend Code
               </button>
@@ -115,7 +115,7 @@ export default function OTPVerification() {
           <button
             onClick={handleVerify}
             disabled={otp.length !== 6}
-            className="w-full h-12 rounded-xl bg-blue-600 text-white font-bold text-lg shadow-lg hover:bg-blue-700 hover:-translate-y-0.5 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed dark:disabled:bg-gray-600"
+            className="w-full h-12 rounded-xl bg-primary text-white font-bold text-lg shadow-lg hover:-translate-y-0.5 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed dark:disabled:bg-gray-600"
           >
             {loading ? (
               <LoaderPinwheel className="animate-spin" />

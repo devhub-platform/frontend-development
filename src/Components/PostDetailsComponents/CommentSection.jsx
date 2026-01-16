@@ -230,7 +230,7 @@ export function CommentSection({ initialComments }) {
                               className={`flex items-center gap-1 text-xs transition-colors ${
                                 likedReplies.has(reply.id)
                                   ? 'text-red-500 hover:text-red-600'
-                                  : 'text-gray-500 dark:text-gray-300 hover:text-blue-600'
+                                  : 'text-gray-500 dark:text-gray-300 hover:text-text-light dark:hover:text-text-dark'
                               }`}
                             >
                               <Heart
