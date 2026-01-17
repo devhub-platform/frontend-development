@@ -29,7 +29,7 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
   };
 
   return (
-    <article className="w-full bg-white border-b border-gray-300 hover:bg-gray-50 transition p-5 
+    <article className="w-full bg-white border-b border-gray-300 hover:bg-gray-50 p-5 
                         dark:bg-bg-secondary-dark relative dark:border-gray-700 dark:hover:bg-gray-800/50">
       <div className="flex gap-6">
         {/* Left */}
@@ -63,7 +63,7 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
           {/* Tags */}
           <div className="flex gap-2 flex-wrap">
             {post.tags.map((tag, index) => (
-              <span key={index} className="bg-gray-100 text-xs px-2 py-1 rounded-full dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700">
+              <span key={index} className="bg-gray-100 text-xs px-2 py-1 rounded-full dark:bg-gray-800 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700">
                 {tag}
               </span>
             ))}
