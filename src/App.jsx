@@ -9,7 +9,6 @@ import Home from "./Pages/Home/Home";
 import Trending from "./Pages/Trending/Trending";
 import QA from "./Pages/QA/QA";
 import AIChat from "./Pages/AIChat/AIChat";
-import Code from "./Pages/Code/Code";
 import Notifications from "./Pages/Notifications/Notifications";
 import Write from "./Pages/Write/Write";
 import Profile from "./Pages/Profile/Profile";
@@ -18,6 +17,7 @@ import ResetPassword from "./Pages/ResetPassword/ResetPassword";
 import EditorGuide from "./Pages/EditorGuide";
 import AskQuestionPage from "./Pages/AskQuestion/AskQuestionPage";
 import QuestionPage from "./Pages/Question/QuestionPage";
+import CodePlaygroundPage from "./Pages/Playground/CodePlaygroundPage";
 
 function App() {
   
@@ -36,7 +36,7 @@ function App() {
             <Route path="ask" element={<AskQuestionPage />} />
             <Route path="/questions/:id" element={<QuestionPage />} />;
             <Route path="aichat" element={<AIChat />} />
-            <Route path="code" element={<Code />} />
+            <Route path="/playground" element={<CodePlaygroundPage />} />
             <Route path="notification" element={<Notifications />} />
             <Route path="write" element={<Write />} />
             <Route path="profile" element={<Profile />} />

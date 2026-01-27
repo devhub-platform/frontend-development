@@ -98,7 +98,7 @@ export default function Navbar() {
 
             {/* Icons */}
             <div className="flex items-center gap-3 sm:gap-4">
-              <Link to="/code" className="dark:text-white text-gray-700">
+              <Link to="/playground" className="dark:text-white text-gray-700">
                 <Code size={20} strokeWidth={2} />
               </Link>
 
