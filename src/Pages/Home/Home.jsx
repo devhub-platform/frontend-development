@@ -12,20 +12,21 @@ const Home = () => {
 
   return (
     <>
-      <div className="flex dark:bg-bg-primary-dark relative">
+      <div className="dark:bg-bg-primary-dark flex">
         {/* زر عائم للموبايل / تابلت (أيقونة فقط) */}
         <div className="fixed bottom-4 right-4 z-50 lg:hidden">
           <Messages />
         </div>
 
         {/* Sidebar لسطح المكتب – الكود الأصلي كما هو */}
-        <div className="w-[23%] mt-10 ml-3 hidden lg:block relative">
+        <div className="fixed bottom-0 left-2 z-50 w-[18%] mt-10 ml-2 hidden lg:block">
           <Messages />
         </div>
 
-              {/* Posts Section */}
-              <div className="lg:w-[50%] mx-5 my-5">
-                <div className="flex flex-col items-center  bg-white dark:bg-bg-secondary-dark rounded-lg shadow-md">
+        <div className="flex mx-auto justify-center">
+          {/* Posts Section */}
+              <div className="lg:w-[60%] lg:ml-15 my-5">
+                <div className="flex flex-col items-center bg-white dark:bg-bg-secondary-dark rounded-lg shadow-md">
                   {posts.map((post) => (
                     <Post key={post.id} post={post}
                           isReactionOpen={openReactionId === post.id}
@@ -34,10 +35,11 @@ const Home = () => {
                 </div>
               </div>
 
-        <div className="w-[22%] my-10 mr-3 hidden lg:block">
+        <div className="w-[22%] my-10 hidden lg:block ml-8">
           <RecommendedTopics />
           <SuggestedToFollow />
           <PopularTags />
+        </div>
         </div>
       </div>
     </>

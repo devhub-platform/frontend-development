@@ -7,6 +7,7 @@ import Layout from "./Components/Layout/Layout";
 import NotFound from "./Pages/NotFound/NotFound";
 import Home from "./Pages/Home/Home";
 import Trending from "./Pages/Trending/Trending";
+import Post from "./Pages/PostDetails/PostDetails";
 import QA from "./Pages/QA/QA";
 import AIChat from "./Pages/AIChat/AIChat";
 import Notifications from "./Pages/Notifications/Notifications";
@@ -22,7 +23,7 @@ import CodePlaygroundPage from "./Pages/Playground/CodePlaygroundPage";
 function App() {
   
   return (
-    <>
+    <>        
       <BrowserRouter basename="/frontend-development">
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -32,6 +33,7 @@ function App() {
             <Route path="login/forgotpassword" element={<ForgotPassword />} />
             <Route path="home" element={<Home />} />
             <Route path="trending" element={<Trending />} />
+            <Route path="post/:id" element={<Post />} />
             <Route path="qa" element={<QA />} />
             <Route path="ask" element={<AskQuestionPage />} />
             <Route path="/questions/:id" element={<QuestionPage />} />;
@@ -49,6 +51,7 @@ function App() {
       </BrowserRouter>
     </>
   );
+  
 }
 
 export default App;

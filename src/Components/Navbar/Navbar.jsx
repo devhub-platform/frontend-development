@@ -11,6 +11,7 @@ import { useState, useContext } from "react";
 import LogoWhite from "../../assets/images/DevHubLogoBlack.png";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
 import DarkMode from "../NavbarLandingPage/DarkMode.jsx";
+import ProfileDropDown from "../ProfileDropDown/ProfileDropDown.jsx";
 import { ThemeContext } from "../../context/ThemeContext";
 import { Link, NavLink } from "react-router-dom";
 
@@ -111,11 +112,7 @@ export default function Navbar() {
 
               <DarkMode />
 
-              <Link to="/profile">
-                <div className="text-white bg-primary rounded-full p-2 overflow-hidden">
-                  <UserRoundPen size={18} strokeWidth={3} />
-                </div>
-              </Link>
+              <ProfileDropDown />
             </div>
 
             {/* Mobile Menu Toggle */}

@@ -229,7 +229,7 @@ function MessagesPopup({ selectedChat, setSelectedChat, onClose, isLargeScreen }
                     ${
                       msg.sender === "me"
                         ? "bg-primary text-white"
-                        : "bg-gray-200 text-black dark:bg-gray-700 dark:text-white"
+                        : "bg-gray-200 text-black dark:bg-gray-800 dark:text-white"
                     }
                   `}
                 >
