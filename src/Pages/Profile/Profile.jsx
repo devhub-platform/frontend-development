@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, {useState} from 'react'
 import { Linkedin, Github, Share2, Calendar, BookOpen, ChevronRight } from 'lucide-react';
 import { Messages } from "../../Components/Messages/Messages";
