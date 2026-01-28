@@ -78,7 +78,11 @@ export function NotificationFeed({
               >
                 {filter.label}
                 <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded-md ${activeFilter === filter.key ? "bg-white/20" : "bg-slate-200 dark:bg-white/10"}`}
+                  className={`text-[10px] px-1.5 py-0.5 rounded-md ${
+                    activeFilter === filter.key
+                      ? "bg-white/20"
+                      : "bg-slate-200 dark:bg-white/10"
+                  }`}
                 >
                   {filter.count}
                 </span>

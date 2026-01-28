@@ -3,18 +3,13 @@ import { MessageCircle, Heart, AtSign, Trash2, Clock } from "lucide-react";
 
 export function NotificationCard({ notification, onMarkAsRead, onDelete }) {
   const getIconConfig = () => {
-    const simpleType =
-      notification.type === "App\\Notifications\\NewCommentNotification"
-        ? "comment"
-        : notification.type === "App\\Notifications\\ReactNotification"
-          ? "reaction"
-          : notification.type;
+    const simpleType = notification.simpleType || notification.type;
 
     switch (simpleType) {
       case "comment":
         return {
           icon: <MessageCircle size={14} />,
-          color: "bg-primary", // استخدام لون موقعك الأساسي
+          color: "bg-primary",
         };
       case "mention":
         return {
@@ -25,6 +20,11 @@ export function NotificationCard({ notification, onMarkAsRead, onDelete }) {
         return {
           icon: <Heart size={14} />,
           color: "bg-pink-500",
+        };
+      case "follow":
+        return {
+          icon: <AtSign size={14} />, // تقدرِ تغيّري لـ أيقونة تانية لو حابة
+          color: "bg-emerald-500",
         };
       default:
         return { icon: null, color: "bg-slate-500" };
@@ -58,7 +58,9 @@ export function NotificationCard({ notification, onMarkAsRead, onDelete }) {
         {/* Avatar Section */}
         <div className="relative shrink-0">
           <div
-            className={`p-0.5 rounded-full ring-2 ${!notification.isRead ? "ring-primary/40" : "ring-transparent"}`}
+            className={`p-0.5 rounded-full ring-2 ${
+              !notification.isRead ? "ring-primary/40" : "ring-transparent"
+            }`}
           >
             <img
               src={notification.avatar}

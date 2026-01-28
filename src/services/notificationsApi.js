@@ -39,6 +39,29 @@ const mockNotifications = [
     created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     read_at: new Date().toISOString(),
   },
+  {
+    id: "4",
+    type: "App\\Notifications\\MentionNotification",
+    data: {
+      username: "Mona Adel",
+      message: "mentioned you in a post",
+      content: "@you check this discussion!",
+      avatar: "https://i.pravatar.cc/150?img=9",
+    },
+    created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+    read_at: null,
+  },
+  {
+    id: "5",
+    type: "App\\Notifications\\FollowNotification",
+    data: {
+      username: "New Follower",
+      message: "started following you",
+      avatar: "https://i.pravatar.cc/150?img=11",
+    },
+    created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+    read_at: null,
+  },
 ];
 
 const AUTH_TOKEN =

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Coffee, Rocket } from "lucide-react";
+import { Coffee } from "lucide-react";
 import { NotificationFeed } from "../../Components/Notification/NotificationFeed";
 import { NotificationCard } from "../../Components/Notification/NotificationCard";
 import notificationsApi from "../../services/notificationsApi";
@@ -21,9 +21,9 @@ const EmptyState = () => (
   </div>
 );
 
-// mapping حسب شكل Laravel notifications
+// mapping حسب شكل Laravel notifications + mention + follow
 const mapApiNotificationToUi = (item) => {
-  const type = item.type; // App\Notifications\...
+  const type = item.type; // App\\Notifications\\...
   const data = item.data || {};
 
   let simpleType = "comment";
@@ -35,11 +35,18 @@ const mapApiNotificationToUi = (item) => {
   } else if (type === "App\\Notifications\\NewCommentNotification") {
     simpleType = "comment";
     badgeLabel = "COMMENT";
+  } else if (type === "App\\Notifications\\MentionNotification") {
+    simpleType = "mention";
+    badgeLabel = "MENTION";
+  } else if (type === "App\\Notifications\\FollowNotification") {
+    simpleType = "follow";
+    badgeLabel = "FOLLOW";
   }
 
   return {
     id: item.id,
-    type: type,
+    type, // النوع الكامل من Laravel
+    simpleType,
     badgeLabel,
     username:
       data.username || data.user_name || data.author_name || "DevHub User",
@@ -49,7 +56,11 @@ const mapApiNotificationToUi = (item) => {
       data.title ||
       (simpleType === "reaction"
         ? "reacted to your post"
-        : "left a new comment"),
+        : simpleType === "mention"
+          ? "mentioned you in a discussion"
+          : simpleType === "follow"
+            ? "started following you"
+            : "left a new comment"),
     content: data.content || data.body || "",
     timestamp: item.created_at,
     avatar:
@@ -88,7 +99,6 @@ const Notifications = () => {
 
   const handleMarkAsRead = async (id) => {
     try {
-      // optimistic
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
       );
@@ -100,7 +110,7 @@ const Notifications = () => {
   };
 
   const handleDelete = (id) => {
-    // مفيش endpoint delete واحدة، فهنشيلها محلي بس
+    // محلي بس (مفيش delete في الـ API)
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
@@ -135,27 +145,23 @@ const Notifications = () => {
 
   const filteredNotifications = useMemo(() => {
     if (activeFilter === "all") return notifications;
-    const type = activeFilter.endsWith("s")
-      ? activeFilter.slice(0, -1)
-      : activeFilter;
 
-    if (type === "comment") {
-      return notifications.filter(
-        (n) =>
-          n.type === "App\\Notifications\\NewCommentNotification" ||
-          n.badgeLabel === "COMMENT",
-      );
+    const key = activeFilter; // all, comments, reactions, mentions, follows
+
+    if (key === "comments") {
+      return notifications.filter((n) => n.simpleType === "comment");
     }
-    if (type === "reaction") {
-      return notifications.filter(
-        (n) =>
-          n.type === "App\\Notifications\\ReactNotification" ||
-          n.badgeLabel === "REACTION",
-      );
+    if (key === "reactions") {
+      return notifications.filter((n) => n.simpleType === "reaction");
+    }
+    if (key === "mentions") {
+      return notifications.filter((n) => n.simpleType === "mention");
+    }
+    if (key === "follows") {
+      return notifications.filter((n) => n.simpleType === "follow");
     }
 
-    // mentions لو ضفتيها بعدين
-    return notifications.filter((n) => n.badgeLabel.toLowerCase() === type);
+    return notifications;
   }, [notifications, activeFilter]);
 
   const filters = useMemo(
@@ -164,12 +170,22 @@ const Notifications = () => {
       {
         key: "comments",
         label: "Comments",
-        count: notifications.filter((n) => n.badgeLabel === "COMMENT").length,
+        count: notifications.filter((n) => n.simpleType === "comment").length,
       },
       {
         key: "reactions",
         label: "Reactions",
-        count: notifications.filter((n) => n.badgeLabel === "REACTION").length,
+        count: notifications.filter((n) => n.simpleType === "reaction").length,
+      },
+      {
+        key: "mentions",
+        label: "Mentions",
+        count: notifications.filter((n) => n.simpleType === "mention").length,
+      },
+      {
+        key: "follows",
+        label: "Follows",
+        count: notifications.filter((n) => n.simpleType === "follow").length,
       },
     ],
     [notifications],
