@@ -36,3 +36,29 @@
     transform: scale(1);
   }
 }
+
+/* Dark scrollbar */
+.dark-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.dark-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dark-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #374151;
+  /* gray-700 */
+  border-radius: 9999px;
+}
+
+.dark-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #1f2937;
+  /* gray-800 */
+}
+
+/* Firefox */
+.dark-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #374151 transparent;
+}

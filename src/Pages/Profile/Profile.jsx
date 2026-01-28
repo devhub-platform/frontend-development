@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, {useState} from 'react'
-import { Linkedin, Github, Share2, Calendar, BookOpen, ChevronRight } from 'lucide-react';
+import { Linkedin, Github, Share2, Calendar, BookOpen, ChevronRight, Settings, X, Upload, Camera, MapPin } from 'lucide-react';
 import { Messages } from "../../Components/Messages/Messages";
 import Post from "../../Components/Post/Post";
 import { posts } from "../../context/PostsData";
@@ -104,8 +104,12 @@ const mockCollections = [
 const Profile = () => {
   const [profileData, setProfileData] = useState({
     name: 'Sarah Johnson',
+    username: 'sarahjohnson',
+    email: 'sarah.johnson@example.com',
     bio: 'Tech writer & AI enthusiast. Sharing insights on artificial intelligence, content creation, and the future of digital storytelling.',
+    skills:' AI, Machine Learning, Content Creation, Blogging, Digital Marketing',
     education: 'Computer Science, University of California, Berkeley',
+    location: 'San Francisco, CA',
     linkedin: 'sarah-johnson',
     github: 'sarahjohnson',
   });
@@ -446,9 +450,9 @@ const Profile = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
   {[
     { label: "Posts", value: "25" },
-    { label: "Views", value: "45K" },
-    { label: "Likes", value: "2.3K" },
-    { label: "Comments", value: "487" },
+    { label: "Total Views", value: "45K" },
+    { label: "Total Reactions", value: "2.3K" },
+    { label: "Total Comments", value: "487" },
   ].map((item, i) => (
     <div
       key={i}
@@ -509,7 +513,242 @@ const Profile = () => {
     <div className="fixed bottom-0 left-2 z-50 w-[18%]">
       <Messages />
     </div>
+
+    {/* --- Edit Profile Modal --- */}
+{showEditDialog && (
+  <div className="fixed inset-0 z-999 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="bg-white dark:bg-bg-secondary-dark w-full max-w-175 max-h-[90vh] rounded-3xl shadow-2xl border-2 border-[#62b6cb]/20 flex flex-col">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold text-[#1b4965] dark:text-gray-100 flex items-center gap-2">
+            <Settings className="w-6 h-6 text-text-light dark:text-text-dark" />
+            Edit Profile
+          </h2>
+          <p className="text-gray-500 text-sm mt-1 dark:text-gray-300">Update your profile information, images, and social media links.</p>
+        </div>
+        <button 
+          onClick={handleCancelEdit}
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+        >
+          <X className="w-6 h-6 text-gray-500" />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="p-6 space-y-6 overflow-y-scroll dark-scrollbargit">
+        {/* Cover Image Upload */}
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-[#1b4965] dark:text-gray-200">Cover Image</label>
+          <div className="relative rounded-2xl overflow-hidden border-2 border-[#62b6cb]/20 h-32 group">
+            <img
+              src={tempCoverImage || coverImage}
+              alt="Cover"
+              className="w-full h-full object-cover"
+            />
+            <input 
+              type="file" 
+              id="cover-upload-modal" 
+              accept="image/*" 
+              onChange={handleCoverImageUpload} 
+              className="hidden" 
+            />
+            <button
+              onClick={() => document.getElementById('cover-upload-modal')?.click()}
+              className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"
+            >
+              <div className="flex flex-col items-center gap-2 text-white">
+                <Upload className="w-6 h-6" />
+                <span className="text-sm">Upload Cover</span>
+              </div>
+            </button>
+            {tempCoverImage && (
+              <button
+                onClick={() => setTempCoverImage(null)}
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-lg p-2 hover:bg-red-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Profile Image Upload */}
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-[#1b4965] dark:text-gray-200">Profile Picture</label>
+          <div className="flex items-center gap-4">
+            <div className="relative group w-24 h-24">
+              <img
+                src={tempProfileImage || profileImage}
+                alt="Profile"
+                className="w-full h-full rounded-2xl object-cover border-2 border-[#62b6cb]/20"
+              />
+              <input 
+                type="file" 
+                id="profile-upload-modal" 
+                accept="image/*" 
+                onChange={handleProfileImageUpload} 
+                className="hidden" 
+              />
+              {/* <button
+                onClick={() => document.getElementById('profile-upload-modal')?.click()}
+                className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all rounded-2xl flex items-center justify-center text-white"
+              >
+                <Camera className="w-6 h-6" />
+              </button> */}
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => document.getElementById('profile-upload-modal')?.click()}
+                className="px-4 py-2 border border-blue-100 rounded-xl hover:bg-blue-100 dark:hover:bg-bg-secondary-dark transition-colors text-sm font-medium
+                            dark:border-blue-800/10 dark:bg-bg-primary-dark dark:text-gray-200"
+              >
+                Upload New Picture
+              </button>
+              {tempProfileImage && (
+                <button
+                  onClick={() => setTempProfileImage(null)}
+                  className="text-red-500 text-sm hover:underline text-left"
+                >
+                  Remove temporary image
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Basic Info */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">Name</label>
+            <input
+              type="text"
+              value={profileData.name}
+              onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+              className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none dark:bg-gray-800 dark:border-gray-700"
+              placeholder="Your name"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">Username</label>
+            <input
+              type="text"
+              value={profileData.username}
+              onChange={(e) => setProfileData({ ...profileData, username: e.target.value })}
+              className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none dark:bg-gray-800 dark:border-gray-700"
+              placeholder="Your name"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">Location</label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={profileData.location || ''}
+                onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
+                className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none dark:bg-gray-800 dark:border-gray-700"
+                placeholder="City, Country"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">Education</label>
+            <div className="relative">
+              <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={profileData.education || ''}
+                onChange={(e) => setProfileData({ ...profileData, education: e.target.value })}
+                className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none dark:bg-gray-800 dark:border-gray-700"
+                placeholder="City, Country"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Email */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">Email</label>
+          <input
+            value={profileData.email}
+            onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none dark:bg-gray-800 dark:border-gray-700"
+            placeholder="Your email address"
+          />
+        </div>
+
+        {/* Bio */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">Bio</label>
+          <textarea
+            value={profileData.bio}
+            onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none  min-h-25 dark:bg-gray-800 dark:border-gray-700"
+            placeholder="Tell us about yourself..."
+          />
+        </div>
+
+        {/* Skills */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">Skills</label>
+          <textarea
+            value={profileData.skills}
+            onChange={(e) => setProfileData({ ...profileData, skills: e.target.value })}
+            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none  min-h-20 dark:bg-gray-800 dark:border-gray-700"
+            placeholder="Tell us about your skills..."
+          />
+        </div>
+
+        {/* Social Media */}
+        <div className="space-y-4">
+          <label className="text-sm font-bold text-[#1b4965] dark:text-gray-200">Social Media</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {socialMediaPlatforms.map((platform) => (
+              <div key={platform.name} className="space-y-2">
+                <label className="text-xs font-medium capitalize flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                  <platform.icon className="w-4 h-4" style={{ color: platform.color }} />
+                  {platform.name}
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">
+                    {platform.prefix}
+                  </span>
+                  <input
+                    type="text"
+                    value={profileData[platform.name] || ''}
+                    onChange={(e) => setProfileData({ ...profileData, [platform.name]: e.target.value })}
+                    className="w-full pl-28 pr-4 py-2 text-sm rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none dark:bg-gray-800 dark:border-gray-700"
+                    placeholder={platform.placeholder}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="p-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-3">
+        <button
+          onClick={handleCancelEdit}
+          className="px-6 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-medium
+                  dark:bg-gray-900 dark:border-0"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSaveProfile}
+          className="px-6 py-2 rounded-xl bg-primary text-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex items-center gap-2 font-medium"
+        >
+          Save Changes
+        </button>
+      </div>
+    </div>
   </div>
+)}
+  </div>
+  
   </>
 }
 
