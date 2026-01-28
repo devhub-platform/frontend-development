@@ -1,9 +1,212 @@
-import React from 'react'
+import { useEffect, useMemo, useState } from "react";
+import { Coffee, Rocket } from "lucide-react";
+import { NotificationFeed } from "../../Components/Notification/NotificationFeed";
+import { NotificationCard } from "../../Components/Notification/NotificationCard";
+import notificationsApi from "../../services/notificationsApi";
+
+const EmptyState = () => (
+  <div className="flex flex-col items-center justify-center py-32 text-center animate-in fade-in zoom-in duration-700">
+    <div className="relative mb-6">
+      <div className="absolute inset-0 bg-primary blur-[60px] opacity-20 animate-pulse" />
+      <div className="relative w-24 h-24 bg-white dark:bg-primary rounded-3xl flex items-center justify-center border border-white dark:border-neutral-900">
+        <Coffee size={40} className="text-primary dark:text-white" />
+      </div>
+    </div>
+    <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">
+      Everything is quiet
+    </h3>
+    <p className="text-slate-500 dark:text-neutral-400 max-w-xs mx-auto text-sm font-medium leading-relaxed">
+      You're all caught up for today. Enjoy your coffee!
+    </p>
+  </div>
+);
+
+// mapping حسب شكل Laravel notifications
+const mapApiNotificationToUi = (item) => {
+  const type = item.type; // App\Notifications\...
+  const data = item.data || {};
+
+  let simpleType = "comment";
+  let badgeLabel = "COMMENT";
+
+  if (type === "App\\Notifications\\ReactNotification") {
+    simpleType = "reaction";
+    badgeLabel = "REACTION";
+  } else if (type === "App\\Notifications\\NewCommentNotification") {
+    simpleType = "comment";
+    badgeLabel = "COMMENT";
+  }
+
+  return {
+    id: item.id,
+    type: type,
+    badgeLabel,
+    username:
+      data.username || data.user_name || data.author_name || "DevHub User",
+    action:
+      data.message ||
+      data.action ||
+      data.title ||
+      (simpleType === "reaction"
+        ? "reacted to your post"
+        : "left a new comment"),
+    content: data.content || data.body || "",
+    timestamp: item.created_at,
+    avatar:
+      data.avatar_url ||
+      data.avatar ||
+      `https://api.dicebear.com/7.x/thumbs/svg?seed=${item.id}`,
+    isRead: !!item.read_at,
+  };
+};
 
 const Notifications = () => {
-  return (
-    <div>Notifications</div>
-  )
-}
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState("");
 
-export default Notifications
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const list = await notificationsApi.getAllNotifications();
+      const mapped = list.map(mapApiNotificationToUi);
+      setNotifications(mapped);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load notifications. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      // optimistic
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+      );
+      await notificationsApi.markNotificationAsRead(id);
+    } catch (err) {
+      console.error(err);
+      fetchNotifications();
+    }
+  };
+
+  const handleDelete = (id) => {
+    // مفيش endpoint delete واحدة، فهنشيلها محلي بس
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      setActionLoading(true);
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      await notificationsApi.markAllNotificationsAsRead();
+    } catch (err) {
+      console.error(err);
+      fetchNotifications();
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (!window.confirm("This will permanently clear your inbox. Ready?")) {
+      return;
+    }
+    try {
+      setActionLoading(true);
+      await notificationsApi.clearAllNotifications();
+      setNotifications([]);
+    } catch (err) {
+      console.error(err);
+      fetchNotifications();
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const filteredNotifications = useMemo(() => {
+    if (activeFilter === "all") return notifications;
+    const type = activeFilter.endsWith("s")
+      ? activeFilter.slice(0, -1)
+      : activeFilter;
+
+    if (type === "comment") {
+      return notifications.filter(
+        (n) =>
+          n.type === "App\\Notifications\\NewCommentNotification" ||
+          n.badgeLabel === "COMMENT",
+      );
+    }
+    if (type === "reaction") {
+      return notifications.filter(
+        (n) =>
+          n.type === "App\\Notifications\\ReactNotification" ||
+          n.badgeLabel === "REACTION",
+      );
+    }
+
+    // mentions لو ضفتيها بعدين
+    return notifications.filter((n) => n.badgeLabel.toLowerCase() === type);
+  }, [notifications, activeFilter]);
+
+  const filters = useMemo(
+    () => [
+      { key: "all", label: "All Feed", count: notifications.length },
+      {
+        key: "comments",
+        label: "Comments",
+        count: notifications.filter((n) => n.badgeLabel === "COMMENT").length,
+      },
+      {
+        key: "reactions",
+        label: "Reactions",
+        count: notifications.filter((n) => n.badgeLabel === "REACTION").length,
+      },
+    ],
+    [notifications],
+  );
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-bg-primary-dark transition-colors duration-700">
+      <NotificationFeed
+        activeFilter={activeFilter}
+        setActiveFilter={setActiveFilter}
+        unreadCount={unreadCount}
+        totalCount={notifications.length}
+        filters={filters}
+        handleMarkAllAsRead={handleMarkAllAsRead}
+        handleClearAll={handleClearAll}
+        loading={loading || actionLoading}
+        error={error}
+      >
+        {filteredNotifications.length > 0 ? (
+          <div className="space-y-1 animate-in slide-in-from-bottom-4 fade-in duration-700">
+            {filteredNotifications.map((n) => (
+              <NotificationCard
+                key={n.id}
+                notification={n}
+                onMarkAsRead={handleMarkAsRead}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        ) : !loading && !error ? (
+          <EmptyState />
+        ) : null}
+      </NotificationFeed>
+    </div>
+  );
+};
+
+export default Notifications;
