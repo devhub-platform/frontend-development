@@ -8,6 +8,7 @@ import {
   Search,
   Menu,
   MessageSquare,
+  X,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 
@@ -20,6 +21,8 @@ export default function Sidebar({
   onShareChat,
   onPinChat,
   currentChatId,
+  isMobile = false,
+  onCloseMobile,
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,19 +42,44 @@ export default function Sidebar({
     setMenuOpenId(null);
   };
 
+  const sidebarWidth = isMobile
+    ? "w-full max-w-xs"
+    : isCollapsed
+      ? "w-20"
+      : "w-72";
+
   return (
     <div
-      className={`bg-white dark:bg-bg-secondary-dark border-r border-gray-200 dark:border-gray-800 flex flex-col h-[90vh] transition-all duration-500 ease-in-out ${
-        isCollapsed ? "w-20" : "w-72"
-      }`}
+      className={`bg-white dark:bg-bg-secondary-dark border-r border-gray-200 dark:border-gray-800 flex flex-col h-full md:h-[90vh] transition-all duration-500 ease-in-out ${sidebarWidth}`}
     >
-      <div className="p-4 space-y-4">
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-500"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
+      <div className="p-4 space-y-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {!isMobile && (
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-500"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          )}
+          {!isCollapsed && (
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-100">
+              Chats
+            </span>
+          )}
+        </div>
+
+        {isMobile && (
+          <button
+            onClick={onCloseMobile}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
+      <div className="px-4">
         <button
           onClick={onNewChat}
           className={`w-full bg-primary hover:opacity-90 text-white rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg shadow-primary/20 ${
@@ -64,7 +92,7 @@ export default function Sidebar({
       </div>
 
       {!isCollapsed && (
-        <div className="px-4 mb-2">
+        <div className="px-4 mt-4 mb-2">
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
             <input
@@ -147,7 +175,7 @@ export default function Sidebar({
                       </button>
 
                       {menuOpenId === chat.id && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl py-1 z-100 animate-in fade-in zoom-in duration-200">
+                        <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl py-1 z-50 animate-in fade-in zoom-in duration-200">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

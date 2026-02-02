@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
+import { Menu } from "lucide-react";
 import Sidebar from "../../Components/AIChat/Sidebar";
 import ChatArea from "../../Components/AIChat/ChatArea";
 import InputArea from "../../Components/AIChat/InputArea";
@@ -12,14 +13,20 @@ export default function AIChat() {
   const [currentChatId, setCurrentChatId] = useState(null);
   const [selectedModel, setSelectedModel] = useState("Qwen 2.5");
 
+  // sidebar mobile drawer
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const currentChat = chats.find((c) => c.id === currentChatId) || null;
+  const hasMessages = (currentChat?.messages?.length || 0) > 0;
 
   const handleNewChat = () => {
     setCurrentChatId(null);
+    setIsSidebarOpen(false);
   };
 
   const handleSelectChat = (chat) => {
     setCurrentChatId(chat.id);
+    setIsSidebarOpen(false);
   };
 
   const handlePinChat = (id) => {
@@ -49,41 +56,47 @@ export default function AIChat() {
     const trimmed = content.trim();
     if (!trimmed) return;
 
-    setChats((prevChats) => {
-      let activeId = currentChatId;
-      let updatedChats = [...prevChats];
+    const newChatId = Date.now().toString();
+    const userMessageId = (Date.now() + 1).toString();
 
-      if (!activeId) {
-        activeId = Date.now().toString();
+    setChats((prevChats) => {
+      const activeId = currentChatId || newChatId;
+
+      let updated = prevChats;
+
+      if (!currentChatId) {
         const newChat = {
           id: activeId,
           title: trimmed.slice(0, 40) || "New chat",
           messages: [],
           pinned: false,
         };
-        updatedChats = [newChat, ...updatedChats];
-        setCurrentChatId(activeId);
+        updated = [newChat, ...prevChats];
       }
 
       const userMessage = {
-        id: Date.now().toString(),
+        id: userMessageId,
         role: "user",
         content: trimmed,
         model: selectedModel,
       };
 
-      return updatedChats.map((c) =>
+      return updated.map((c) =>
         c.id === activeId
           ? { ...c, messages: [...c.messages, userMessage] }
           : c,
       );
     });
 
-    const replyId = Date.now().toString();
+    if (!currentChatId) setCurrentChatId(newChatId);
+
+    const replyId = (Date.now() + 2).toString();
+    const activeForReply = currentChatId || newChatId;
+
     setTimeout(() => {
       setChats((prevChats) =>
         prevChats.map((c) =>
-          c.id === (currentChatId || c.id)
+          c.id === activeForReply
             ? {
                 ...c,
                 messages: [
@@ -102,29 +115,87 @@ export default function AIChat() {
   };
 
   return (
-    <div className="flex h-[90vh] bg-gray-50 dark:bg-[#0a0e1a]">
-      <Sidebar
-        chats={chats}
-        currentChatId={currentChatId}
-        onSelectChat={handleSelectChat}
-        onNewChat={handleNewChat}
-        onDeleteChat={handleDeleteChat}
-        onRenameChat={handleRenameChat}
-        onShareChat={handleShareChat}
-        onPinChat={handlePinChat}
-      />
+    <div className="flex h-[90vh] bg-gray-50 dark:bg-[#0a0e1a] dark-scrollbar">
+      {/* Desktop sidebar (md وما فوق) */}
+      <div className="hidden md:block">
+        <Sidebar
+          chats={chats}
+          currentChatId={currentChatId}
+          onSelectChat={handleSelectChat}
+          onNewChat={handleNewChat}
+          onDeleteChat={handleDeleteChat}
+          onRenameChat={handleRenameChat}
+          onShareChat={handleShareChat}
+          onPinChat={handlePinChat}
+          isMobile={false}
+          onCloseMobile={() => {}}
+        />
+      </div>
 
-      <div className="flex-1 flex flex-col relative">
+      {/* Main area */}
+      <div className="flex-1 flex flex-col relative min-h-0 min-w-0">
+        {/* زر فتح السايدبار في الموبايل */}
+        <div className="md:hidden px-4 pt-3 pb-1 flex items-center justify-between">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 rounded-lg bg-gray-900 text-white flex items-center gap-2"
+          >
+            <Menu className="w-5 h-5" />
+            <span className="text-sm">Chats</span>
+          </button>
+          <span className="text-xs text-gray-400">
+            Model:{" "}
+            <span className="text-primary font-semibold">{selectedModel}</span>
+          </span>
+        </div>
+
         <ChatArea
           messages={currentChat?.messages || []}
           selectedModel={selectedModel}
         />
-        <InputArea
-          onSendMessage={handleSendMessage}
-          selectedModel={selectedModel}
-          onModelChange={setSelectedModel}
-        />
+
+        {/* Composer */}
+        <div
+          className={
+            hasMessages
+              ? "sticky bottom-0 z-40"
+              : "flex-1 flex items-center justify-center pb-12"
+          }
+        >
+          <InputArea
+            onSendMessage={handleSendMessage}
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
+            variant={hasMessages ? "bottom" : "center"}
+          />
+        </div>
       </div>
+
+      {/* Mobile sidebar drawer + overlay */}
+      {isSidebarOpen && (
+        <>
+          {/* overlay */}
+          <div
+            className="fixed inset-0 bg-black/40 z-40 md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+          {/* drawer */}
+          <div className="fixed inset-y-0 left-0 z-50 md:hidden w-64 max-w-[80%]">
+            <Sidebar
+              chats={chats}
+              currentChatId={currentChatId}
+              onSelectChat={handleSelectChat}
+              onNewChat={handleNewChat}
+              onDeleteChat={handleDeleteChat}
+              onRenameChat={handleRenameChat}
+              onShareChat={handleShareChat}
+              onPinChat={handlePinChat}
+              isMobile={true}
+              onCloseMobile={() => setIsSidebarOpen(false)}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
