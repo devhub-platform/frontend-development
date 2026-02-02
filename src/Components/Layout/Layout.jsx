@@ -5,7 +5,7 @@ import Navbar  from '../Navbar/Navbar.jsx';
 
 export default function Layout() {
   return <>
-    <div className="pt-5">
+    <div className="pt-2.5">
       <Navbar/>
       <div className='mt-15 min-h-[40vh]'>
         <Outlet></Outlet>
