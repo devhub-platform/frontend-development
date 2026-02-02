@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { MessageCircle, Share2, Bookmark, UserRoundPen, Eye } from "lucide-react";
+import { MessageCircle, Share2, Bookmark, UserRoundPen, Eye, ThumbsUp } from "lucide-react";
 
 const reactionEmojis = [
   { emoji: "👍", label: "Like" },
@@ -78,7 +78,7 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
                   onClick={() => setOpenReactionId(isReactionOpen ? null : post.id)}
                   className="flex items-center gap-1 cursor-pointer"
                 >
-                  <span>{selectedReaction || "👍"}</span>
+                  <span>{selectedReaction || <ThumbsUp className="w-5 h-5" />}</span>
                   <span>{reactionsCount}</span>
                 </button>
 

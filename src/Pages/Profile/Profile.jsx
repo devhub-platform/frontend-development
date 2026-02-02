@@ -536,7 +536,7 @@ const Profile = () => {
       </div>
 
       {/* Body */}
-      <div className="p-6 space-y-6 overflow-y-scroll dark-scrollbar">
+      <div className="p-6 space-y-6 overflow-y-scroll no-scrollbar">
         {/* Cover Image Upload */}
         <div className="space-y-2">
           <label className="text-sm font-semibold text-[#1b4965] dark:text-gray-200">Cover Image</label>

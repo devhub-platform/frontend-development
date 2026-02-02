@@ -4,12 +4,9 @@ import {
   Sparkles,
   ChevronDown,
   Check,
-  Upload,
-  Image,
-  FileText,
-  Code,
-  Video,
+  Paperclip,
   Mic,
+  Square,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
@@ -21,9 +18,68 @@ export default function InputArea({
 }) {
   const [message, setMessage] = useState("");
   const [showModels, setShowModels] = useState(false);
-  const [showAttach, setShowAttach] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
+  const recognitionRef = useRef(null); // Ref to hold the recognition instance
+
+  // 1. STOP ON UNMOUNT OR LEAVE
+  useEffect(() => {
+    // This return function runs when the user leaves the page or the component closes
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        console.log("Speech recognition stopped: User left the page.");
+      }
+    };
+  }, []);
+
+  const toggleListening = () => {
+    if (isListening) {
+      // STOP LOGIC
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    // START LOGIC
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Browser not supported");
+      return;
+    }
+
+  // --- Speech to Text Logic ---
+  const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => setIsListening(true);
+    
+    recognition.onresult = (event) => {
+      let finalTranscript = "";
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+      if (finalTranscript) {
+        setMessage((prev) => (prev ? `${prev} ${finalTranscript}` : finalTranscript));
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error(event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+  // -----------------------------
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -40,17 +96,21 @@ export default function InputArea({
   const handleSend = () => {
     const trimmed = message.trim();
     if (!trimmed) return;
+    // 2. STOP ON SEND
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    }
     onSendMessage(trimmed);
     setMessage("");
-    setShowAttach(false);
     setShowModels(false);
   };
 
   return (
-    <div className={`w-full ${variant === "center" ? "max-w-3xl" : ""}`}>
-      <div className="w-full bg-white/80 dark:bg-[#0a0e1a]/80 backdrop-blur-md p-2 pb-4 border-t border-gray-200 dark:border-gray-900">
+    <div className={`w-full ${variant === "center" ? "max-w-3xl" : ""} `}>
+      <div className="w-full bg-white/80 dark:bg-[#0a0e1a]/80 backdrop-blur-md p-2 pb-4 border-t border-gray-300 dark:border-gray-900">
         <div className="max-w-4xl mx-auto relative">
-          <div className="bg-white dark:bg-[#0f1419] border dark:border-gray-700 rounded-2xl shadow-lg focus-within:ring-2 focus-within:ring-primary/20 transition-all p-3">
+          <div className="bg-white dark:bg-[#0f1419] border border-gray-300 dark:border-gray-700 rounded-2xl shadow-lg focus-within:ring-2 focus-within:ring-primary/20 transition-all p-3">
             {/* Row 1: message */}
             <textarea
               ref={textareaRef}
@@ -72,47 +132,11 @@ export default function InputArea({
               {/* left: attach */}
               <div className="relative">
                 <button
-                  onClick={() => setShowAttach((v) => !v)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
                 >
-                  <Plus
-                    className={`transition-transform duration-300 ${
-                      showAttach ? "rotate-45 text-primary" : ""
-                    }`}
-                  />
+                  <Paperclip size={20}/>
                 </button>
-
-                {showAttach && (
-                  <div className="absolute bottom-full left-0 mb-3 w-56 bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-2xl shadow-2xl p-2 grid grid-cols-2 gap-1 animate-in slide-in-from-bottom-2 duration-200 z-50">
-                    {[
-                      { icon: Upload, label: "Files", color: "text-blue-500" },
-                      {
-                        icon: Image,
-                        label: "Photos",
-                        color: "text-purple-500",
-                      },
-                      {
-                        icon: FileText,
-                        label: "Document",
-                        color: "text-green-500",
-                      },
-                      { icon: Code, label: "Snippet", color: "text-amber-500" },
-                      { icon: Video, label: "Video", color: "text-red-500" },
-                      { icon: Mic, label: "Audio", color: "text-cyan-500" },
-                    ].map((item, i) => (
-                      <button
-                        key={i}
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex flex-col items-center gap-2 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-colors"
-                      >
-                        <item.icon size={20} className={item.color} />
-                        <span className="text-[10px] font-medium dark:text-gray-200">
-                          {item.label}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
 
                 <input
                   type="file"
@@ -127,7 +151,7 @@ export default function InputArea({
                 <div className="relative">
                   <button
                     onClick={() => setShowModels((v) => !v)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-full text-xs dark:text-gray-200 border dark:border-gray-700 hover:border-primary/50 transition-all"
+                    className="flex items-center gap-2 px-3 py-1.5 border-gray-200 bg-gray-100 dark:bg-gray-800 rounded-full text-xs dark:text-gray-200 border dark:border-gray-700 hover:border-primary/50 transition-all"
                   >
                     <Sparkles
                       size={12}
@@ -138,7 +162,7 @@ export default function InputArea({
                   </button>
 
                   {showModels && (
-                    <div className="absolute bottom-full right-0 mb-3 w-52 bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50">
+                    <div className="absolute bottom-full right-0 mb-3 w-52 border-gray-200 bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50">
                       {models.map((m) => (
                         <button
                           key={m}
@@ -160,6 +184,24 @@ export default function InputArea({
                   )}
                 </div>
 
+                {/* --- TOGGLE MIC / STOP BUTTON --- */}
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  className={`p-2 rounded-full transition-all flex items-center justify-center ${
+                    isListening 
+                      ? "bg-primary text-white animate-pulse shadow-lg shadow-blue-800/50" 
+                      : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  {isListening ? (
+                    <Square size={16} fill="currentColor" /> // Stop Icon
+                  ) : (
+                    <Mic size={18} /> // Mic Icon
+                  )}
+                </button>
+                {/* ------------------------------- */}
+
                 <button
                   onClick={handleSend}
                   disabled={!message.trim()}
@@ -171,7 +213,7 @@ export default function InputArea({
             </div>
           </div>
 
-          <p className="mt-3 text-[12px] text-gray-800 dark:text-gray-200 text-center">
+          <p className="mt-3 text-[12px] text-gray-700 dark:text-gray-200 text-center">
             DevHub AI can make mistakes. Review important answers, especially
             code, before using them.
           </p>

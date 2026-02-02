@@ -100,10 +100,10 @@ export function ChatPanel({ isOpen, onClose }) {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 20 }}
-        className="hidden lg:flex flex-col w-[340px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-lg sticky top-0 h-screen"
+        className="hidden lg:flex flex-col w-[420px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-lg sticky top-0 h-screen"
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-center items-center gap-3 p-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+        <div className="sticky top-0 z-10 flex justify-center items-center gap-3 p-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
           <Sparkles className="w-5 h-5 text-text-light dark:text-text-dark" />
           <span>AI Assistant</span>    
         </div>

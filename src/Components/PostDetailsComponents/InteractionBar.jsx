@@ -1,11 +1,47 @@
-import { MessageCircle, Bookmark, Share2, Volume2, Eye } from 'lucide-react';
-import { useState } from 'react';
+import { MessageCircle, Bookmark, Share2, Volume2, Eye, ThumbsUp, Square } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-export function InteractionBar({ commentsCount, reactionsCount, views }) {
+export function InteractionBar({ commentsCount, reactionsCount, views, content}) {
   const [bookmarked, setBookmarked] = useState(false);
   const [selectedReaction, setSelectedReaction] = useState(null);
   const [reactionCount, setReactionCount] = useState(reactionsCount);
   const [showReactions, setShowReactions] = useState(false);
+  // New State for Text-to-Speech
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Clean up speech if user leaves the page
+  useEffect(() => {
+    return () => window.speechSynthesis.cancel();
+  }, []);
+
+  const handleListen = () => {
+    const synth = window.speechSynthesis;
+
+    if (isSpeaking) {
+      synth.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    if (!content) {
+      alert("No content found to read.");
+      return;
+    }
+
+    // Create a new utterance from the database content
+    const utterance = new SpeechSynthesisUtterance(content);
+    
+    // Optional: Customize voice settings
+    utterance.lang = 'en-US'; // Use 'ar-SA' for Arabic
+    utterance.rate = 0.7;     // Speed (0.1 to 10)
+    utterance.pitch = 1.0;    // Pitch (0 to 2)
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    synth.speak(utterance);
+  };
 
   const reactions = [
     { emoji: "👍", label: "Like" },
@@ -40,7 +76,7 @@ export function InteractionBar({ commentsCount, reactionsCount, views }) {
               onClick={() => setShowReactions(!showReactions)}
               className="flex items-center gap-2 text-gray-600 hover:text-text-light dark:text-gray-300 dark:hover:text-text-dark transition-colors"
             >
-              <span>{selectedReaction || "👍"}</span>
+              <span>{selectedReaction || <ThumbsUp className="w-5 h-5" />}</span>
               <span className="text-sm font-medium">{reactionCount}</span>
             </button>
 
@@ -75,9 +111,16 @@ export function InteractionBar({ commentsCount, reactionsCount, views }) {
 
         <div className="flex items-center gap-4">
           {/* Listen */}
-          <button className="flex items-center gap-2 text-gray-600 hover:text-text-light dark:text-gray-300 dark:hover:text-text-dark transition-colors">
-            <Volume2 className="w-5 h-5" />
-            <span className="text-sm font-medium">Listen</span>
+          <button 
+            onClick={handleListen}
+            className={`flex items-center gap-2 transition-colors ${
+              isSpeaking 
+                ? 'text-text-light dark:text-text-dark font-bold animate-pulse' 
+                : 'text-gray-600 hover:text-text-light dark:text-gray-300 dark:hover:text-text-dark'
+            }`}
+          >
+            {isSpeaking ? <Square className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            <span className="text-sm font-medium">{isSpeaking ? 'Stop' : 'Listen'}</span>
           </button>
 
           {/* Bookmark */}

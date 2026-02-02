@@ -64,13 +64,13 @@ export default function App() {
             </div>
     
             {/* Sidebar لسطح المكتب – الكود الأصلي كما هو */}
-            <div className="w-[23%] mt-10 ml-3 hidden lg:block relative">
+            <div className="w-[12%] mt-10 ml-3 hidden lg:block relative">
               <Messages />
             </div>
 
              <div className="min-h-screen bg-white lg:mx-2 dark:bg-bg-primary-dark">
       <div className="flex items-start justify-center dark:bg-bg-secondary-dark my-5 rounded-2xl">
-        <div className="max-w-4xl w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-5xl w-full px-4 sm:px-6 lg:px-8 py-8">
           {/* Cover Image */}
           <div className="mb-6">
             <img
@@ -117,7 +117,7 @@ export default function App() {
           </article>
 
           {/* Interaction Bar */}
-          <InteractionBar commentsCount={postData.commentsCount} reactionsCount={postData.reactionsCount} views={postData.views} />
+          <InteractionBar commentsCount={postData.commentsCount} reactionsCount={postData.reactionsCount} views={postData.views} content={postData.excerpt}/>
 
           {/* Comments Section */}
           <CommentSection initialComments={commentsData} />

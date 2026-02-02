@@ -45,7 +45,7 @@ export default function ChatArea({
 
   return (
     // Scroll داخلي واحد للشات (رأسي بس)
-    <div className="overflow-y-auto overflow-x-hidden min-h-0">
+    <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth overflow-x-hidden">
       <div className="max-w-5xl mx-auto px-6 pt-16 pb-40">
         <div className="text-xs text-gray-500 mb-6">
           Model:{" "}
@@ -75,7 +75,7 @@ export default function ChatArea({
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="flex flex-col space-y-6">
             {messages.map((msg) => {
               const isUser = msg.role === "user";
               const isExpanded = !!expandedIds[msg.id];

@@ -149,17 +149,19 @@ export default function AIChat() {
           </span>
         </div>
 
-        <ChatArea
-          messages={currentChat?.messages || []}
-          selectedModel={selectedModel}
-        />
+        <div className="flex-1 overflow-y-auto no-scrollbar overflow-x-hidden min-h-0">
+    <ChatArea
+      messages={currentChat?.messages || []}
+      selectedModel={selectedModel}
+    />
+  </div>
 
         {/* Composer */}
         <div
           className={
             hasMessages
               ? "sticky bottom-0 z-40"
-              : "flex-1 flex items-center justify-center pb-12"
+              : "flex items-center justify-center pb-2"
           }
         >
           <InputArea

@@ -1,6 +1,6 @@
 // FloatingMessages.jsx
 import { useState, useRef } from "react";
-import { MessageCircle, X, ArrowLeft, Send, Smile, Paperclip } from "lucide-react";
+import { MessageCircle, X, ArrowLeft, Send, Paperclip } from "lucide-react";
 
 const chatsMock = [
   { id: 0, name: "Sarah Johnson", lastMessage: "Thanks for the feedback on my article...", time: "2m ago", unread: 2 },
