@@ -4,24 +4,37 @@ import LogoWhite from "../../assets/images/DevHubLogoBlack.png";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
 import DarkMode from "./DarkMode.jsx";
 import { ThemeContext } from "../../context/ThemeContext";
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export function NavbarLandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("home"); // الجديد
   const { theme } = useContext(ThemeContext);
 
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
+      setActiveSection(id); // نحدّث الـ active
       setMobileMenuOpen(false);
     }
   };
 
+  const baseLinkClass = "transition-all duration-200 dark:text-gray-100";
+  const inactiveDesktop =
+    "text-[#0F172A] hover:text-text-light dark:hover:text-blue-400";
+  const activeDesktop =
+    "text-text-light font-semibold dark:text-blue-400 border-b-2 border-text-light dark:border-blue-400";
+
+  const inactiveMobile =
+    "text-[#0F172A] hover:text-text-light dark:hover:text-blue-400 hover:translate-x-1";
+  const activeMobile =
+    "text-text-light dark:text-blue-400 font-semibold translate-x-1";
+
   return (
     <nav
       className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-sm z-50
-    dark:bg-gray-900/90 dark:shadow-xl transition-all duration-300"
+      dark:bg-gray-900/90 dark:shadow-xl transition-all duration-300"
     >
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
@@ -41,25 +54,35 @@ export function NavbarLandingPage() {
           <div className="hidden md:flex items-center gap-8">
             <button
               onClick={() => scrollToSection("home")}
-              className="text-[#0F172A] hover:text-text-light transition-all duration-200 dark:text-gray-100 dark:hover:text-blue-400 "
+              className={`${baseLinkClass} ${
+                activeSection === "home" ? activeDesktop : inactiveDesktop
+              }`}
             >
               Home
             </button>
             <button
               onClick={() => scrollToSection("features")}
-              className="text-[#0F172A] hover:text-text-light transition-all duration-200 dark:text-gray-100 dark:hover:text-blue-400"
+              className={`${baseLinkClass} ${
+                activeSection === "features" ? activeDesktop : inactiveDesktop
+              }`}
             >
               Features
             </button>
             <button
               onClick={() => scrollToSection("how-it-works")}
-              className="text-[#0F172A] hover:text-text-light transition-all duration-200 dark:text-gray-100 dark:hover:text-blue-400"
+              className={`${baseLinkClass} ${
+                activeSection === "how-it-works"
+                  ? activeDesktop
+                  : inactiveDesktop
+              }`}
             >
               How It Works
             </button>
             <button
               onClick={() => scrollToSection("about")}
-              className="text-[#0F172A] hover:text-text-light transition-all duration-200 dark:text-gray-100 dark:hover:text-blue-400"
+              className={`${baseLinkClass} ${
+                activeSection === "about" ? activeDesktop : inactiveDesktop
+              }`}
             >
               About
             </button>
@@ -67,7 +90,6 @@ export function NavbarLandingPage() {
 
           {/* Desktop Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            {/* Updated Register Button */}
             <Link to="/register">
               <button className="px-5 py-2 text-[#0F172A] hover:text-text-light transition-colors duration-200 dark:text-gray-100 dark:hover:text-blue-400">
                 Register
@@ -107,30 +129,38 @@ export function NavbarLandingPage() {
           <div className="md:hidden mt-5 pb-4 flex flex-col gap-4">
             <button
               onClick={() => scrollToSection("home")}
-              className="text-[#0F172A] hover:text-text-light transition-all duration-200 text-left dark:text-gray-100 dark:hover:text-blue-400 hover:translate-x-1"
+              className={`${baseLinkClass} ${
+                activeSection === "home" ? activeMobile : inactiveMobile
+              } text-left`}
             >
               Home
             </button>
             <button
               onClick={() => scrollToSection("features")}
-              className="text-[#0F172A] hover:text-text-light transition-all duration-200 text-left dark:text-gray-100 dark:hover:text-blue-400 hover:translate-x-1"
+              className={`${baseLinkClass} ${
+                activeSection === "features" ? activeMobile : inactiveMobile
+              } text-left`}
             >
               Features
             </button>
             <button
               onClick={() => scrollToSection("how-it-works")}
-              className="text-[#0F172A] hover:text-text-light transition-all duration-200 text-left dark:text-gray-100 dark:hover:text-blue-400 hover:translate-x-1"
+              className={`${baseLinkClass} ${
+                activeSection === "how-it-works" ? activeMobile : inactiveMobile
+              } text-left`}
             >
               How It Works
             </button>
             <button
               onClick={() => scrollToSection("about")}
-              className="text-[#0F172A] hover:text-[#2563EB] transition-all duration-200 text-left dark:text-gray-100 dark:hover:text-blue-400 hover:translate-x-1"
+              className={`${baseLinkClass} ${
+                activeSection === "about" ? activeMobile : inactiveMobile
+              } text-left`}
             >
               About
             </button>
+
             <div className="flex flex-col gap-3 mt-4 border-t border-gray-300 dark:border-gray-600 pt-4">
-              {/* Updated Mobile Register Button */}
               <Link to="/register">
                 <button className="px-5 py-2 text-[#0F172A] hover:text-[#2563EB] transition-all duration-200 text-left dark:text-gray-100 dark:hover:text-blue-400 hover:-translate-y-1">
                   Register
