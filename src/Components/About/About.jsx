@@ -57,7 +57,7 @@ export function About() {
 
             {/* Stats */}
             <div className="flex gap-4 pt-4">
-              <div className="flex-1 p-6 bg-[#F8FAFC] dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+              <div className="flex-1 p-6 bg-[#F8FAFC] dark:bg-bg-secondary-dark rounded-xl border border-gray-100 dark:border-none shadow-2xl">
                 <div
                   className="text-text-light dark:text-text-dark"
                   style={{
@@ -68,14 +68,14 @@ export function About() {
                   100%
                 </div>
                 <div
-                  className="text-[#64748B] dark:text-gray-400"
+                  className="text-[#64748B] dark:text-white"
                   style={{ fontWeight: 500 }}
                 >
                   Free to Start
                 </div>
               </div>
 
-              <div className="flex-1 p-6 bg-[#F8FAFC] dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+              <div className="flex-1 p-6 bg-[#F8FAFC] rounded-xl border border-gray-100 dark:border-none dark:bg-bg-secondary-dark shadow-2xl">
                 <div
                   className="text-text-light dark:text-text-dark"
                   style={{
@@ -86,7 +86,7 @@ export function About() {
                   24/7
                 </div>
                 <div
-                  className="text-[#64748B] dark:text-gray-400"
+                  className="text-[#64748B] dark:text-white"
                   style={{ fontWeight: 500 }}
                 >
                   AI Assistance
