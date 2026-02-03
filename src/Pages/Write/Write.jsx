@@ -59,7 +59,7 @@ export default function Write() {
             color: "var(--toast-text)",
             border: "1px solid var(--toast-border)",
             borderRadius: "12px",
-            padding: "12px 14px", 
+            padding: "12px 14px",
             boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
           },
           success: {
@@ -72,13 +72,13 @@ export default function Write() {
         }}
       />
 
-      <div className="min-h-screen bg-white dark:bg-bg-secondary-dark transition-all duration-300">
+      <div className="min-h-screen bg-slate-50 dark:bg-bg-secondary-dark transition-all duration-300">
         {/* Main container */}
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row gap-6">
+        <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-row gap-6">
             {/* Left/Center - Editor Area */}
-            <div className="flex-1 min-w-0">
-              <div className="max-w-[900px] mx-auto py-6 lg:py-8">
+            <div className="flex-1">
+              <div className="max-w-225 mx-auto py-6 lg:py-8">
                 {/* Title Input */}
                 <div className="mb-6">
                   <input
@@ -90,11 +90,10 @@ export default function Write() {
                       w-full px-3 sm:px-4 py-3
                       text-3xl sm:text-4xl lg:text-5xl
                       border-none outline-none
-                      bg-white text-[#0F172A] placeholder-gray-300
+                      bg-white text-black placeholder-gray-300
                       dark:bg-bg-primary-dark dark:text-white dark:placeholder-gray-500
-                      transition-colors rounded-xl
+                      transition-colors rounded-sm font-extrabold leading-[1.1]
                     "
-                    style={{ fontWeight: 800, lineHeight: "1.1" }}
                   />
                 </div>
 
@@ -111,9 +110,8 @@ export default function Write() {
                     className="
                       inline-flex items-center gap-2 px-4 py-2
                       bg-primary text-white rounded-lg
-                      hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5
+                      hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 font-semibold cursor-pointer
                     "
-                    style={{ fontWeight: 600 }}
                   >
                     <Lightbulb className="w-5 h-5" />
                     AI Assistant
@@ -124,14 +122,13 @@ export default function Write() {
                     type="button"
                     onClick={() => setShowMobileSettings(true)}
                     className="
-                      lg:hidden inline-flex items-center gap-2 px-4 py-2 rounded-lg
+                      lg:hidden inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-bg-primary-dark
                       border border-gray-200 text-[#0F172A] hover:bg-gray-50
-                      dark:border-gray-700 dark:text-white dark:hover:bg-bg-primary-dark
-                      transition-colors
+                      dark:border-gray-700 dark:text-white dark:hover:bg-transparent
+                      transition-colors cursor-pointer font-bold
                     "
-                    style={{ fontWeight: 700 }}
                   >
-                    <Settings className="w-5 h-5 text-text-light dark:text-text-dark" />
+                    <Settings className="w-5 h-5 text-primary dark:text-text-dark"/>
                     Settings
                   </button>
                 </div>
@@ -141,24 +138,22 @@ export default function Write() {
                   <div className="flex gap-4">
                     <button
                       onClick={() => setEditorMode("edit")}
-                      className={`px-4 py-2 border-b-2 transition-colors ${
+                      className={`px-4 py-2 border-b-2 transition-colors font-semibold ${
                         editorMode === "edit"
-                          ? "border-primary text-text-light dark:text-text-dark"
+                          ? "border-primary text-primary dark:text-text-dark"
                           : "border-transparent text-[#475569] hover:text-[#0F172A] dark:text-gray-400 dark:hover:text-white"
                       }`}
-                      style={{ fontWeight: 600 }}
                     >
                       Edit
                     </button>
 
                     <button
                       onClick={() => setEditorMode("preview")}
-                      className={`px-4 py-2 border-b-2 transition-colors ${
+                      className={`px-4 py-2 border-b-2 transition-colors font-semibold ${
                         editorMode === "preview"
-                          ? "border-primary text-text-light dark:text-text-dark"
+                          ? "border-primary text-primary dark:text-text-dark"
                           : "border-transparent text-[#475569] hover:text-[#0F172A] dark:text-gray-400 dark:hover:text-white"
                       }`}
-                      style={{ fontWeight: 600 }}
                     >
                       Preview
                     </button>
@@ -197,9 +192,9 @@ export default function Write() {
             <div
               className="
                 absolute right-0 top-0 h-full w-[92%] max-w-sm
-                bg-white dark:bg-bg-secondary-dark
+                bg-slate-50 dark:bg-bg-secondary-dark
                 border-l border-gray-200 dark:border-gray-700
-                overflow-y-auto
+                overflow-y-auto dark-scrollbar
               "
             >
               <div className="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">

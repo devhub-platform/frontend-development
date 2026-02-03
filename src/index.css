@@ -63,9 +63,16 @@
   scrollbar-color: #374151 transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar { width: 5px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
 
 /* إخفاء شريط التمرير للمتصفحات المختلفة */
 .no-scrollbar::-webkit-scrollbar {
@@ -77,4 +84,13 @@
   /* IE and Edge */
   scrollbar-width: none;
   /* Firefox */
+}
+
+.prose ul {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+}
+.prose ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
 }

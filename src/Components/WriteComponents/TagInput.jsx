@@ -74,18 +74,17 @@ export default function TagInput({ selectedTags, onTagsChange }) {
 
   return (
     <div className="mb-6 relative">
-      <div className="flex flex-wrap gap-2 mb-2">
+      <div className="flex flex-wrap gap-2 mb-4">
         {selectedTags.map((tag) => (
           <span
             key={tag}
             className="
-                inline-flex items-center gap-1 px-3 py-1 rounded-full
-                bg-gray-100 text-[#475569]
-                dark:bg-bg-secondary-dark dark:text-gray-200
+                inline-flex items-center gap-1 px-3 py-2 rounded-full
+                bg-slate-200 text-[#2f363f]
+                dark:bg-bg-primary-dark dark:text-gray-200 font-semibold
               "
-            style={{ fontWeight: 600 }}
           >
-            #{tag}
+            #{` ${tag}`}
             <button
               type="button"
               onClick={() => handleRemoveTag(tag)}
@@ -110,7 +109,7 @@ export default function TagInput({ selectedTags, onTagsChange }) {
             onKeyDown={handleKeyDown}
             disabled={selectedTags.length >= 4}
             className="
-            w-full outline-none bg-transparent
+            w-full outline-none bg-white
             text-[#0F172A] placeholder-gray-400
             disabled:cursor-not-allowed
             dark:text-white dark:placeholder-gray-500
@@ -128,7 +127,7 @@ export default function TagInput({ selectedTags, onTagsChange }) {
           className="
             absolute top-full left-0 right-0 mt-2
             bg-white border border-gray-200 rounded-lg shadow-lg
-            z-200 max-h-64 overflow-y-auto
+            z-200 max-h-64 overflow-y-auto scroll dark-scrollbar
             dark:bg-bg-primary-dark dark:border-gray-700
           "
         >

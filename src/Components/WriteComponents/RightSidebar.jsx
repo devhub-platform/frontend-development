@@ -4,8 +4,6 @@ import { useCallback } from "react";
 export function RightSidebar({
   coverImage,
   onCoverImageChange,
-  visibility,
-  onVisibilityChange,
   variant = "desktop",
 }) {
   const handleImageUpload = useCallback(
@@ -20,28 +18,17 @@ export function RightSidebar({
       };
       reader.readAsDataURL(file);
     },
-    [onCoverImageChange]
+    [onCoverImageChange],
   );
 
   const handleGenerateImage = async () => {
     alert(
-      "AI Image generation would happen here. For demo purposes, using a placeholder."
+      "AI Image generation would happen here. For demo purposes, using a placeholder.",
     );
     onCoverImageChange(
-      "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=800&h=400&fit=crop"
+      "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=800&h=400&fit=crop",
     );
   };
-
-  const options = [
-    { value: "public", label: "Public", icon: Eye, desc: "Anyone can see" },
-    {
-      value: "private",
-      label: "Private",
-      icon: EyeOff,
-      desc: "Only you can see",
-    },
-    { value: "draft", label: "Draft", icon: FileText, desc: "Save for later" },
-  ];
 
   return (
     <aside
@@ -51,12 +38,12 @@ export function RightSidebar({
         ? "w-80 p-6 min-h-screen sticky top-0"
         : "w-full p-0"
     }
-    bg-white text-[#0F172A] border-l border-gray-200
-    dark:bg-bg-secondary-dark dark:text-white dark:border-gray-700
+    bg-slate-50 text-[#0F172A] lg:border-l border-gray-200 dark:border-gray-700
+    dark:bg-bg-secondary-dark dark:text-white
     transition-colors
   `}
     >
-      <div className="space-y-6">
+      <div className="flex flex-col justify-center h-full overflow-hidden gap-6 pt-6">
         {/* Cover Image Section */}
         <div className="rounded-lg p-4 shadow-lg bg-white border border-gray-200 dark:bg-bg-primary-dark dark:border-gray-700">
           <h3
@@ -113,111 +100,14 @@ export function RightSidebar({
                 className="
                   w-full px-4 py-2 rounded-lg transition-all duration-300
                   bg-primary text-white hover:shadow-xl hover:-translate-y-0.5
-                  flex items-center justify-center gap-2
+                  flex items-center justify-center gap-2 cursor-pointer font-semibold
                 "
-                style={{ fontWeight: 600 }}
               >
                 <Wand2 className="w-5 h-5" />
                 Generate with AI
               </button>
             </div>
           )}
-        </div>
-
-        {/* Post Visibility Section */}
-        <div className="rounded-lg p-4 shadow-lg bg-white border border-gray-200 dark:bg-bg-primary-dark dark:border-gray-700">
-          <h3
-            className="mb-3 flex items-center gap-2 text-text-light dark:text-text-dark"
-            style={{ fontWeight: 800 }}
-          >
-            <Eye className="w-5 h-5" />
-            Post Visibility
-          </h3>
-
-          <div className="grid gap-3">
-            {options.map((option) => {
-              const Icon = option.icon;
-              const active = visibility === option.value;
-
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => onVisibilityChange(option.value)}
-                  className={`
-            w-full text-left rounded-xl border p-4 transition-all duration-200
-            ${
-              active
-                ? "border-primary bg-[rgba(0,56,144,0.08)] dark:bg-[rgba(81,162,255,0.12)]"
-                : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-bg-secondary-dark dark:hover:bg-bg-primary-dark"
-            }
-          `}
-                >
-                  {/* keep real input for accessibility */}
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value={option.value}
-                    checked={active}
-                    onChange={() => onVisibilityChange(option.value)}
-                    className="sr-only"
-                  />
-
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`
-                mt-0.5 p-2 rounded-lg
-                ${
-                  active
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 text-[#0F172A] dark:bg-bg-primary-dark dark:text-white"
-                }
-              `}
-                    >
-                      <Icon className="w-4 h-4" />
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between gap-3">
-                        <div
-                          className="text-[#0F172A] dark:text-white"
-                          style={{ fontWeight: 800 }}
-                        >
-                          {option.label}
-                        </div>
-
-                        {/* check badge */}
-                        <div
-                          className={`
-                    h-6 w-6 rounded-full grid place-items-center border transition-colors
-                    ${
-                      active
-                        ? "border-primary bg-primary text-white"
-                        : "border-gray-200 bg-white text-transparent dark:border-gray-700 dark:bg-bg-primary-dark"
-                    }
-                  `}
-                          aria-hidden="true"
-                        >
-                          ✓
-                        </div>
-                      </div>
-
-                      <p className="mt-1 text-sm text-[#475569] dark:text-gray-400">
-                        {option.desc}
-                      </p>
-
-                      {/* subtle hint */}
-                      {active && (
-                        <p className="mt-2 text-xs text-[#475569] dark:text-gray-300">
-                          Selected visibility
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         {/* Helpful Tips */}

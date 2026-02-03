@@ -8,7 +8,7 @@ export function ActionButtons({
 }) {
   return (
     <div className="sticky bottom-0 z-40 bg-white border-t border-gray-200 shadow-lg dark:bg-bg-primary-dark dark:border-gray-700 transition-colors">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+      <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="text-[#475569] dark:text-gray-400 text-sm order-2 sm:order-1">
             Auto-saved just now
