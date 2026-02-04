@@ -1,12 +1,4 @@
-import {
-  Menu,
-  X,
-  PencilLine,
-  Bell,
-  UserRoundPen,
-  Search,
-  Code,
-} from "lucide-react";
+import { Menu, X, PencilLine, Bell, Search, Code } from "lucide-react";
 import { useState, useContext } from "react";
 import LogoWhite from "../../assets/images/DevHubLogoBlack.png";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
@@ -18,6 +10,18 @@ import { Link, NavLink } from "react-router-dom";
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme } = useContext(ThemeContext);
+
+  // Helper function عشان م نكررش الكود في كل NavLink
+  // بتضيف ستايل "نشط" مختلف للديسك توب والموبايل
+  const activeStyle = ({ isActive }) =>
+    isActive
+      ? "text-blue-600 dark:text-blue-400 font-bold border-b-2 border-blue-600 dark:border-blue-400 pb-1 transition-all duration-200"
+      : "text-[#0F172A] hover:text-blue-500 dark:text-gray-100 dark:hover:text-blue-400 transition-all duration-200";
+
+  const mobileActiveStyle = ({ isActive }) =>
+    isActive
+      ? "px-3 py-2 bg-blue-50 text-blue-600 rounded-md dark:bg-gray-800 dark:text-blue-400 w-full font-bold text-left"
+      : "px-3 py-2 text-[#0F172A] hover:bg-gray-100 rounded-md dark:text-gray-100 dark:hover:bg-gray-800 w-full text-left";
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-sm z-50 dark:bg-gray-900/90 dark:shadow-xl transition-all duration-300">
@@ -34,53 +38,36 @@ export default function Navbar() {
 
           {/* CENTER NAV — Desktop only (lg+) */}
           <div className="hidden lg:flex items-center gap-6 lg:gap-8">
-            <NavLink to="/home">
-              <button className="text-[#0F172A] hover:text-text-light dark:text-gray-100 dark:hover:text-blue-400">
-                Home
-              </button>
+            <NavLink to="/home" className={activeStyle}>
+              Home
             </NavLink>
 
-            <NavLink to="/trending">
-              <button className="text-[#0F172A] hover:text-text-light dark:text-gray-100 dark:hover:text-blue-400">
-                Trending
-              </button>
+            <NavLink to="/trending" className={activeStyle}>
+              Trending
             </NavLink>
 
-            <NavLink to="/qa">
-              <button className="text-[#0F172A] hover:text-text-light dark:text-gray-100 dark:hover:text-blue-400">
-                Q&A
-              </button>
+            <NavLink to="/qa" className={activeStyle}>
+              Q&A
             </NavLink>
 
-            <NavLink to="/aichat">
-              <button className="text-[#0F172A] hover:text-text-light dark:text-gray-100 dark:hover:text-blue-400">
-                AI Chat
-              </button>
+            <NavLink to="/aichat" className={activeStyle}>
+              AI Chat
             </NavLink>
           </div>
 
           {/* RIGHT SIDE */}
           <div className="flex items-center gap-2 md:gap-4">
-            {/* Search icon (mobile) */}
-            <button className="lg:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-              <Search
-                size={18}
-                strokeWidth={2.5}
-                className="text-gray-700 dark:text-gray-100"
-              />
-            </button>
-
             {/* Search input (desktop) */}
             <div className="hidden lg:block">
               <div className="relative w-64">
                 <Search
                   size={18}
                   strokeWidth={2.5}
-                  className="absolute top-1/2 -translate-y-1/2 left-2.5 text-text-light"
+                  className="absolute top-1/2 -translate-y-1/2 left-2.5 text-gray-400"
                 />
                 <input
                   type="text"
-                  className="w-full rounded-full py-1.5 border-2 text-bg-secondary-dark border-gray-200 bg-gray-100 pl-9 dark:bg-bg-primary-dark dark:text-gray-50 dark:border-gray-700 cursor-pointer text-sm"
+                  className="w-full rounded-full py-1.5 border-2 text-bg-secondary-dark border-gray-200 bg-gray-100 pl-9 dark:bg-gray-800 dark:text-gray-50 dark:border-gray-700 cursor-pointer text-sm"
                   placeholder="Search..."
                   disabled
                 />
@@ -99,19 +86,21 @@ export default function Navbar() {
 
             {/* Icons */}
             <div className="flex items-center gap-3 sm:gap-4">
-              <Link to="/playground" className="dark:text-white text-gray-700">
+              <Link
+                to="/playground"
+                className="dark:text-white text-gray-700 hover:text-blue-500"
+              >
                 <Code size={20} strokeWidth={2} />
               </Link>
 
               <Link
                 to="/notification"
-                className="dark:text-white text-gray-700"
+                className="dark:text-white text-gray-700 hover:text-blue-500"
               >
                 <Bell size={20} strokeWidth={2} />
               </Link>
 
               <DarkMode />
-
               <ProfileDropDown />
             </div>
 
@@ -133,40 +122,36 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="lg:hidden mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 animate-in slide-in-from-top-5 fade-in duration-200">
             <div className="flex flex-col gap-1">
-              <NavLink to="/home">
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 text-[#0F172A] hover:bg-gray-100 rounded-md dark:text-gray-100 dark:hover:bg-gray-800 w-full"
-                >
-                  Home
-                </button>
+              <NavLink
+                to="/home"
+                className={mobileActiveStyle}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Home
               </NavLink>
 
-              <NavLink to="/trending">
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 text-[#0F172A] hover:bg-gray-100 rounded-md dark:text-gray-100 dark:hover:bg-gray-800 w-full"
-                >
-                  Trending
-                </button>
+              <NavLink
+                to="/trending"
+                className={mobileActiveStyle}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Trending
               </NavLink>
 
-              <NavLink to="/qa">
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 text-[#0F172A] hover:bg-gray-100 rounded-md dark:text-gray-100 dark:hover:bg-gray-800 w-full"
-                >
-                  Q&A
-                </button>
+              <NavLink
+                to="/qa"
+                className={mobileActiveStyle}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Q&A
               </NavLink>
 
-              <NavLink to="/aichat">
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 text-[#0F172A] hover:bg-gray-100 rounded-md dark:text-gray-100 dark:hover:bg-gray-800 w-full"
-                >
-                  AI Chat
-                </button>
+              <NavLink
+                to="/aichat"
+                className={mobileActiveStyle}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                AI Chat
               </NavLink>
             </div>
           </div>

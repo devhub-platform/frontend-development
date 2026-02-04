@@ -25,21 +25,24 @@ const Home = () => {
 
         <div className="flex mx-auto justify-center">
           {/* Posts Section */}
-              <div className="lg:w-[60%] lg:ml-15 my-5">
-                <div className="flex flex-col items-center bg-white dark:bg-bg-secondary-dark rounded-lg shadow-md">
-                  {posts.map((post) => (
-                    <Post key={post.id} post={post}
-                          isReactionOpen={openReactionId === post.id}
-                          setOpenReactionId={setOpenReactionId} />
-                  ))}
-                </div>
-              </div>
+          <div className="lg:w-[60%] lg:ml-15 my-5">
+            <div className="flex flex-col items-center bg-white dark:bg-bg-secondary-dark rounded-lg shadow-md">
+              {posts.map((post) => (
+                <Post
+                  key={post.id}
+                  post={post}
+                  isReactionOpen={openReactionId === post.id}
+                  setOpenReactionId={setOpenReactionId}
+                />
+              ))}
+            </div>
+          </div>
 
-        <div className="w-[22%] my-10 hidden lg:block ml-8">
-          <RecommendedTopics />
-          <SuggestedToFollow />
-          <PopularTags />
-        </div>
+          <div className="w-[22%] my-10 hidden lg:block ml-8">
+            <PopularTags />
+            <SuggestedToFollow />
+            <RecommendedTopics />
+          </div>
         </div>
       </div>
     </>

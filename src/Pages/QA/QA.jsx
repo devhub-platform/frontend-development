@@ -7,6 +7,7 @@ import { QuestionsList } from "../../Components/QAComponents/QuestionsList";
 import Sidebar from "../../Components/QAComponents/Sidebar";
 import { mockQuestions } from "../../Components/QAComponents/mockQuestions";
 import { SaveFilterModal } from "../../Components/QAComponents/SaveFilterModal";
+import { Messages } from "../../Components/Messages/Messages";
 
 export default function QA() {
   const [activeTab, setActiveTab] = useState("Newest");
@@ -140,6 +141,15 @@ export default function QA() {
   return (
     <div className="min-h-screen bg-bg-light dark:bg-bg-secondary-dark transition-colors">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:pt-3 pb-16">
+        {/* زر عائم للموبايل / تابلت (أيقونة فقط) */}
+                <div className="fixed bottom-4 right-4 z-50 lg:hidden">
+                  <Messages />
+                </div>
+        
+                {/* Sidebar لسطح المكتب – الكود الأصلي كما هو */}
+                <div className="fixed bottom-0 left-2 z-50 w-[18%] mt-10 ml-2 hidden lg:block">
+                  <Messages />
+                </div>
         <QAHeader total={totalCount} />
 
         <div className="relative">

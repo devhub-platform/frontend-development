@@ -36,8 +36,8 @@ const Trending = () => {
               </div>
 
         <div className="w-[22%] my-10 hidden lg:block ml-8">
-          {/* <RecommendedTopics /> */}
-          <PopularTags />
+          <RecommendedTopics />
+          {/* <PopularTags /> */}
           <SuggestedToFollow />
         </div>
         </div>
