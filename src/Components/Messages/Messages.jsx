@@ -25,23 +25,23 @@ export function Messages() {
       {/* Floating button - Bottom bar for large screens */}
       {!open && (
         <>
-          {/* Large screens: Bottom bar */}
+          {/* Large screens: Bottom Right Bar */}
           <button
             type="button"
             onClick={() => {
               setOpen(true);
               setSelectedChat(null);
             }}
-            className="sticky top-[93vh] left-0 z-50 rounded-tl-xl bg-primary w-full h-12 shadow-xl flex items-center justify-center absolute hover:bg-text-light transition-colors lg:block hidden"
+            className="fixed bottom-0 right-8 z-50 rounded-t-xl bg-primary w-64 h-12 shadow-xl flex items-center justify-center hover:bg-opacity-90 transition-colors lg:flex hidden"
           >
             <div className="flex items-center justify-center">
-              <MessageCircle className="w-6 h-6 text-white" />
-              <span className="ml-2 text-white font-semibold hidden lg:inline">
+              <MessageCircle className="w-5 h-5 text-white" />
+              <span className="ml-2 text-white font-semibold">
                 Messages
               </span>
             </div>
             {unreadTotal > 0 && (
-              <span className="absolute -top-1 -right-1 bg-bg-primary-dark text-white text-xs w-5 h-5 rounded-full flex items-center justify-center dark:bg-gray-400">
+              <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center shadow-md">
                 {unreadTotal}
               </span>
             )}
@@ -54,11 +54,11 @@ export function Messages() {
               setOpen(true);
               setSelectedChat(null);
             }}
-            className="fixed bottom-4 right-4 z-50 bg-primary w-14 h-14 rounded-full shadow-xl flex items-center justify-center hover:bg-text-light transition-colors lg:hidden"
+            className="fixed bottom-4 right-4 z-50 bg-primary w-14 h-14 rounded-full shadow-xl flex items-center justify-center hover:bg-opacity-90 transition-colors lg:hidden"
           >
             <MessageCircle className="w-6 h-6 text-white" />
             {unreadTotal > 0 && (
-              <span className="absolute -top-1 -right-1 bg-bg-primary-dark text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                 {unreadTotal}
               </span>
             )}
@@ -69,11 +69,11 @@ export function Messages() {
       {/* Popup – Large screens bottom sheet */}
       {open && (
         <>
-          {/* Large screens: Bottom sheet */}
-          <div className="fixed inset-0 z-40 lg:flex hidden items-start justify-start rounded-tl-xl">
-            <div className="mx-2 relative top-0">
+          {/* Large screens: Positioned Right */}
+          <div className="fixed inset-0 z-50 lg:flex hidden items-end justify-end pointer-events-none">
+            <div className="mr-8 relative pointer-events-auto">
               <div
-                className="origin-bottom-left"
+                className="origin-bottom-right"
                 style={{ animation: "fadeInScale 0.25s ease-out" }}
               >
                 <MessagesPopup
@@ -87,7 +87,7 @@ export function Messages() {
           </div>
 
           {/* Small/Medium screens: Fullscreen */}
-          <div className="fixed inset-0 z-40 lg:hidden">
+          <div className="fixed inset-0 z-50 lg:hidden">
             <MessagesPopup
               selectedChat={selectedChat}
               setSelectedChat={setSelectedChat}
@@ -130,13 +130,13 @@ function MessagesPopup({ selectedChat, setSelectedChat, onClose, isLargeScreen }
   return (
     <div 
       className={`
-        ${isLargeScreen ? 'w-90 h-130 rounded-t-2xl shadow-2xl mx-2 mt-[24.5vh]' : 'w-full h-full'}
-        bg-white dark:bg-bg-secondary-dark overflow-hidden flex flex-col
-        ${isLargeScreen ? 'origin-bottom-left animate-fadeInScale' : ''}
+        ${isLargeScreen ? 'w-96 h-[500px] rounded-t-2xl shadow-2xl border border-gray-200 dark:border-gray-700' : 'w-full h-full'}
+        bg-white dark:bg-gray-900 overflow-hidden flex flex-col
+        ${isLargeScreen ? 'origin-bottom-right' : ''}
       `}
     >
       {/* Header */}
-      <div className="px-4 py-3 flex items-center justify-between bg-primary">
+      <div className="px-4 py-3 flex items-center justify-between bg-primary shrink-0">
         <div className="flex items-center gap-2">
           {selectedChat != null && (
             <button
@@ -147,7 +147,9 @@ function MessagesPopup({ selectedChat, setSelectedChat, onClose, isLargeScreen }
               <ArrowLeft className="w-5 h-5" />
             </button>
           )}
-          <span className="text-white font-semibold">Messages</span>
+          <span className="text-white font-semibold">
+            {selectedChat != null && activeChat ? activeChat.name : "Messages"}
+          </span>
         </div>
         <button
           type="button"
@@ -160,43 +162,37 @@ function MessagesPopup({ selectedChat, setSelectedChat, onClose, isLargeScreen }
 
       {/* Chat list */}
       {selectedChat == null && (
-        <div className={`flex-1 ${isLargeScreen ? 'bg-white dark:bg-bg-secondary-dark' : ''}`}>
-          <div className={`px-4 pt-4 space-y-3 ${isLargeScreen ? '' : 'p-4'}`}>
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-2 space-y-1">
             {chatsMock.map((chat) => (
-              <div key={chat.id}>
-                <button
-                  type="button"
-                  onClick={() => setSelectedChat(chat.id)}
-                  className={`
-                    w-full flex items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-blue-50 transition-colors 
-                    dark:hover:bg-bg-primary-dark
-                    ${isLargeScreen ? '' : 'p-3'}
-                  `}
-                >
-                  <div className="relative shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-gray-300 overflow-hidden" />
-                    {chat.unread > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-text-light text-white text-xs w-5 h-5 rounded-full flex items-center justify-center dark:bg-text-dark">
-                        {chat.unread}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className={`text-sm font-semibold ${isLargeScreen ? 'text-bg-primary-dark dark:text-white' : 'dark:text-white'} truncate`}>
-                        {chat.name}
-                      </p>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {chat.time}
-                      </span>
-                    </div>
-                    <p className={`text-xs ${isLargeScreen ? 'text-gray-600 dark:text-gray-300' : 'text-gray-600 dark:text-gray-300'} truncate`}>
-                      {chat.lastMessage}
+              <button
+                key={chat.id}
+                type="button"
+                onClick={() => setSelectedChat(chat.id)}
+                className="w-full flex items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <div className="relative shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-700 overflow-hidden" />
+                  {chat.unread > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">
+                      {chat.unread}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                      {chat.name}
                     </p>
+                    <span className="text-[10px] text-gray-500">
+                      {chat.time}
+                    </span>
                   </div>
-                </button>
-                {isLargeScreen && <div className="border-b border-gray-300 dark:border-bg-primary-dark my-2" />}
-              </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {chat.lastMessage}
+                  </p>
+                </div>
+              </button>
             ))}
           </div>
         </div>
@@ -204,37 +200,24 @@ function MessagesPopup({ selectedChat, setSelectedChat, onClose, isLargeScreen }
 
       {/* Conversation */}
       {selectedChat != null && activeChat && (
-        <div className={`flex-1 flex flex-col ${isLargeScreen ? 'bg-white dark:bg-gray-900/95' : ''}`}>
-          {/* Chat header - only large screens */}
-          {isLargeScreen && (
-            <div className="border-b border-gray-200 px-4 py-3 flex items-center gap-3 dark:border-bg-primary-dark">
-              <div className="w-8 h-8 rounded-full bg-gray-300 overflow-hidden" />
-              <span className="text-sm font-semibold text-bg-primary-dark dark:text-gray-100">
-                {activeChat.name}
-              </span>
-            </div>
-          )}
-
-          <div className={`flex-1 px-4 py-4 space-y-3 overflow-y-auto ${isLargeScreen ? 'bg-[#F7FBFC] dark:bg-bg-secondary-dark' : 'bg-[#F7FBFC] dark:bg-bg-secondary-dark'}`}>
+        <div className="flex-1 flex flex-col min-h-0 bg-gray-50 dark:bg-gray-950">
+          <div className="flex-1 px-4 py-4 space-y-3 overflow-y-auto">
             {messagesMock.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${
-                  msg.sender === "me" ? "justify-end" : "justify-start"
-                }`}
+                className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={`
-                    max-w-[80%] rounded-[15px] px-4 py-2 text-sm
-                    ${
-                      msg.sender === "me"
-                        ? "bg-primary text-white"
-                        : "bg-gray-200 text-black dark:bg-gray-800 dark:text-white"
+                    max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm
+                    ${msg.sender === "me"
+                        ? "bg-primary text-white rounded-br-none"
+                        : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-none border border-gray-100 dark:border-gray-700"
                     }
                   `}
                 >
                   <p>{msg.text}</p>
-                  <p className="text-[10px] mt-1 opacity-80 text-right">
+                  <p className="text-[10px] mt-1 opacity-70 text-right">
                     {msg.time}
                   </p>
                 </div>
@@ -243,48 +226,43 @@ function MessagesPopup({ selectedChat, setSelectedChat, onClose, isLargeScreen }
           </div>
 
           {/* Input Field */}
-          <div className={`border-t px-3 py-3 ${isLargeScreen ? 'bg-white dark:bg-bg-secondary-dark' : ''} ${isLargeScreen ? 'border-gray-300 dark:border-gray-600' : 'border-gray-300'}`}>
-            <div className="flex items-center gap-3 rounded-full px-3 py-1">
-              <div className="flex flex-1 items-center rounded-full px-2 py-1 border-2 border-transparent focus-within:border-gray-300 transition-colors dark:focus-within:border-gray-500">
-                {/* Hidden file input */}
-                <input
-                  type="file"
-                  multiple
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-
-                <input
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  placeholder="Type a message..."
-                  className="flex-1 items-center rounded-full min-h-10 max-h-32 px-5 min-w-0 outline-0 text-sm text-bg-primary-dark dark:text-gray-100"
-                />
-
-                <button
-                  type="button"
-                  onClick={handleAttachClick}
-                  className="rounded-xl shrink-0 ml-3 cursor-pointer hover:bg-gray-100 p-1 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <Paperclip size={23} />
-                </button>
-              </div>
-
+          <div className="p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center gap-3">
+            <div className="flex flex-1 items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-2xl px-3 py-1">
+              <input
+                type="file"
+                multiple
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={handleAttachClick}
+                className="text-gray-500 hover:text-primary transition-colors p-1"
+              >
+                <Paperclip size={20} />
+              </button>
+              <input
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                placeholder="Type a message..."
+                className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 text-gray-900 dark:text-white outline-none"
+              />
+            </div>
               <button
                 type="button"
                 onClick={handleSend}
-                className="rounded-full hover:shadow-lg hover:shadow-primary/50 transition-all shrink-0 bg-text-light text-white w-10 h-10 relative dark:bg-text-dark dark:focus:ring-blue-900"
+                disabled={!message.trim()}
+                className="bg-primary text-white p-1.5 rounded-full disabled:opacity-50 hover:scale-105 transition-transform"
               >
-                <Send size={23} className="absolute left-2 top-2.5" />
+                <Send size={18} />
               </button>
-            </div>
           </div>
         </div>
       )}

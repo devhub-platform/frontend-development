@@ -52,43 +52,34 @@ export default function App() {
 
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-    if (!postData) {
+  if (!postData) {
     return <div className="text-center mt-20">Post not found!</div>;
   }
 
-  return <>
-  <div className="flex dark:bg-bg-primary-dark">
-    {/* زر عائم للموبايل / تابلت (أيقونة فقط) */}
-            <div className="fixed bottom-4 right-4 z-50 lg:hidden">
-              <Messages />
-            </div>
-    
-            {/* Sidebar لسطح المكتب – الكود الأصلي كما هو */}
-            <div className="w-[12%] mt-10 ml-3 hidden lg:block relative">
-              <Messages />
-            </div>
+  return (
+    <>
+      <div className="flex justify-center dark:bg-bg-primary-dark">
+        <div className="min-h-screen bg-white lg:mx-2 dark:bg-bg-primary-dark">
+          <div className="flex items-start justify-center dark:bg-bg-secondary-dark my-5 rounded-2xl">
+            <div className="max-w-5xl w-full px-4 sm:px-6 lg:px-8 py-8 mx-2">
+              {/* Cover Image */}
+              <div className="mb-6">
+                <img
+                  src={postData.image}
+                  alt="Post cover"
+                  className="w-full h-[400px] object-cover rounded-2xl shadow-sm"
+                />
+              </div>
 
-             <div className="min-h-screen bg-white lg:mx-2 dark:bg-bg-primary-dark">
-      <div className="flex items-start justify-center dark:bg-bg-secondary-dark my-5 rounded-2xl">
-        <div className="max-w-5xl w-full px-4 sm:px-6 lg:px-8 py-8">
-          {/* Cover Image */}
-          <div className="mb-6">
-            <img
-              src={postData.image}
-              alt="Post cover"
-              className="w-full h-[400px] object-cover rounded-2xl shadow-sm"
-            />
-          </div>
+              {/* Post Header */}
+              <PostHeader
+                author={postData.author}
+                date={postData.date}
+                readingTime={postData.readingTime}
+              />
 
-          {/* Post Header */}
-          <PostHeader
-            author={postData.author}
-            date={postData.date}
-            readingTime={postData.readingTime}
-          />
-
-          {/* Tags */}
-          <div className="py-4 border-b border-gray-200 dark:border-gray-700">
+              {/* Tags */}
+              <div className="py-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {postData.tags.map((tag, index) => (
                     <button
@@ -102,37 +93,48 @@ export default function App() {
                 </div>
               </div>
 
-          {/* Post Content */}
-          <article className="py-8">
-            <h1 className="text-4xl font-bold text-bg-secondary-dark mb-6 dark:text-white">
-              {postData.title}
-            </h1>
-            <div className="prose prose-lg max-w-none">
-                <div className="text-gray-700 dark:text-gray-200 space-y-5">
-                  {paragraphs.map((p, idx) => (
-                    <p key={idx}>{p}</p>
-                  ))}
+              {/* Post Content */}
+              <article className="py-8">
+                <h1 className="text-4xl font-bold text-bg-secondary-dark mb-6 dark:text-white">
+                  {postData.title}
+                </h1>
+                <div className="prose prose-lg max-w-none">
+                  <div className="text-gray-700 dark:text-gray-200 space-y-5">
+                    {paragraphs.map((p, idx) => (
+                      <p key={idx}>{p}</p>
+                    ))}
+                  </div>
                 </div>
+              </article>
+
+              {/* Interaction Bar */}
+              <InteractionBar
+                commentsCount={postData.commentsCount}
+                reactionsCount={postData.reactionsCount}
+                views={postData.views}
+                content={postData.excerpt}
+              />
+
+              {/* Comments Section */}
+              <CommentSection initialComments={commentsData} />
             </div>
-          </article>
 
-          {/* Interaction Bar */}
-          <InteractionBar commentsCount={postData.commentsCount} reactionsCount={postData.reactionsCount} views={postData.views} content={postData.excerpt}/>
+            {/* Chat Panel */}
+            <ChatPanel
+              isOpen={isChatOpen}
+              onClose={() => setIsChatOpen(false)}
+            />
+          </div>
 
-          {/* Comments Section */}
-          <CommentSection initialComments={commentsData} />
+          <div>
+            {/* Floating Action Button */}
+            <ChatButton
+              onClick={() => setIsChatOpen(true)}
+              isVisible={!isChatOpen}
+            />
+          </div>
         </div>
-
-        {/* Chat Panel */}
-        <ChatPanel isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
       </div>
-
-      {/* Floating Action Button */}
-      <ChatButton
-        onClick={() => setIsChatOpen(true)}
-        isVisible={!isChatOpen}
-      />
-    </div>
-  </div>
-  </>
+    </>
+  );
 }
