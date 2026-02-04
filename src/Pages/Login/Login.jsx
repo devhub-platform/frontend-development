@@ -1,15 +1,7 @@
-import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  Github,
-  LoaderPinwheel,
-  Laptop,
-} from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Github, LoaderPinwheel } from "lucide-react";
 import { useContext, useState } from "react";
 import Helmet from "react-helmet";
-import { Link, Links, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
@@ -78,7 +70,7 @@ export default function Login() {
           <div className="hidden lg:flex flex-col justify-center p-20 text-white border-r border-white/10">
             <Link to="/">
               <div className="flex items-center gap-3 mb-12 cursor-pointer">
-                <img src={LogoBlack} className="w-72" />
+                <img src={LogoBlack} className="w-72" alt="Logo" />
               </div>
             </Link>
             <h2 className="text-5xl font-extrabold mb-6 leading-[1.1]">
@@ -97,17 +89,15 @@ export default function Login() {
           </div>
 
           {/* Right Form Side */}
-          <div className="bg-white/95 dark:bg-[#111827]/98 p-8 md:p-16 flex flex-col justify-center transition-colors duration-300">
+          <div className="bg-white/95 dark:bg-[#111827]/98 p-8 md:p-12 flex flex-col justify-center transition-colors duration-300">
             <div className="max-w-md mx-auto w-full">
               <Link to="/">
-                <div className="max-w-md mx-auto w-full">
-                  <div className="mb-10 lg:hidden flex items-center gap-2 cursor-pointer justify-center">
-                    {theme === "dark" ? (
-                      <img src={LogoBlack} className="w-32" />
-                    ) : (
-                      <img src={LogoWhite} className="w-32" />
-                    )}
-                  </div>
+                <div className="mb-8 lg:hidden flex items-center gap-2 cursor-pointer justify-center">
+                  {theme === "dark" ? (
+                    <img src={LogoBlack} className="w-32" alt="Logo" />
+                  ) : (
+                    <img src={LogoWhite} className="w-32" alt="Logo" />
+                  )}
                 </div>
               </Link>
 
@@ -115,21 +105,21 @@ export default function Login() {
                 <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                   Login
                 </h3>
-                <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
+                <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
                   Please enter your account details.
                 </p>
               </div>
 
               {apiError && (
-                <div className="p-4 mb-8 text-sm font-semibold bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-l-4 border-red-500 rounded-r-xl animate-shake">
+                <div className="p-4 mb-6 text-sm font-semibold bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-l-4 border-red-500 rounded-r-xl">
                   {apiError}
                 </div>
               )}
 
-              <form onSubmit={formik.handleSubmit} className="space-y-6">
+              <form onSubmit={formik.handleSubmit} className="space-y-4">
                 {/* Email Field */}
-                <div className="space-y-2">
-                  <label className="block text-[13px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest ml-1">
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest ml-1">
                     Email Address
                   </label>
                   <div className="relative group">
@@ -137,21 +127,21 @@ export default function Login() {
                     <input
                       {...formik.getFieldProps("email")}
                       type="email"
-                      className="w-full h-14 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary dark:focus:border-primary/50 rounded-2xl pl-12 pr-4 outline-none transition-all dark:text-white shadow-sm placeholder:text-slate-400"
+                      className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary rounded-2xl pl-12 pr-4 outline-none transition-all dark:text-white shadow-sm placeholder:text-slate-400"
                       placeholder="John Doe@devhub.com"
                     />
                   </div>
                   {formik.touched.email && formik.errors.email && (
-                    <p className="text-xs font-bold text-red-500 mt-1 ml-2">
+                    <p className="text-[10px] font-bold text-red-500 ml-2">
                       {formik.errors.email}
                     </p>
                   )}
                 </div>
 
                 {/* Password Field */}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex justify-between items-center px-1">
-                    <label className="block text-[13px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest">
+                    <label className="block text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest">
                       Password
                     </label>
                   </div>
@@ -160,7 +150,7 @@ export default function Login() {
                     <input
                       {...formik.getFieldProps("password")}
                       type={showPassword ? "text" : "password"}
-                      className="w-full h-14 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary dark:focus:border-primary/50 rounded-2xl pl-12 pr-12 outline-none transition-all dark:text-white shadow-sm placeholder:text-slate-400"
+                      className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary rounded-2xl pl-12 pr-12 outline-none transition-all dark:text-white shadow-sm placeholder:text-slate-400"
                       placeholder="••••••••"
                     />
                     <button
@@ -176,16 +166,16 @@ export default function Login() {
                     </button>
                   </div>
                   {formik.touched.password && formik.errors.password && (
-                    <p className="text-xs font-bold text-red-500 mt-1 ml-2">
+                    <p className="text-[10px] font-bold text-red-500 ml-2">
                       {formik.errors.password}
                     </p>
                   )}
                 </div>
 
-                <div className="flex justify-end">
+                <div className="flex justify-end mt-2!">
                   <Link
                     to="/forgot"
-                    className="text-sm font-bold text-primary hover:text-primary/80 transition-all"
+                    className="text-xs font-bold text-primary hover:underline transition-all"
                   >
                     Forgot Password?
                   </Link>
@@ -219,7 +209,7 @@ export default function Login() {
                   >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                       <path
-                        fill="#EA4335"
+                        fill="#003890"
                         d="M12.48 10.92v3.28h7.84c-.24 1.84-1.96 5.36-7.84 5.36-5.08 0-9.24-4.2-9.24-9.36s4.16-9.36 9.24-9.36c2.88 0 4.84 1.2 5.96 2.28l2.56-2.52C18.6 1.12 15.76 0 12.48 0 5.6 0 0 5.6 0 12.48s5.6 12.48 12.48 12.48c7.16 0 11.92-5.04 11.92-12.12 0-.84-.08-1.48-.2-2.12h-11.72z"
                       />
                     </svg>
@@ -235,7 +225,7 @@ export default function Login() {
                 </div>
               </form>
 
-              <div className="mt-12 text-center">
+              <div className="mt-8 text-center">
                 <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
                   Don't have an account?
                   <Link
