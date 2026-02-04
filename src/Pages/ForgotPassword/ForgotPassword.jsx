@@ -35,11 +35,11 @@ export default function ForgotPassword() {
         {/* Background Layer */}
         <div className="absolute inset-0 z-0">
           <img src={AuthBG} alt="BG" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-linear-to-br from-primary/90 via-[#1e293b]/95 to-black dark:from-primary/40 dark:via-[#0f172a]/95 dark:to-black transition-all duration-500"></div>
+          <div className="absolute inset-0 bg-linear-to-br from-primary/90 via-[#1e293b]/95 to-black dark:from-primary/60 dark:via-[#0f172a]/95 dark:to-gray-900 transition-all duration-500"></div>
         </div>
 
         {/* The Glass Card */}
-        <div className="relative z-10 w-full max-w-275 grid lg:grid-cols-2 bg-white/5 backdrop-blur-xl rounded-[3rem] border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden">
+        <div className="relative z-10 w-full max-w-275 grid lg:grid-cols-2 bg-white/5 backdrop-blur-xl rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden">
           {/* Left Content Side */}
           <div className="hidden lg:flex flex-col justify-center p-20 text-white border-r border-white/10">
             <Link to="/">

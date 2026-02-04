@@ -56,10 +56,10 @@ export default function ResetPassword() {
       <div className="min-h-screen w-full relative flex items-center justify-center p-4 overflow-hidden font-sans">
         <div className="absolute inset-0 z-0">
           <img src={AuthBG} alt="BG" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-linear-to-br from-primary/90 via-[#1e293b]/95 to-black dark:from-primary/40 dark:via-[#0f172a]/95 dark:to-black"></div>
+          <div className="absolute inset-0 bg-linear-to-br from-primary/90 via-[#1e293b]/95 to-black dark:from-primary/60 dark:via-[#0f172a]/95 dark:to-gray-900"></div>
         </div>
 
-        <div className="relative z-10 w-full max-w-275 grid lg:grid-cols-2 bg-white/5 backdrop-blur-xl rounded-[3rem] border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden">
+        <div className="relative z-10 w-full max-w-275 grid lg:grid-cols-2 bg-white/5 backdrop-blur-xl rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden">
           {/* Left Side */}
           <div className="hidden lg:flex flex-col justify-center p-20 text-white border-r border-white/10">
             <Link to="/">
@@ -155,7 +155,7 @@ export default function ResetPassword() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
+                  className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
                 >
                   {loading ? (
                     <LoaderPinwheel className="animate-spin w-6 h-6" />
