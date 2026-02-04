@@ -181,7 +181,7 @@ const Profile = () => {
 
   return (
     <>
-      <div className=" dark:bg-bg-primary-dark relative min-h-screen">
+      <div className="bg-slate-50 dark:bg-bg-primary-dark relative min-h-screen">
         <div className="flex-1 py-2">
           <div className="container sm:mx-auto px-2 sm:px-0 lg:px-3">
             <div className="max-w-6xl sm:max-w-[80%] mx-auto">
