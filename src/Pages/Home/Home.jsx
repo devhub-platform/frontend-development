@@ -9,13 +9,30 @@ import { SuggestedToFollow } from "../../Components/SuggestedToFollow/SuggestedT
 import { Messages } from "../../Components/Messages/Messages";
 import axios from "axios";
 import { useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
+import CryptoJS from "crypto-js";
 
 const Home = () => {
   const [openReactionId, setOpenReactionId] = useState(null);
   const navigate = useNavigate();
-  const { userData } = useContext(UserContext);
+  const { userData, setUserData } = useContext(UserContext);
+  const [searchParams] = useSearchParams();
+  const key = import.meta.env.VITE_SECRET_KEY;
+
+  useEffect(() => {
+    const token = searchParams.get("token");
+
+    if (token) {
+      const encryptedToken = CryptoJS.AES.encrypt(token, key).toString();
+      localStorage.setItem("userToken", encryptedToken);
+
+      setUserData(token);
+
+      navigate("/home", { replace: true });
+    }
+  }, [searchParams, navigate, setUserData, key]);
+
   useEffect(() => {
     async function checkStatus() {
       if (!userData) return; // لو مفيش توكين اصلا ميعملش حاجة

@@ -4,7 +4,6 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Github,
   LoaderPinwheel,
   User,
   UserPlus,
@@ -21,6 +20,7 @@ import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
 import LogoWhite from "../../assets/images/DevHubLogoBlack.png";
 import CryptoJS from "crypto-js";
 import { ThemeContext } from "../../context/ThemeContext";
+import { FaGoogle, FaGithub } from "react-icons/fa";
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -31,41 +31,37 @@ export default function Register() {
   const { setUserData } = useContext(UserContext);
   const { theme } = useContext(ThemeContext);
   const key = import.meta.env.VITE_SECRET_KEY;
+  const headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
 
   async function handleRegister(values) {
     try {
       setLoading(true);
       setApiError(null);
 
-      const payload = {
-        name: values.name,
-        email: values.email,
-        password: values.password,
-        password_confirmation: values.rePassword,
-      };
-
       let { data } = await axios.post(
         `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/register`,
-        payload,
+        values,
+        { headers },
       );
 
       if (data.token) {
         // تشفير التوكين قبل التخزين
         const encryptedToken = CryptoJS.AES.encrypt(data.token, key).toString();
-
         localStorage.setItem("userToken", encryptedToken);
         setUserData(data.token);
+        localStorage.setItem("userEmail", values.email);
         try {
           await axios.post(
             `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/email/send-otp`,
-            {
-              email: values.email,
-            },
+            { email: values.email },
+            { headers },
           );
         } catch (e) {
           console.log("Auto-send OTP failed, user can still resend manually.");
         }
-        localStorage.setItem("userEmail", values.email); 
         navigate("/otp-verification", { state: { email: values.email } });
       }
     } catch (error) {
@@ -88,16 +84,57 @@ export default function Register() {
         "Must be 8+ chars, with Uppercase, Lowercase, Number and Symbol",
       )
       .required("Password is required"),
-    rePassword: Yup.string()
+    password_confirmation: Yup.string()
       .oneOf([Yup.ref("password")], "Passwords don't match")
       .required("Re-password is required"),
   });
 
   const formik = useFormik({
-    initialValues: { name: "", email: "", password: "", rePassword: "" },
+    initialValues: {
+      name: "",
+      email: "",
+      password: "",
+      password_confirmation: "",
+    },
     validationSchema,
     onSubmit: handleRegister,
   });
+
+  const handleGoogleLogin = async () => {
+    try {
+      // 1. بننادي السيرفر بتاعنا الأول
+      const { data } = await axios.post(
+        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/auth/google/login`,
+      );
+      // 2. السيرفر بيرجع رابط (جوجل)، بنفتحه للمستخدم
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error("Google login initiation failed", error);
+      alert("Could not start Google login. Please try again.");
+    }
+  };
+
+  const handleGithubLogin = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.post(
+        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/auth/github/login`,
+        {}, 
+        { headers },
+      );
+
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error("Github login failed", error);
+      alert("Could not start Github login");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -236,7 +273,7 @@ export default function Register() {
                     <div className="relative group">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary dark:group-focus-within:text-text-dark" />
                       <input
-                        {...formik.getFieldProps("rePassword")}
+                        {...formik.getFieldProps("password_confirmation")}
                         type={showConfirmPassword ? "text" : "password"}
                         className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary dark:focus:border-text-dark rounded-2xl pl-10 pr-10 outline-none transition-all dark:text-white text-sm"
                         placeholder="••••••••"
@@ -255,11 +292,12 @@ export default function Register() {
                         )}
                       </button>
                     </div>
-                    {formik.touched.rePassword && formik.errors.rePassword && (
-                      <p className="text-[13px] font-bold text-red-500 ml-2 mt-1">
-                        {formik.errors.rePassword}
-                      </p>
-                    )}
+                    {formik.touched.password_confirmation &&
+                      formik.errors.password_confirmation && (
+                        <p className="text-[13px] font-bold text-red-500 ml-2 mt-1">
+                          {formik.errors.password_confirmation}
+                        </p>
+                      )}
                   </div>
                 </div>
 
@@ -289,34 +327,19 @@ export default function Register() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600"
+                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 cursor-pointer"
+                    onClick={handleGoogleLogin}
                   >
-                    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
+                    <FaGoogle className="w-5 h-5 mr-2" />
                     Google
                   </button>
 
                   <button
                     type="button"
-                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600"
+                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 cursor-pointer"
+                    onClick={handleGithubLogin}
                   >
-                    <Github className="w-5 h-5 mr-2" />
+                    <FaGithub className="w-5 h-5 mr-2" />
                     GitHub
                   </button>
                 </div>
