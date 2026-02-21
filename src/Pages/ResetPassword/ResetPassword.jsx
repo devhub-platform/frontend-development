@@ -67,7 +67,7 @@ export default function ResetPassword() {
             </Link>
             <h2 className="text-5xl font-extrabold mb-6 leading-[1.1]">
               Secure your <br />
-              <span className="text-primary italic">Account.</span>
+              <span className="text-blue-700 italic">Account.</span>
             </h2>
             <p className="text-slate-300 text-lg max-w-sm mb-10">
               Almost there! Create a strong password that you haven't used

@@ -47,7 +47,7 @@ export default function ForgotPassword() {
             </Link>
             <h2 className="text-5xl font-extrabold mb-6 leading-[1.1]">
               Don't worry, <br />
-              <span className="text-primary italic">We've got you.</span>
+              <span className="text-blue-700 italic">We've got you.</span>
             </h2>
             <p className="text-slate-300 text-lg max-w-sm leading-relaxed mb-10">
               Forgot your entry key? Just provide your email and we'll send you

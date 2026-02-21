@@ -1,20 +1,23 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-import React, { useState, useEffect } from "react";
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect, useContext } from "react";
 import OtpInput from "react-otp-input";
 import { Mail, LoaderPinwheel, ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import Helmet from "react-helmet";
 import AuthBG from "../../assets/images/AuthBG.avif";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
+import axios from "axios";
+import { UserContext } from "../../context/UserContext";
 
 export default function OTPVerification() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
   const location = useLocation();
-  const email = location.state?.email;
+  const email = location.state?.email || localStorage.getItem("userEmail");
   const [timer, setTimer] = useState(60);
   const [isTimerActive, setIsTimerActive] = useState(true);
+  const { userData } = useContext(UserContext);
 
   useEffect(() => {
     let interval;
@@ -29,21 +32,49 @@ export default function OTPVerification() {
     return () => clearInterval(interval);
   }, [isTimerActive, timer]);
 
-  const handleResend = () => {
+  const handleResend = async () => {
     if (!isTimerActive) {
-      setOtp("");
-      setTimer(60);
-      setIsTimerActive(true);
+      try {
+        await axios.post(
+          `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/email/send-otp`,
+          { email: email },
+        );
+
+        setOtp("");
+        setTimer(60);
+        setIsTimerActive(true);
+      } catch (error) {
+        alert(error.response?.data?.message || "Failed to resend OTP code");
+      }
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (otp.length === 6) {
-      setLoading(true);
-      setTimeout(() => {
-        navigate("/reset-password", { state: { email } });
+      try {
+        setLoading(true);
+        const payload = {
+          email: email, // اتأكدي إن الإيميل واصل صح من الـ navigate اللي قبله
+          otp: otp,
+        };
+
+        const { data } = await axios.post(
+          `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/email/verify-otp`,
+          payload,
+        );
+
+        if (
+          data.success === true ||
+          data.message === "Email verified successfully"
+        ) {
+          navigate("/home");
+        }
+      } catch (error) {
+        // عرض رسالة الخطأ الحقيقية اللي ظاهرة في صورة الـ Run
+        alert(error.response?.data?.error || "Invalid OTP code");
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     }
   };
 
@@ -67,7 +98,7 @@ export default function OTPVerification() {
             </Link>
             <h2 className="text-5xl font-extrabold mb-6 leading-[1.1]">
               Verify your <br />
-              <span className="text-primary italic">Identity.</span>
+              <span className="text-blue-700 italic">Identity.</span>
             </h2>
             <p className="text-slate-300 text-lg max-w-sm mb-10">
               We've sent a unique 6-digit code to your inbox. This step ensures
