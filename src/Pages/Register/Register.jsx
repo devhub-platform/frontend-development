@@ -18,7 +18,9 @@ import axios from "axios";
 import { UserContext } from "../../context/UserContext";
 import AuthBG from "../../assets/images/AuthBG.avif";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
+import LogoWhite from "../../assets/images/DevHubLogoBlack.png";
 import CryptoJS from "crypto-js";
+import { ThemeContext } from "../../context/ThemeContext";
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -27,6 +29,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { setUserData } = useContext(UserContext);
+  const { theme } = useContext(ThemeContext);
   const key = import.meta.env.VITE_SECRET_KEY;
 
   async function handleRegister(values) {
@@ -107,7 +110,7 @@ export default function Register() {
           <div className="absolute inset-0 bg-linear-to-br from-primary/90 via-[#1e293b]/95 to-black dark:from-primary/60 dark:via-[#0f172a]/95 dark:to-gray-900 transition-all duration-500"></div>
         </div>
 
-        <div className="relative z-10 w-full max-w-275 grid lg:grid-cols-2 bg-white/5 backdrop-blur-xl rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden">
+        <div className="relative z-10 w-full max-w-275 grid lg:grid-cols-2 bg-white/5 backdrop-blur-xl rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden">
           {/* Left Side */}
           <div className="hidden lg:flex flex-col justify-center p-20 text-white border-r border-white/10">
             <Link to="/">
@@ -128,12 +131,20 @@ export default function Register() {
           </div>
 
           {/* Right Side */}
-          <div className="bg-white/95 dark:bg-[#111827]/98 p-8 md:p-12 flex flex-col justify-center">
+          <div className="bg-white/95 dark:bg-bg-secondary-dark p-8 md:p-12 flex flex-col justify-center">
             <div className="max-w-md mx-auto w-full">
               <div className="mb-6">
+                <div className="flex items-center justify-center">
+                  <Link to="/">
+                    {theme == "dark" ? (
+                      <img src={LogoBlack} className="w-72 mb-12 lg:hidden" />
+                    ) : (
+                      <img src={LogoWhite} className="w-72 mb-12 lg:hidden" />
+                    )}
+                  </Link>
+                </div>
                 <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                   Create Account
-                  {/* <pre>{JSON.stringify(formik.errors, null, 2)}</pre> */}
                 </h3>
                 <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
                   Get started with your developer hub today.
@@ -141,47 +152,47 @@ export default function Register() {
               </div>
 
               {apiError && (
-                <div className="p-4 mb-6 text-sm font-semibold bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-l-4 border-red-500 rounded-r-xl">
+                <div className="p-4 mb-6 text-xl font-semibold bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-l-4 border-red-500 rounded-r-xl">
                   {apiError}
                 </div>
               )}
 
               <form onSubmit={formik.handleSubmit} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest ml-1">
+                  <label className="text-[13px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest ml-1">
                     Full Name
                   </label>
                   <div className="relative group">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary dark:group-focus-within:text-text-dark transition-colors" />
                     <input
                       {...formik.getFieldProps("name")}
                       type="text"
-                      className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary rounded-2xl pl-12 pr-4 outline-none transition-all dark:text-white"
+                      className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary dark:focus:border-text-dark rounded-2xl pl-12 pr-4 outline-none transition-all dark:text-white"
                       placeholder="John Doe"
                     />
                   </div>
                   {formik.touched.name && formik.errors.name && (
-                    <p className="text-[10px] font-bold text-red-500 ml-2">
+                    <p className="text-[13px] font-bold text-red-500 ml-2">
                       {formik.errors.name}
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest ml-1">
+                  <label className="text-[13px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest ml-1">
                     Email
                   </label>
                   <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors dark:group-focus-within:text-text-dark" />
                     <input
                       {...formik.getFieldProps("email")}
                       type="email"
-                      className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary rounded-2xl pl-12 pr-4 outline-none transition-all dark:text-white"
+                      className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary dark:focus:border-text-dark rounded-2xl pl-12 pr-4 outline-none transition-all dark:text-white"
                       placeholder="John Doe@devhub.com"
                     />
                   </div>
                   {formik.touched.email && formik.errors.email && (
-                    <p className="text-[10px] font-bold text-red-500 ml-2">
+                    <p className="text-[13px] font-bold text-red-500 ml-2">
                       {formik.errors.email}
                     </p>
                   )}
@@ -189,21 +200,21 @@ export default function Register() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest ml-1">
+                    <label className="text-[13px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest ml-1">
                       Password
                     </label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary" />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary dark:group-focus-within:text-text-dark" />
                       <input
                         {...formik.getFieldProps("password")}
                         type={showPassword ? "text" : "password"}
-                        className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary rounded-2xl pl-10 pr-10 outline-none transition-all dark:text-white text-sm"
+                        className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary dark:focus:border-text-dark rounded-2xl pl-10 pr-10 outline-none transition-all dark:text-white text-sm"
                         placeholder="••••••••"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary dark:hover:text-text-dark"
                       >
                         {showPassword ? (
                           <EyeOff size={16} />
@@ -213,21 +224,21 @@ export default function Register() {
                       </button>
                     </div>
                     {formik.touched.password && formik.errors.password && (
-                      <p className="text-[10px] font-bold text-red-500 ml-2 mt-1">
+                      <p className="text-[13px] font-bold text-red-500 ml-2 mt-1">
                         {formik.errors.password}
                       </p>
                     )}
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest ml-1">
+                    <label className="text-[13px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest ml-1">
                       Confirm
                     </label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary" />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary dark:group-focus-within:text-text-dark" />
                       <input
                         {...formik.getFieldProps("rePassword")}
                         type={showConfirmPassword ? "text" : "password"}
-                        className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary rounded-2xl pl-10 pr-10 outline-none transition-all dark:text-white text-sm"
+                        className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary dark:focus:border-text-dark rounded-2xl pl-10 pr-10 outline-none transition-all dark:text-white text-sm"
                         placeholder="••••••••"
                       />
                       <button
@@ -235,7 +246,7 @@ export default function Register() {
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary dark:hover:text-text-dark"
                       >
                         {showConfirmPassword ? (
                           <EyeOff size={16} />
@@ -245,7 +256,7 @@ export default function Register() {
                       </button>
                     </div>
                     {formik.touched.rePassword && formik.errors.rePassword && (
-                      <p className="text-[10px] font-bold text-red-500 ml-2 mt-1">
+                      <p className="text-[13px] font-bold text-red-500 ml-2 mt-1">
                         {formik.errors.rePassword}
                       </p>
                     )}
@@ -255,7 +266,7 @@ export default function Register() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-14 mt-6 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
+                  className="w-full h-14 mt-6 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-70 cursor-pointer"
                 >
                   {loading ? (
                     <LoaderPinwheel className="animate-spin w-6 h-6" />
@@ -270,7 +281,7 @@ export default function Register() {
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
                   </div>
-                  <span className="relative px-4 bg-white dark:bg-[#111827] text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
+                  <span className="relative px-4 bg-white dark:bg-[#131827] text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
                     Social Access
                   </span>
                 </div>
