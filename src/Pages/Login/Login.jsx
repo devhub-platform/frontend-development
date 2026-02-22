@@ -170,11 +170,11 @@ export default function Login() {
                     Email
                   </label>
                   <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary dark:group-focus-within:text-text-dark transition-colors" />
                     <input
                       {...formik.getFieldProps("email")}
                       type="email"
-                      className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary rounded-2xl pl-12 pr-4 outline-none transition-all dark:text-white"
+                      className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary dark:focus:border-text-dark rounded-2xl pl-12 pr-4 outline-none transition-all dark:text-white"
                       placeholder="Enter Your Email Address"
                     />
                   </div>
@@ -188,17 +188,17 @@ export default function Login() {
                     Password
                   </label>
                   <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary dark:group-focus-within:text-text-dark transition-colors" />
                     <input
                       {...formik.getFieldProps("password")}
                       type={showPassword ? "text" : "password"}
-                      className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary rounded-2xl pl-12 pr-12 outline-none transition-all dark:text-white"
+                      className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary dark:focus:border-text-dark rounded-2xl pl-12 pr-12 outline-none transition-all dark:text-white"
                       placeholder="••••••••"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary dark:hover:text-text-dark transition-colors"
                     >
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
@@ -216,7 +216,7 @@ export default function Login() {
                       id="remember_me"
                       type="checkbox"
                       {...formik.getFieldProps("remember_me")}
-                      className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
+                      className="w-4 h-4 rounded border-slate-300 accent-primary cursor-pointer"
                     />
                     <label
                       htmlFor="remember_me"
@@ -227,7 +227,7 @@ export default function Login() {
                   </div>
                   <Link
                     to="/forgot"
-                    className="text-sm font-bold text-primary hover:underline"
+                    className="text-sm font-bold text-primary dark:text-text-dark hover:text-primary dark:hover:text-text-light hover:underline"
                   >
                     Forgot password?
                   </Link>
@@ -236,7 +236,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-14 mt-4 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
+                  className="w-full h-14 mt-4 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
                 >
                   {loading ? (
                     <LoaderPinwheel className="animate-spin w-6 h-6" />
@@ -257,17 +257,20 @@ export default function Login() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
+                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 cursor-pointer"
                     onClick={handleGoogleLogin}
-                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 text-gray-700 transition-all font-medium dark:bg-slate-800 dark:text-white dark:border-slate-700"
                   >
-                    <FaGoogle className="w-5 h-5 mr-2" /> Google
+                    <FaGoogle className="w-5 h-5 mr-2" />
+                    Google
                   </button>
+
                   <button
                     type="button"
+                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 cursor-pointer"
                     onClick={handleGithubLogin}
-                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 text-gray-700 transition-all font-medium dark:bg-slate-800 dark:text-white dark:border-slate-700"
                   >
-                    <FaGithub className="w-5 h-5 mr-2" /> GitHub
+                    <FaGithub className="w-5 h-5 mr-2" />
+                    GitHub
                   </button>
                 </div>
               </form>
@@ -276,7 +279,7 @@ export default function Login() {
                 New to the hub?{" "}
                 <Link
                   to="/register"
-                  className="font-bold text-primary hover:underline ml-1"
+                  className="font-bold text-primary dark:text-text-dark hover:text-primary dark:hover:text-text-light hover:underline ml-1"
                 >
                   CREATE ACCOUNT
                 </Link>
