@@ -175,7 +175,7 @@ export default function Login() {
                       {...formik.getFieldProps("email")}
                       type="email"
                       className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary rounded-2xl pl-12 pr-4 outline-none transition-all dark:text-white"
-                      placeholder="name@company.com"
+                      placeholder="Enter Your Email Address"
                     />
                   </div>
                   {formik.touched.email && formik.errors.email && (

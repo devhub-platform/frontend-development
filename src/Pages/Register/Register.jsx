@@ -80,7 +80,7 @@ export default function Register() {
     email: Yup.string().email("Invalid email").required("Email is required"),
     password: Yup.string()
       .matches(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#_^])[A-Za-z\d@$!%*?&#_^]{8,}$/,
         "Must be 8+ chars, with Uppercase, Lowercase, Number and Symbol",
       )
       .required("Password is required"),
@@ -205,7 +205,7 @@ export default function Register() {
                       {...formik.getFieldProps("name")}
                       type="text"
                       className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary dark:focus:border-text-dark rounded-2xl pl-12 pr-4 outline-none transition-all dark:text-white"
-                      placeholder="John Doe"
+                      placeholder="Enter Your Full Name"
                     />
                   </div>
                   {formik.touched.name && formik.errors.name && (
@@ -225,7 +225,7 @@ export default function Register() {
                       {...formik.getFieldProps("email")}
                       type="email"
                       className="w-full h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary dark:focus:border-text-dark rounded-2xl pl-12 pr-4 outline-none transition-all dark:text-white"
-                      placeholder="John Doe@devhub.com"
+                      placeholder="Enter Your Email Address"
                     />
                   </div>
                   {formik.touched.email && formik.errors.email && (
