@@ -236,7 +236,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-14 mt-4 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
+                  className="w-full h-14 mt-4 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-70 cursor-pointer disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <LoaderPinwheel className="animate-spin w-6 h-6" />
