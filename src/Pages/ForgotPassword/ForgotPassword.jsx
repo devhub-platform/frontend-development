@@ -1,16 +1,50 @@
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, LoaderPinwheel } from "lucide-react";
 import Helmet from "react-helmet";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import AuthBG from "../../assets/images/AuthBG.avif";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
+import axios from "axios";
+import { useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const handleEmail = async (values) => {
+    try {
+      setLoading(true);
+      const { data } = await axios.post(
+        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/password/forgot`,
+        values,
+        {
+          headers: {
+            accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-  const handleEmail = (values) => {
-    navigate("/otp-verification", { state: { email: values.email } });
+      if (
+        data.status === 200 ||
+        data.success ||
+        data.message?.includes("sent")
+      ) {
+        console.log("Success! Redirecting...");
+        navigate("/otp-verification", {
+          state: { email: values.email, type: "forgot" },
+        });
+      }
+    } catch (error) {
+      console.error("Error details:", error.response?.data);
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to send OTP code. Please check the email and try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const validationSchema = Yup.object({
@@ -30,7 +64,26 @@ export default function ForgotPassword() {
       <Helmet>
         <title>DevHub | Reset Your Password</title>
       </Helmet>
-
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "var(--toast-bg)",
+            color: "var(--toast-text)",
+            border: "1px solid var(--toast-border)",
+            borderRadius: "12px",
+            padding: "12px 14px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+          },
+          success: {
+            iconTheme: { primary: "var(--color-primary)", secondary: "white" },
+            style: { border: "1px solid rgba(0,56,144,0.25)" },
+          },
+          error: {
+            iconTheme: { primary: "#ef4444", secondary: "white" },
+          },
+        }}
+      />
       <div className="min-h-screen w-full relative flex items-center justify-center p-4 overflow-hidden font-sans">
         {/* Background Layer */}
         <div className="absolute inset-0 z-0">
@@ -90,9 +143,13 @@ export default function ForgotPassword() {
 
                 <button
                   type="submit"
-                  className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 hover:-translate-y-1 transition-all flex items-center justify-center gap-3"
+                  className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  SEND CODE
+                  {loading ? (
+                    <LoaderPinwheel className="animate-spin w-6 h-6" />
+                  ) : (
+                    "VERIFY CODE"
+                  )}
                 </button>
 
                 <div className="text-center mt-6">

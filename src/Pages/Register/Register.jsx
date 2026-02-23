@@ -21,6 +21,7 @@ import LogoWhite from "../../assets/images/DevHubLogoBlack.png";
 import CryptoJS from "crypto-js";
 import { ThemeContext } from "../../context/ThemeContext";
 import { FaGoogle, FaGithub } from "react-icons/fa";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -112,7 +113,7 @@ export default function Register() {
       }
     } catch (error) {
       console.error("Google login initiation failed", error);
-      alert("Could not start Google login. Please try again.");
+      toast.error("Could not start Google login. Please try again.");
     }
   };
 
@@ -121,7 +122,7 @@ export default function Register() {
       setLoading(true);
       const { data } = await axios.post(
         `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/auth/github/login`,
-        {}, 
+        {},
         { headers },
       );
 
@@ -130,7 +131,7 @@ export default function Register() {
       }
     } catch (error) {
       console.error("Github login failed", error);
-      alert("Could not start Github login");
+      toast.error("Could not start GitHub login. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -141,6 +142,26 @@ export default function Register() {
       <Helmet>
         <title>DevHub | Register</title>
       </Helmet>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "var(--toast-bg)",
+            color: "var(--toast-text)",
+            border: "1px solid var(--toast-border)",
+            borderRadius: "12px",
+            padding: "12px 14px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+          },
+          success: {
+            iconTheme: { primary: "var(--color-primary)", secondary: "white" },
+            style: { border: "1px solid rgba(0,56,144,0.25)" },
+          },
+          error: {
+            iconTheme: { primary: "#ef4444", secondary: "white" },
+          },
+        }}
+      />
       <div className="min-h-screen w-full relative flex items-center justify-center p-4 overflow-hidden font-sans">
         <div className="absolute inset-0 z-0">
           <img src={AuthBG} alt="BG" className="w-full h-full object-cover" />
@@ -161,8 +182,8 @@ export default function Register() {
               Join thousands of developers in the most advanced ecosystem.
             </p>
             <div className="flex gap-4">
-              <div className="h-1.5 w-6 bg-white/20 rounded-full"></div>
-              <div className="h-1.5 w-16 bg-primary rounded-full"></div>
+              <div className="h-1.5 w-6 bg-primary rounded-full"></div>
+              <div className="h-1.5 w-16 bg-white/20 rounded-full"></div>
               <div className="h-1.5 w-6 bg-white/20 rounded-full"></div>
             </div>
           </div>
@@ -304,7 +325,7 @@ export default function Register() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-14 mt-6 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-70 cursor-pointer"
+                  className="w-full h-14 mt-6 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-70 cursor-pointer disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <LoaderPinwheel className="animate-spin w-6 h-6" />

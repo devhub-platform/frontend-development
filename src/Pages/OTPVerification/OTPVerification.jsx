@@ -8,6 +8,7 @@ import AuthBG from "../../assets/images/AuthBG.avif";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
 import axios from "axios";
 import { UserContext } from "../../context/UserContext";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function OTPVerification() {
   const navigate = useNavigate();
@@ -44,7 +45,9 @@ export default function OTPVerification() {
         setTimer(60);
         setIsTimerActive(true);
       } catch (error) {
-        alert(error.response?.data?.message || "Failed to resend OTP code");
+        toast.error(
+          error.response?.data?.message || "Failed to resend OTP code. Please try again.",
+        );
       }
     }
   };
@@ -53,25 +56,25 @@ export default function OTPVerification() {
     if (otp.length === 6) {
       try {
         setLoading(true);
-        const payload = {
-          email: email, // اتأكدي إن الإيميل واصل صح من الـ navigate اللي قبله
-          otp: otp,
-        };
+        const isForgot = location.state?.type === "forgot";
 
-        const { data } = await axios.post(
-          `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/email/verify-otp`,
-          payload,
-        );
+        const url = isForgot
+          ? `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/password/verify-otp` // After forgot password, we verify the OTP with a different endpoint to allow password reset
+          : `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/email/verify-otp`; // Regular OTP verification for email confirmation during registration
 
-        if (
-          data.success === true ||
-          data.message === "Email verified successfully"
-        ) {
-          navigate("/home");
+        const { data } = await axios.post(url, { email, otp });
+
+        if (data.status === 200 || data.success || data.message?.includes("verified")) {
+          if (isForgot) {
+            navigate("/reset-password", { state: { email, otp } });
+          } else {
+            navigate("/home");
+          }
         }
       } catch (error) {
-        // عرض رسالة الخطأ الحقيقية اللي ظاهرة في صورة الـ Run
-        alert(error.response?.data?.error || "Invalid OTP code");
+        toast.error(
+          error.response?.data?.message || "Failed to verify OTP code. Please try again.",
+        );
       } finally {
         setLoading(false);
       }
@@ -83,7 +86,26 @@ export default function OTPVerification() {
       <Helmet>
         <title>DevHub | OTP Verification</title>
       </Helmet>
-
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "var(--toast-bg)",
+            color: "var(--toast-text)",
+            border: "1px solid var(--toast-border)",
+            borderRadius: "12px",
+            padding: "12px 14px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+          },
+          success: {
+            iconTheme: { primary: "var(--color-primary)", secondary: "white" },
+            style: { border: "1px solid rgba(0,56,144,0.25)" },
+          },
+          error: {
+            iconTheme: { primary: "#ef4444", secondary: "white" },
+          },
+        }}
+      />
       <div className="min-h-screen w-full relative flex items-center justify-center p-4 overflow-hidden font-sans">
         <div className="absolute inset-0 z-0">
           <img src={AuthBG} alt="BG" className="w-full h-full object-cover" />
@@ -140,7 +162,7 @@ export default function OTPVerification() {
               <button
                 onClick={handleVerify}
                 disabled={otp.length !== 6 || loading}
-                className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 transition-all flex items-center justify-center gap-3 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <LoaderPinwheel className="animate-spin w-6 h-6" />

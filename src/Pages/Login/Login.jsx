@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { Mail, Lock, Eye, EyeOff, LoaderPinwheel, Github } from "lucide-react";
 import { useContext, useState } from "react";
 import Helmet from "react-helmet";
@@ -13,6 +12,7 @@ import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
 import { ThemeContext } from "../../context/ThemeContext";
 import CryptoJS from "crypto-js";
 import { FaGoogle, FaGithub } from "react-icons/fa";
+import toast, { Toaster }  from "react-hot-toast";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +37,11 @@ export default function Login() {
       );
       if (data.url) window.location.href = data.url;
     } catch (error) {
-      alert("Google login failed. Please try again.");
+      toast.error(
+        error.response?.data?.message ||
+          "Google login failed. Please try again.",
+      );
+      // alert("Google login failed. Please try again.");
     }
   };
 
@@ -48,7 +52,11 @@ export default function Login() {
       );
       if (data.url) window.location.href = data.url;
     } catch (error) {
-      alert("Github login failed. Please try again.");
+      toast.error(
+        error.response?.data?.message ||
+          "GitHub login failed. Please try again.",
+      );
+      // alert("GitHub login failed. Please try again.");
     }
   };
 
@@ -111,7 +119,26 @@ export default function Login() {
       <Helmet>
         <title>DevHub | Login</title>
       </Helmet>
-
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "var(--toast-bg)",
+            color: "var(--toast-text)",
+            border: "1px solid var(--toast-border)",
+            borderRadius: "12px",
+            padding: "12px 14px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+          },
+          success: {
+            iconTheme: { primary: "var(--color-primary)", secondary: "white" },
+            style: { border: "1px solid rgba(0,56,144,0.25)" },
+          },
+          error: {
+            iconTheme: { primary: "#ef4444", secondary: "white" },
+          },
+        }}
+      />
       <div className="min-h-screen w-full relative flex items-center justify-center p-4 overflow-hidden font-sans text-xl">
         <div className="absolute inset-0 z-0">
           <img src={AuthBG} alt="BG" className="w-full h-full object-cover" />
@@ -132,6 +159,11 @@ export default function Login() {
               The professional ecosystem for developers to build, share, and
               grow together.
             </p>
+            <div className="flex gap-4">
+              <div className="h-1.5 w-6 bg-white/20 rounded-full"></div>
+              <div className="h-1.5 w-16 bg-primary rounded-full"></div>
+              <div className="h-1.5 w-6 bg-white/20 rounded-full"></div>
+            </div>
           </div>
 
           {/* Right Side (Form) */}

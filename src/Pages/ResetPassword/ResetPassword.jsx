@@ -7,6 +7,8 @@ import * as Yup from "yup";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import AuthBG from "../../assets/images/AuthBG.avif";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
+import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,32 +19,48 @@ export default function ResetPassword() {
   const location = useLocation();
   const navigate = useNavigate();
   const email = location.state?.email || "User Email";
+  const otp = location.state?.otp;
 
   async function handleReset(values) {
     try {
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
+      const payload = {
+        email: email,
+        otp: otp,
+        password: values.password,
+        password_confirmation: values.password_confirmation,
+      };
+
+      const { data } = await axios.post(
+        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/password/reset`,
+        payload,
+      );
+
+      if (data.success || data.status === 200 || data.message?.includes("reset")) {
+        toast.success("Password reset successful! Redirecting to login...");
         navigate("/login");
-        setLoading(false);
-      }, 1500);
+      }
     } catch (error) {
-      setApiError("Something went wrong.");
+      setApiError(error.response?.data?.message || "Failed to reset password");
+    } finally {
       setLoading(false);
     }
   }
 
   let validationSchema = Yup.object().shape({
     password: Yup.string()
-      .matches(/^[A-z]\w{5,10}$/, "Password must be 6-10 chars (Ex: Yasmine36)")
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        "Must be 8+ chars, with Uppercase, Lowercase, Number and Symbol",
+      )
       .required("Password is required"),
-    rePassword: Yup.string()
+    password_confirmation: Yup.string()
       .oneOf([Yup.ref("password")], "Passwords don't match")
       .required("Confirm password is required"),
   });
 
   let formik = useFormik({
-    initialValues: { password: "", rePassword: "" },
+    initialValues: { password: "", password_confirmation: "" },
     validationSchema,
     onSubmit: handleReset,
   });
@@ -52,7 +70,26 @@ export default function ResetPassword() {
       <Helmet>
         <title>DevHub | Reset Password</title>
       </Helmet>
-
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "var(--toast-bg)",
+            color: "var(--toast-text)",
+            border: "1px solid var(--toast-border)",
+            borderRadius: "12px",
+            padding: "12px 14px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+          },
+          success: {
+            iconTheme: { primary: "var(--color-primary)", secondary: "white" },
+            style: { border: "1px solid rgba(0,56,144,0.25)" },
+          },
+          error: {
+            iconTheme: { primary: "#ef4444", secondary: "white" },
+          },
+        }}
+      />
       <div className="min-h-screen w-full relative flex items-center justify-center p-4 overflow-hidden font-sans">
         <div className="absolute inset-0 z-0">
           <img src={AuthBG} alt="BG" className="w-full h-full object-cover" />
@@ -126,7 +163,7 @@ export default function ResetPassword() {
                   <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                     <input
-                      {...formik.getFieldProps("rePassword")}
+                      {...formik.getFieldProps("password_confirmation")}
                       type={showConfirmPassword ? "text" : "password"}
                       className="w-full h-14 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-primary rounded-2xl pl-12 pr-12 outline-none transition-all dark:text-white"
                       placeholder="••••••••"
@@ -145,17 +182,18 @@ export default function ResetPassword() {
                       )}
                     </button>
                   </div>
-                  {formik.touched.rePassword && formik.errors.rePassword && (
-                    <p className="text-xs font-bold text-red-500 ml-2">
-                      {formik.errors.rePassword}
-                    </p>
-                  )}
+                  {formik.touched.password_confirmation &&
+                    formik.errors.password_confirmation && (
+                      <p className="text-xs font-bold text-red-500 ml-2">
+                        {formik.errors.password_confirmation}
+                      </p>
+                    )}
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
+                  className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <LoaderPinwheel className="animate-spin w-6 h-6" />
