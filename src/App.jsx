@@ -19,8 +19,8 @@ import EditorGuide from "./Pages/EditorGuide";
 import AskQuestionPage from "./Pages/AskQuestion/AskQuestionPage";
 import QuestionPage from "./Pages/Question/QuestionPage";
 import CodePlaygroundPage from "./Pages/Playground/CodePlaygroundPage";
-
-// ... Imports كما هي
+import Interests from "./Pages/Interests/Interests";
+import Recommendations from "./Pages/Recommendations/Recommendations";
 
 function App() {
   return (
@@ -33,6 +33,8 @@ function App() {
         <Route path="/forgot" element={<ForgotPassword />} />
         <Route path="/otp-verification" element={<OTPVerification />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/interests" element={<Interests />} />
+        <Route path="/recommendations" element={<Recommendations />} />
         <Route path="/" element={<Layout />}>
           <Route path="home" element={<Home />} />
           <Route path="trending" element={<Trending />} />

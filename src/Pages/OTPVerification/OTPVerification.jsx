@@ -68,7 +68,7 @@ export default function OTPVerification() {
           if (isForgot) {
             navigate("/reset-password", { state: { email, otp } });
           } else {
-            navigate("/home");
+            navigate("/interests");
           }
         }
       } catch (error) {
