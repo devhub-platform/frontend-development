@@ -123,6 +123,7 @@ export default function App() {
             <ChatPanel
               isOpen={isChatOpen}
               onClose={() => setIsChatOpen(false)}
+              // postId={postData.id}
             />
           </div>
 
