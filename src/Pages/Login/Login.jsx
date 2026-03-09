@@ -72,6 +72,7 @@ export default function Login() {
 
       if (data.token) {
         localStorage.setItem("userToken", data.token);
+        localStorage.setItem("userEmail", data.user.email);
         setUserData(data.token);
 
         // 3. هندلة خاصية Remember Me
