@@ -49,9 +49,7 @@ export default function Register() {
       );
 
       if (data.token) {
-        // تشفير التوكين قبل التخزين
-        const encryptedToken = CryptoJS.AES.encrypt(data.token, key).toString();
-        localStorage.setItem("userToken", encryptedToken);
+        localStorage.setItem("userToken", data.token);
         setUserData(data.token);
         localStorage.setItem("userEmail", values.email);
         try {
@@ -61,13 +59,12 @@ export default function Register() {
             { headers },
           );
         } catch (e) {
-          console.log("Auto-send OTP failed, user can still resend manually.");
+          console.log("OTP Auto-send failed");
         }
         navigate("/otp-verification", { state: { email: values.email } });
       }
     } catch (error) {
-      const msg = error.response?.data?.message || "Registration failed";
-      setApiError(msg);
+      setApiError(error.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }

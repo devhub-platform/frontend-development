@@ -10,7 +10,6 @@ import AuthBG from "../../assets/images/AuthBG.avif";
 import LogoWhite from "../../assets/images/DevHubLogoBlack.png";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
 import { ThemeContext } from "../../context/ThemeContext";
-import CryptoJS from "crypto-js";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import toast, { Toaster }  from "react-hot-toast";
 
@@ -20,9 +19,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const { setUserData } = useContext(UserContext);
+  const {  setUserData } = useContext(UserContext);
   const { theme } = useContext(ThemeContext);
-  const key = import.meta.env.VITE_SECRET_KEY;
 
   const headers = {
     "Content-Type": "application/json",
@@ -73,11 +71,7 @@ export default function Login() {
       );
 
       if (data.token) {
-        // 1. تشفير التوكين وتخزينه
-        const encryptedToken = CryptoJS.AES.encrypt(data.token, key).toString();
-        localStorage.setItem("userToken", encryptedToken);
-
-        // 2. تحديث الـ Context بالتوكين الحقيقي
+        localStorage.setItem("userToken", data.token);
         setUserData(data.token);
 
         // 3. هندلة خاصية Remember Me
