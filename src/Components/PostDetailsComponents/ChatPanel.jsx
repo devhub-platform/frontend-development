@@ -18,6 +18,7 @@ export function ChatPanel({ isOpen, onClose }) {
   ]);
 
   const [inputValue, setInputValue] = useState("");
+  const [sessionId, setSessionId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSendMessage = async () => {
@@ -36,9 +37,13 @@ export function ChatPanel({ isOpen, onClose }) {
     setIsLoading(true);
 
     try {
+      const requestData = {
+        message: messageToSend,
+        ...(sessionId && { session_id: sessionId }),
+      };
       const response = await axios.post(
         `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/posts/${postId}/ai-chat`,
-        { message: messageToSend }, // الـ attribute المطلوب
+          requestData,
         {
           headers: {
             Authorization: `Bearer ${token}`, // تأكد أن التوكن مبعوت صح
@@ -49,6 +54,10 @@ export function ChatPanel({ isOpen, onClose }) {
       );
 
       if (response.data.success) {
+        if (response.data.session_id) {
+          setSessionId(response.data.session_id);
+        }
+
         const aiMsg = {
           id: response.data.session_id || Date.now() + 1,
           text: response.data.content, // الـ content اللي راجع من الـ API
@@ -56,6 +65,8 @@ export function ChatPanel({ isOpen, onClose }) {
         };
         setMessages((prev) => [...prev, aiMsg]);
       }
+
+      console.log("AI Response:", response.data);
     } catch (error) {
       console.error("Chat Error:", error);
       setMessages((prev) => [
