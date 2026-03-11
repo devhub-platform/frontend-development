@@ -50,7 +50,7 @@ export default function ResetPassword() {
   let validationSchema = Yup.object().shape({
     password: Yup.string()
       .matches(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/,
         "Must be 8+ chars, with Uppercase, Lowercase, Number and Symbol",
       )
       .required("Password is required"),
