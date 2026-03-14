@@ -131,35 +131,31 @@ const Profile = () => {
     const fetchProfileData = async () => {
       try {
         const response = await axios.get(
-          "http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/profile",
+          "https://api.dev-hubs.tech/api/v1/profile",
           {
             headers: {
               Authorization: `Bearer ${token}`,
               Accept: "application/json",
-              "Content-Type": "application/json",
             },
           },
         );
 
         const user = response.data.data;
-
         setProfileData({
-          name: user.name || "Mai Waleed",
+          name: user.name || "",
           username: user.username || "",
           email: user.email || "",
           bio: user.bio || "",
-          skills: user.skills?.length > 0 ? user.skills.join(", ") : "",
-          education: user.education || "Not specified",
-          location: user.location || "Not specified",
-          github: user.social_links?.github?.username || "",
+          education: user.education || "",
+          location: user.location || "",
           linkedin: user.social_links?.linkedin?.username || "",
+          github: user.social_links?.github?.username || "",
           scholar: user.social_links?.scholar?.username || "",
           joined_at: user.joined_at || "recent",
         });
 
-        if (user.avatar_url) setProfileImage(user.avatar_url);
-        if (user.cover_image) setCoverImage(user.cover_image);
-
+        setProfileImage(user.avatar_url);
+        setCoverImage(user.cover_image);
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -170,72 +166,30 @@ const Profile = () => {
     if (token) fetchProfileData();
   }, [token]);
 
-  const handleProfileImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setTempProfileImage(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleCoverImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setTempCoverImage(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSaveProfile = async () => {
     try {
       const payload = {
         name: profileData.name,
         username: profileData.username,
         bio: profileData.bio,
-        email: profileData.email,
         education: profileData.education,
-        work_at: profileData.work_at,
-        skills: Array.isArray(profileData.skills) ? profileData.skills : [],
-        // لو مفيش صورة مرفوعة، نبعت الـ Avatar الافتراضي المبني على الاسم
+        location: profileData.location,
         social_links: {
           linkedin: { username: profileData.linkedin || "" },
           github: { username: profileData.github || "" },
           scholar: { username: profileData.scholar || "" },
         },
-        avatar_url:
-          tempProfileImage ||
-          profileImage ||
-          `https://ui-avatars.com/api/?name=${profileData.name}&background=random`,
-        cover_image:
-          tempCoverImage ||
-          coverImage ||
-          `https://ui-avatars.com/api/?name=${profileData.name}&background=003890&color=fff`,
       };
 
-      const response = await axios.patch(
-        "http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/profile",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        },
-      );
+      const response = await axios.patch("https://api.dev-hubs.tech/api/v1/profile", payload, {
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      });
 
       if (response.data) {
-        setProfileData(response.data.data);
-        if (tempProfileImage) setProfileImage(tempProfileImage);
-        if (tempCoverImage) setCoverImage(tempCoverImage);
-        setShowEditDialog(false);
-        setTempProfileImage(null);
-        setTempCoverImage(null);
         alert("Profile updated successfully! 🎉");
+        setShowEditDialog(false);
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
       alert(error.response?.data?.message || "Update failed");
     }
   };
@@ -282,7 +236,7 @@ const Profile = () => {
                     <img
                       src={
                         coverImage ||
-                        `https://ui-avatars.com/api/?name=${profileData.name || "User"}&background=003890&color=fff&size=128`
+                        `https://ui-avatars.com/api/?name=${profileData.name || "User"}&background=003890&color=fff`
                       }
                       alt="Cover"
                       className="w-full h-full object-cover"
@@ -296,7 +250,7 @@ const Profile = () => {
                       <img
                         src={
                           profileImage ||
-                          `https://ui-avatars.com/api/?name=${profileData.name || "User"}&background=random&color=fff&size=128`
+                          `https://ui-avatars.com/api/?name=${profileData.name || "User"}&background=random`
                         }
                         alt={profileData.name}
                         className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover border-4 border-white dark:border-black shadow-xl"
@@ -457,26 +411,15 @@ const Profile = () => {
 
         <EditProfile
           showEditDialog={showEditDialog}
-          handleCancelEdit={handleCancelEdit}
-          handleSaveProfile={handleSaveProfile} // مرري الدالة الحقيقية هنا
+          handleCancelEdit={() => setShowEditDialog(false)}
+          handleSaveProfile={handleSaveProfile}
           profileData={profileData}
           setProfileData={setProfileData}
-          // نمرر الصور مع الـ Fallback للحروف لو كانت null
-          profileImage={
-            profileImage ||
-            `https://ui-avatars.com/api/?name=${profileData.name}&background=random`
-          }
-          coverImage={
-            coverImage ||
-            `https://ui-avatars.com/api/?name=${profileData.name}&background=003890&color=fff`
-          }
-          tempProfileImage={tempProfileImage}
-          setTempProfileImage={setTempProfileImage}
-          tempCoverImage={tempCoverImage}
-          setTempCoverImage={setTempCoverImage}
-          handleProfileImageUpload={handleProfileImageUpload}
-          handleCoverImageUpload={handleCoverImageUpload}
-          socialMediaPlatforms={socialMediaPlatforms}
+          profileImage={profileImage}
+          coverImage={coverImage}
+          setProfileImage={setProfileImage}
+          setCoverImage={setCoverImage}
+          token={token}
         />
       </div>
     </>
