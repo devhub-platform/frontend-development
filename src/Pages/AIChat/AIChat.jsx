@@ -303,7 +303,7 @@ export default function AIChat() {
   const canUseAttachment = !!currentModelMeta?.vision;
 
   return (
-    <div className="flex h-[90vh] bg-gray-50 dark:bg-[#0a0e1a] overflow-hidden">
+    <div className="flex h-[90vh] dark:bg-[#0a0e1a] overflow-hidden">
 
       {/* ─── Desktop sidebar (collapsible) ─── */}
       <div className={`hidden md:flex flex-col transition-all duration-300 ${
@@ -365,7 +365,7 @@ export default function AIChat() {
         </div>
 
         {/* Chat messages */}
-        <div className="flex-1 overflow-y-auto no-scrollbar overflow-x-hidden min-h-0">
+        <div className="overflow-y-auto no-scrollbar overflow-x-hidden min-h-0">
           <ChatArea
             messages={currentChat?.messages || []}
             selectedModel={currentModelMeta?.title || selectedModel || defaultModelId}
@@ -373,7 +373,7 @@ export default function AIChat() {
         </div>
 
         {/* Input area */}
-        <div className="shrink-0">
+        <div className="shrink-0 flex justify-center px-4 py-3 border-t border-gray-200/60 dark:border-gray-800/50 bg-white/80 dark:bg-[#0a0e1a]/80 backdrop-blur-sm">
           <InputArea
             onSendMessage={handleSendMessage}
             selectedModelId={selectedModel || defaultModelId}

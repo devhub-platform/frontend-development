@@ -15,16 +15,7 @@ import {
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 
-const suggestions = [
-  { icon: Bug, text: "Explain React error", color: "text-red-400", bg: "bg-red-500/10" },
-  { icon: Code, text: "Write unit tests", color: "text-emerald-400", bg: "bg-emerald-500/10" },
-  { icon: Zap, text: "Optimize code", color: "text-blue-400", bg: "bg-blue-500/10" },
-  { icon: Database, text: "Database design", color: "text-purple-400", bg: "bg-purple-500/10" },
-  { icon: TestTube, text: "Setup CI/CD", color: "text-indigo-400", bg: "bg-indigo-500/10" },
-  { icon: FileJson, text: "Performance tips", color: "text-amber-400", bg: "bg-amber-500/10" },
-];
-
-export default function ChatArea({ messages, selectedModel, onSuggestionClick }) {
+export default function ChatArea({ messages, selectedModel }) {
   const hasMessages = messages.length > 0;
   const [copiedId, setCopiedId] = useState(null);
 
@@ -44,10 +35,6 @@ export default function ChatArea({ messages, selectedModel, onSuggestionClick })
 
         {!hasMessages ? (
           <div className="flex flex-col items-center text-center pt-10">
-            {/* Logo / Header */}
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center mb-5 shadow-lg shadow-primary/30">
-              <Bot size={28} color="white" />
-            </div>
             <h1 className="text-3xl font-bold dark:text-white text-gray-900 mb-2 tracking-tight">
               Ask <span className="text-primary">DevHub AI</span>
             </h1>
@@ -57,26 +44,8 @@ export default function ChatArea({ messages, selectedModel, onSuggestionClick })
 
             {/* Model badge */}
             <div className="mb-8 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 text-xs text-gray-500 dark:text-gray-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
               {selectedModel || "AI Model"}
-            </div>
-
-            {/* Suggestion cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-2xl">
-              {suggestions.map((item, i) => (
-                <button
-                  key={i}
-                  onClick={() => onSuggestionClick?.(item.text)}
-                  className={`flex items-center gap-3 p-3.5 ${item.bg} border border-gray-200 dark:border-gray-700/50 rounded-xl hover:border-primary/50 hover:scale-[1.02] transition-all text-left group`}
-                >
-                  <div className={`w-8 h-8 rounded-lg ${item.bg} flex items-center justify-center shrink-0`}>
-                    <item.icon className={`w-4 h-4 ${item.color}`} />
-                  </div>
-                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">
-                    {item.text}
-                  </span>
-                </button>
-              ))}
             </div>
           </div>
         ) : (
@@ -92,7 +61,7 @@ export default function ChatArea({ messages, selectedModel, onSuggestionClick })
                   <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
                     isUser
                       ? "bg-primary shadow-md shadow-primary/30"
-                      : "bg-gradient-to-br from-gray-700 to-gray-800 border border-gray-600/50"
+                      : "bg-linear-to-br from-gray-700 to-gray-800 border border-gray-600/50"
                   }`}>
                     {isUser
                       ? <User size={15} color="white" />
@@ -105,7 +74,7 @@ export default function ChatArea({ messages, selectedModel, onSuggestionClick })
 
                     {/* Message bubble / content */}
                     {isUser ? (
-                      <div className="max-w-[85%] bg-primary text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm leading-relaxed break-words [overflow-wrap:anywhere] shadow-md shadow-primary/20">
+                      <div className="max-w-[85%] bg-primary text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm leading-relaxed wrap-break-word shadow-md shadow-primary/20">
                         <p className="whitespace-pre-wrap">{msg.content}</p>
                       </div>
                     ) : (

@@ -1,7 +1,7 @@
 // src/services/aiChatApi.js
 import axios from "axios";
 
-const API_BASE = "http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/ai-chat";
+const API_BASE = "https://api.dev-hubs.tech/api/v1/ai-chat";
 
 const api = axios.create({
   baseURL: API_BASE,

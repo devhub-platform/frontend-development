@@ -145,7 +145,7 @@ export default function InputArea({
 
   return (
     <div className={`w-full ${variant === "center" ? "max-w-3xl" : ""}`}>
-      <div className="w-full bg-white/90 dark:bg-[#0a0e1a]/90 backdrop-blur-md px-4 pt-2 pb-4 border-t border-gray-200/80 dark:border-gray-800/50">
+      <div className="w-full bg-white/90 dark:bg-[#0a0e1a]/90 backdrop-blur-md px-4 pb-4">
         <div className="max-w-3xl mx-auto">
           {/* Image preview above the input box */}
           {imagePreview && (
