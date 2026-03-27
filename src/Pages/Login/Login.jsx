@@ -31,7 +31,7 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     try {
       const { data } = await axios.post(
-        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/auth/google/login`,
+        `https://api.dev-hubs.tech/api/v1/auth/google/login`,
       );
       if (data.url) window.location.href = data.url;
     } catch (error) {
@@ -46,7 +46,7 @@ export default function Login() {
   const handleGithubLogin = async () => {
     try {
       const { data } = await axios.post(
-        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/auth/github/login`,
+        `https://api.dev-hubs.tech/api/v1/auth/github/login`,
       );
       if (data.url) window.location.href = data.url;
     } catch (error) {
@@ -65,7 +65,7 @@ export default function Login() {
       setApiError(null);
 
       let { data } = await axios.post(
-        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/login`,
+        `https://api.dev-hubs.tech/api/v1/login`,
         values,
         { headers },
       );

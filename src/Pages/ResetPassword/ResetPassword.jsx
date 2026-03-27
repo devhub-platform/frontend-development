@@ -32,7 +32,7 @@ export default function ResetPassword() {
       };
 
       const { data } = await axios.post(
-        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/password/reset`,
+        `https://api.dev-hubs.tech/api/v1/password/reset`,
         payload,
       );
 

@@ -37,7 +37,7 @@ export default function OTPVerification() {
     if (!isTimerActive) {
       try {
         await axios.post(
-          `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/email/send-otp`,
+          `https://api.dev-hubs.tech/api/v1/email/send-otp`,
           { email: email },
         );
 
@@ -59,8 +59,8 @@ export default function OTPVerification() {
         const isForgot = location.state?.type === "forgot";
 
         const url = isForgot
-          ? `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/password/verify-otp` // After forgot password, we verify the OTP with a different endpoint to allow password reset
-          : `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/email/verify-otp`; // Regular OTP verification for email confirmation during registration
+          ? `https://api.dev-hubs.tech/api/v1/password/verify-otp` // After forgot password, we verify the OTP with a different endpoint to allow password reset
+          : `https://api.dev-hubs.tech/api/v1/email/verify-otp`; // Regular OTP verification for email confirmation during registration
 
         const { data } = await axios.post(url, { email, otp });
 

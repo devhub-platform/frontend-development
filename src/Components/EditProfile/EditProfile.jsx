@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Settings,
   X,
@@ -9,6 +9,8 @@ import {
   MapPin,
   Trash2,
   Loader2,
+  Camera,
+  Globe,
 } from "lucide-react";
 import axios from "axios";
 
@@ -24,77 +26,117 @@ const EditProfile = ({
   setCoverImage,
   token,
 }) => {
-  const [uploadingType, setUploadingType] = useState(null);
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
+  const [selectedCover, setSelectedCover] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [coverPreview, setCoverPreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onSave = async () => {
-    setIsSubmitting(true);
-    await handleSaveProfile();
-    setIsSubmitting(false);
-  };
+  useEffect(() => {
+    if (showEditDialog) {
+      setAvatarPreview(profileImage);
+      setCoverPreview(coverImage);
+      setSelectedAvatar(null);
+      setSelectedCover(null);
+    }
+  }, [showEditDialog, profileImage, coverImage]);
 
   if (!showEditDialog) return null;
 
-  const internalImageUpload = async (file, type) => {
+  // 1. دالة رفع الصور
+  const uploadImage = async (file, type) => {
     const isAvatar = type === "avatar";
     const endpoint = isAvatar
       ? "https://api.dev-hubs.tech/api/v1/profile/upload/avatar"
       : "https://api.dev-hubs.tech/api/v1/profile/upload/cover-image";
 
     const formData = new FormData();
+    formData.append(isAvatar ? "avatar_url" : "cover_image", file);
 
-    // التعديل الجذري هنا:
-    // السيرفر أظهر خطأ باسم avatar_url، لذا سنرسل الملف بهذا الاسم للأفاتار
-    if (isAvatar) {
-      formData.append("avatar_url", file);
-    } else {
-      formData.append("cover_image", file);
-    }
+    const response = await axios.post(endpoint, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+    });
+    return response.data.data;
+  };
 
+  // 2. دالة حفظ الحسابات الاجتماعية (API المنفصل)
+  const saveSocialAccounts = async () => {
+    const socialEndpoint =
+      "https://api.dev-hubs.tech/api/v1/settings/social-accounts";
+    const payload = {
+      linkedin_url: profileData.linkedin || "",
+      github_url: profileData.github || "",
+      orcid_url: profileData.orcid || "",
+    };
+
+    await axios.post(socialEndpoint, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+    });
+  };
+
+  const onSave = async () => {
+    setIsSubmitting(true);
     try {
-      setUploadingType(type);
-      const response = await axios.post(endpoint, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      });
-
-      // استخراج الرابط الجديد بناءً على هيكلة الـ API الخاصة بك
-      const result = response.data.data;
-      const newUrl = isAvatar
-        ? result.avatar_url || result
-        : result.cover_image || result;
-
-      if (isAvatar) setProfileImage(newUrl);
-      else setCoverImage(newUrl);
-
-      alert("تم رفع الصورة بنجاح! 🎉");
-    } catch (error) {
-      if (error.response && error.response.status === 422) {
-        const errors = error.response.data.errors;
-        console.error("Validation Details:", errors);
-        const errorMessages = Object.values(errors).flat().join("\n");
-        alert(`فشل الرفع بسبب:\n${errorMessages}`);
-      } else {
-        console.error("Upload error:", error);
-        alert("حدث خطأ غير متوقع أثناء الرفع.");
+      // رفع الأفاتار إذا تم اختياره
+      if (selectedAvatar) {
+        const result = await uploadImage(selectedAvatar, "avatar");
+        setProfileImage(result.avatar_url || result);
       }
+
+      // رفع الغلاف إذا تم اختياره
+      if (selectedCover) {
+        const result = await uploadImage(selectedCover, "cover");
+        setCoverImage(result.cover_image || result);
+      }
+
+      // حفظ الحسابات الاجتماعية
+      await saveSocialAccounts();
+
+      // حفظ بيانات البروفايل الأساسية (الاسم، البايو، الخ)
+      await handleSaveProfile();
+
+      // alert("Profile and Social Accounts updated successfully! 🎉");
+    } catch (error) {
+      console.error("Error saving data:", error);
+      alert("Failed to save changes. Please check your connection.");
     } finally {
-      setUploadingType(null);
+      setIsSubmitting(false);
     }
   };
 
-  const onFileChange = async (e, type) => {
+  const onFileChange = (e, type) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        alert("حجم الصورة كبير جداً، يرجى اختيار صورة أقل من 2 ميجابايت.");
+        alert("Image size is too large (Max 2MB)");
         return;
       }
-      await internalImageUpload(file, type);
+      const previewUrl = URL.createObjectURL(file);
+      if (type === "avatar") {
+        setSelectedAvatar(file);
+        setAvatarPreview(previewUrl);
+      } else {
+        setSelectedCover(file);
+        setCoverPreview(previewUrl);
+      }
     }
   };
+
+  // const removeImage = (type) => {
+  //   if (type === "avatar") {
+  //     setSelectedAvatar(null);
+  //     setAvatarPreview(null);
+  //   } else {
+  //     setSelectedCover(null);
+  //     setCoverPreview(null);
+  //   }
+  // };
 
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -110,7 +152,7 @@ const EditProfile = ({
               Edit Profile
             </h2>
             <p className="text-gray-500 text-sm mt-1 dark:text-gray-300">
-              Update your profile information, images, and social media links.
+              Manage your identity and social connections.
             </p>
           </div>
           <button
@@ -121,37 +163,40 @@ const EditProfile = ({
           </button>
         </div>
 
-        {/* Scrollable Content */}
+        {/* Content */}
         <div className="p-6 space-y-6 overflow-y-scroll no-scrollbar">
           {/* Cover Section */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-[#1b4965] dark:text-gray-200">
-              Cover Image
-            </label>
-            <div className="relative rounded-2xl overflow-hidden border-2 border-[#62b6cb]/20 h-42 group">
-              <img
-                src={
-                  coverImage ||
-                  `https://ui-avatars.com/api/?name=${profileData.name}&background=003890&color=fff`
-                }
-                className="w-full h-full object-cover"
-                alt="Cover"
-              />
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-semibold text-[#1b4965] dark:text-gray-200">
+                Cover Image
+              </label>
+              {/* {coverPreview && (
+                <button
+                  onClick={() => removeImage("cover")}
+                  className="text-red-500 hover:text-red-700 flex items-center gap-1 text-xs font-medium"
+                >
+                  <Trash2 className="w-3 h-3" /> Remove
+                </button>
+              )} */}
+            </div>
+            <div className="relative rounded-2xl overflow-hidden border-2 border-[#62b6cb]/20 h-42 group bg-gray-100 dark:bg-gray-800">
+              {coverPreview ? (
+                <img
+                  src={coverPreview}
+                  className="w-full h-full object-cover"
+                  alt="Cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No Cover
+                </div>
+              )}
               <div
-                onClick={() =>
-                  !uploadingType &&
-                  document.getElementById("cover-input").click()
-                }
-                className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"
+                onClick={() => document.getElementById("cover-input").click()}
+                className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center cursor-pointer"
               >
-                {uploadingType === "cover" ? (
-                  <Loader2 className="text-white animate-spin" />
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-white">
-                    <Upload className="w-8 h-8" />
-                    <span className="text-sm">Upload Cover</span>
-                  </div>
-                )}
+                <Camera className="text-white w-8 h-8" />
               </div>
               <input
                 id="cover-input"
@@ -166,26 +211,24 @@ const EditProfile = ({
           {/* Avatar Section */}
           <div className="flex items-center gap-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl">
             <div className="relative group w-20 h-20 shrink-0">
-              <img
-                src={
-                  profileImage ||
-                  `https://ui-avatars.com/api/?name=${profileData.name}&background=random`
-                }
-                className="w-full h-full rounded-2xl object-cover border-2 border-white dark:border-gray-700 shadow-md"
-                alt="Avatar"
-              />
+              <div className="w-full h-full rounded-2xl overflow-hidden border-2 border-white dark:border-gray-700 shadow-md bg-gray-200">
+                {avatarPreview ? (
+                  <img
+                    src={avatarPreview}
+                    className="w-full h-full object-cover"
+                    alt="Avatar"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-xs text-gray-400">
+                    Empty
+                  </div>
+                )}
+              </div>
               <div
-                onClick={() =>
-                  !uploadingType &&
-                  document.getElementById("avatar-input").click()
-                }
+                onClick={() => document.getElementById("avatar-input").click()}
                 className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer"
               >
-                {uploadingType === "avatar" ? (
-                  <Loader2 className="text-white animate-spin" />
-                ) : (
-                  <Upload className="text-white w-5 h-5" />
-                )}
+                <Upload className="text-white w-5 h-5" />
               </div>
               <input
                 id="avatar-input"
@@ -199,14 +242,22 @@ const EditProfile = ({
               <h4 className="text-sm font-semibold text-[#1b4965] dark:text-gray-200">
                 Profile Picture
               </h4>
-              <p className="text-xs text-gray-500 mt-1">
-                PNG, JPG or JPEG (Max 2MB)
-              </p>
+              <div className="flex gap-4 mt-1">
+                <p className="text-xs text-gray-500">PNG, JPG (Max 2MB)</p>
+              {/* {avatarPreview && (
+                <button
+                  onClick={() => removeImage("avatar")}
+                  className="text-red-500 text-xs mt-1 flex items-center gap-1"
+                >
+                  <Trash2 className="w-3 h-3" /> Remove image
+                </button>
+              )} */}
+              </div>
             </div>
           </div>
 
-          {/* Form Fields */}
-          <div className="pt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">
                 Full Name
@@ -217,7 +268,7 @@ const EditProfile = ({
                 onChange={(e) =>
                   setProfileData({ ...profileData, name: e.target.value })
                 }
-                className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none dark:bg-gray-800 dark:border-gray-700"
+                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white outline-none focus:border-[#62b6cb]"
               />
             </div>
             <div className="space-y-2">
@@ -230,11 +281,12 @@ const EditProfile = ({
                 onChange={(e) =>
                   setProfileData({ ...profileData, username: e.target.value })
                 }
-                className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none dark:bg-gray-800 dark:border-gray-700"
+                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white outline-none focus:border-[#62b6cb]"
               />
             </div>
           </div>
 
+          {/* Bio, Education, Location... (باقي الحقول كما هي) */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">
               Bio
@@ -245,58 +297,19 @@ const EditProfile = ({
               onChange={(e) =>
                 setProfileData({ ...profileData, bio: e.target.value })
               }
-              className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none  min-h-25 dark:bg-gray-800 dark:border-gray-700"
-              placeholder="Tell us about yourself..."
+              className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white outline-none focus:border-[#62b6cb]"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">
-                Education
-              </label>
-              <div className="relative">
-                <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={profileData.education || ""}
-                  onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      education: e.target.value,
-                    })
-                  }
-                  className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none dark:bg-gray-800 dark:border-gray-700"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">
-                Location
-              </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={profileData.location || ""}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, location: e.target.value })
-                  }
-                  className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[#62b6cb] outline-none dark:bg-gray-800 dark:border-gray-700"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Social Links */}
+          {/* Social Presence Section */}
           <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">
-              Social Presence
+              Social Accounts
             </label>
-            <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-2xl">
+            <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-2xl border border-transparent focus-within:border-[#62b6cb] transition-all">
               <Linkedin className="w-5 h-5 text-blue-600 ml-2" />
               <input
-                placeholder="LinkedIn Username"
+                placeholder="LinkedIn URL"
                 value={profileData.linkedin || ""}
                 onChange={(e) =>
                   setProfileData({ ...profileData, linkedin: e.target.value })
@@ -304,13 +317,24 @@ const EditProfile = ({
                 className="bg-transparent flex-1 outline-none text-sm dark:text-white"
               />
             </div>
-            <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-2xl">
-              <Github className="w-5 h-5 text-gray-400" />
+            <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-2xl border border-transparent focus-within:border-[#62b6cb] transition-all">
+              <Github className="w-5 h-5 text-gray-700 dark:text-gray-300 ml-2" />
               <input
-                placeholder="GitHub Username"
+                placeholder="GitHub URL"
                 value={profileData.github || ""}
                 onChange={(e) =>
                   setProfileData({ ...profileData, github: e.target.value })
+                }
+                className="bg-transparent flex-1 outline-none text-sm dark:text-white"
+              />
+            </div>
+            <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-2xl border border-transparent focus-within:border-[#62b6cb] transition-all">
+              <Globe className="w-5 h-5 text-green-600 ml-2" />
+              <input
+                placeholder="ORCID URL"
+                value={profileData.orcid || ""}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, orcid: e.target.value })
                 }
                 className="bg-transparent flex-1 outline-none text-sm dark:text-white"
               />
@@ -322,16 +346,22 @@ const EditProfile = ({
         <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
           <button
             onClick={handleCancelEdit}
-            className="px-6 py-2 rounded-xl border border-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors font-medium dark:bg-gray-900 dark:border-0"
+            className="px-6 py-2 rounded-xl border border-gray-200 dark:text-white dark:border-gray-900 cursor-pointer transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={onSave}
             disabled={isSubmitting}
-            className="px-6 py-2 rounded-xl bg-primary text-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex items-center gap-2 font-medium disabled:opacity-50"
+            className="px-6 py-2 rounded-xl bg-primary text-white transition-all hover:-translate-y-1 hover:shadow-lg disabled:opacity-50 flex items-center gap-2"
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+              </>
+            ) : (
+              "Save Changes"
+            )}
           </button>
         </div>
       </div>

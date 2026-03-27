@@ -16,7 +16,7 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
       const { data } = await axios.post(
-        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/password/forgot`,
+        `https://api.dev-hubs.tech/api/v1/password/forgot`,
         values,
         {
           headers: {

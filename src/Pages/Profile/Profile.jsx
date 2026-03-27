@@ -1,6 +1,18 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useContext, useEffect } from "react";
-import { Linkedin, Github, Share2, Calendar, BookOpen, ChevronRight, Settings, X, Upload, Camera,MapPin } from "lucide-react";
+import {
+  Linkedin,
+  Github,
+  Share2,
+  Calendar,
+  BookOpen,
+  ChevronRight,
+  Settings,
+  X,
+  Upload,
+  Camera,
+  MapPin,
+} from "lucide-react";
 import { Messages } from "../../Components/Messages/Messages";
 import Post from "../../Components/Post/Post";
 import { posts } from "../../context/PostsData";
@@ -12,6 +24,7 @@ import ArchivedTab from "../../Components/ProfileTabs/ArchivedTab";
 import ReadingListTab from "../../Components/ProfileTabs/ReadingListTab";
 import DashboardTab from "../../Components/ProfileTabs/DashboardTab";
 import { FaUserGraduate } from "react-icons/fa";
+import { SiOrcid } from "react-icons/si"; // أضفت أيقونة orcid كمثال
 import {
   LineChart,
   Line,
@@ -91,40 +104,29 @@ const Profile = () => {
     education: "",
     location: "",
     work_at: "",
+    joined_at: "",
     linkedin: "",
     github: "",
-    scholar: "",
-    joined_at: "",
-    social_links: {},
+    orcid: "",
+    social_links: {}, // سنخزن الكائن بالكامل هنا (username و url)
+    number_of_posts_published: "",
+    number_of_followers: "",
+    number_of_users_followed: "",
+    number_of_views_in_his_posts: "",
   });
 
   const [profileImage, setProfileImage] = useState(null);
   const [coverImage, setCoverImage] = useState(null);
-  const [tempProfileImage, setTempProfileImage] = useState(null);
-  const [tempCoverImage, setTempCoverImage] = useState(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
   const [openReactionId, setOpenReactionId] = useState(null);
 
+  // تعريف المنصات والأيقونات فقط بدون بريفكس
   const socialMediaPlatforms = [
-    {
-      name: "linkedin",
-      icon: Linkedin,
-      prefix: "https://linkedin.com/in/",
-      placeholder: "username",
-    },
-    {
-      name: "github",
-      icon: Github,
-      prefix: "https://github.com/",
-      placeholder: "username",
-    },
-    {
-      name: "scholar",
-      icon: FaUserGraduate,
-      prefix: "https://scholar.google.com/",
-      placeholder: "username",
-    },
+    { name: "linkedin", icon: Linkedin },
+    { name: "github", icon: Github },
+    { name: "scholar", icon: FaUserGraduate },
+    { name: "orcid", icon: SiOrcid },
   ];
 
   useEffect(() => {
@@ -140,7 +142,18 @@ const Profile = () => {
           },
         );
 
+        const response2 = await axios.get(
+          "https://api.dev-hubs.tech/api/v1/profile/details",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+          },
+        );
+
         const user = response.data.data;
+        const userDetails = response2.data.data;
         setProfileData({
           name: user.name || "",
           username: user.username || "",
@@ -148,10 +161,14 @@ const Profile = () => {
           bio: user.bio || "",
           education: user.education || "",
           location: user.location || "",
-          linkedin: user.social_links?.linkedin?.username || "",
-          github: user.social_links?.github?.username || "",
-          scholar: user.social_links?.scholar?.username || "",
           joined_at: user.joined_at || "recent",
+          linkedin: user.social_links?.linkedin?.url || "",
+          github: user.social_links?.github?.url || "",
+          orcid: user.social_links?.orcid?.url || "",
+          social_links: user.social_links || {}, // نأخذ الروابط كما هي من الـ API
+          number_of_posts_published: userDetails.number_of_posts_published || 0,
+          number_of_followers: userDetails.number_of_followers || 0,
+          number_of_users_followed: userDetails.number_of_users_followed || 0,
         });
 
         setProfileImage(user.avatar_url);
@@ -174,18 +191,44 @@ const Profile = () => {
         bio: profileData.bio,
         education: profileData.education,
         location: profileData.location,
-        social_links: {
-          linkedin: { username: profileData.linkedin || "" },
-          github: { username: profileData.github || "" },
-          scholar: { username: profileData.scholar || "" },
-        },
+        // social_links: profileData.social_links,
+        number_of_posts_published: profileData.number_of_posts_published,
+        number_of_followers: profileData.number_of_followers,
+        number_of_users_followed: profileData.number_of_users_followed,
       };
 
-      const response = await axios.patch("https://api.dev-hubs.tech/api/v1/profile", payload, {
-        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-      });
+      const response = await axios.patch(
+        "https://api.dev-hubs.tech/api/v1/profile",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        },
+      );
 
-      if (response.data) {
+      const response2 = await axios.get(
+        "https://api.dev-hubs.tech/api/v1/profile/details",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        },
+      );
+
+      setProfileData((prev) => ({
+        ...prev,
+        social_links: {
+          ...prev.social_links,
+          linkedin: { url: prev.linkedin },
+          github: { url: prev.github },
+          orcid: { url: prev.orcid },
+        },
+      }));
+
+      if (response.data || response2.data) {
         alert("Profile updated successfully! 🎉");
         setShowEditDialog(false);
       }
@@ -194,25 +237,19 @@ const Profile = () => {
     }
   };
 
-  const handleCancelEdit = () => {
-    setShowEditDialog(false);
-    setTempProfileImage(null);
-    setTempCoverImage(null);
-  };
-
   const viewsData = [
-    { mon: "Jan", views: 400, followers: 200, sharedPosts: 6 },
-    { mon: "Feb", views: 800, followers: 400, sharedPosts: 0 },
-    { mon: "Mar", views: 650, followers: 300, sharedPosts: 1 },
-    { mon: "Apr", views: 1200, followers: 600, sharedPosts: 4 },
-    { mon: "May", views: 900, followers: 500, sharedPosts: 2 },
-    { mon: "June", views: 400, followers: 250, sharedPosts: 1 },
-    { mon: "July", views: 800, followers: 450, sharedPosts: 0 },
-    { mon: "Aug", views: 650, followers: 350, sharedPosts: 2 },
-    { mon: "Sep", views: 1200, followers: 700, sharedPosts: 3 },
-    { mon: "Oct", views: 900, followers: 550, sharedPosts: 1 },
-    { mon: "Nov", views: 400, followers: 250, sharedPosts: 4 },
-    { mon: "Dec", views: 800, followers: 150, sharedPosts: 0 },
+    { mon: "Jan", views: 400 },
+    { mon: "Feb", views: 800 },
+    { mon: "Mar", views: 650 },
+    { mon: "Apr", views: 1200 },
+    { mon: "May", views: 900 },
+    { mon: "June", views: 400 },
+    { mon: "July", views: 800 },
+    { mon: "Aug", views: 650 },
+    { mon: "Sep", views: 1200 },
+    { mon: "Oct", views: 900 },
+    { mon: "Nov", views: 400 },
+    { mon: "Dec", views: 800 },
   ];
 
   if (isLoading) {
@@ -281,7 +318,9 @@ const Profile = () => {
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1 dark:text-gray-300">
                         <BookOpen className="w-4 h-4" />
-                        <span>{profileData.education}</span>
+                        <span>
+                          {profileData.education || "No education info"}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1 dark:text-gray-300">
                         <Calendar className="w-4 h-4" />
@@ -289,20 +328,23 @@ const Profile = () => {
                       </div>
                       <div className="flex items-center gap-1 dark:text-gray-300">
                         <MapPin className="w-4 h-4" />
-                        <span>{profileData.location}</span>
+                        <span>{profileData.location || "Earth"}</span>
                       </div>
                     </div>
 
-                    {/* Social Media Links */}
+                    {/* Social Media Links - Modified Section */}
                     <div className="flex flex-wrap gap-4 mt-4">
                       {socialMediaPlatforms.map((platform) => {
-                        const platformUsername = profileData[platform.name];
-                        if (!platformUsername) return null;
+                        const url =
+                          profileData.social_links[platform.name]?.url ||
+                          profileData[platform.name];
+
+                        if (!url) return null;
 
                         return (
                           <a
                             key={platform.name}
-                            href={`${platform.prefix}${platformUsername}`}
+                            href={url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 transition-colors"
@@ -317,25 +359,25 @@ const Profile = () => {
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 pt-6 border-t border-gray-300 dark:border-gray-700">
                     <div>
                       <p className="text-text-light dark:text-text-dark font-bold">
-                        24
+                        {profileData.number_of_posts_published || 0}
                       </p>
                       <p className="text-sm text-muted-foreground">Posts</p>
                     </div>
                     <div>
                       <p className="text-text-light dark:text-text-dark font-bold">
-                        1.2K
+                        {profileData.number_of_followers || 0}
                       </p>
                       <p className="text-sm text-muted-foreground">Followers</p>
                     </div>
                     <div>
                       <p className="text-text-light dark:text-text-dark font-bold">
-                        487
+                        {profileData.number_of_users_followed || 0}
                       </p>
                       <p className="text-sm text-muted-foreground">Following</p>
                     </div>
                     <div className="hidden sm:block">
                       <p className="text-text-light dark:text-text-dark font-bold">
-                        45K
+                        {profileData.number_of_views_in_his_posts || 0}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         Total Views
@@ -372,7 +414,6 @@ const Profile = () => {
                       setOpenReactionId={setOpenReactionId}
                     />
                   )}
-
                   {activeTab === "draft" && (
                     <DraftsTab
                       title="Your Draft Posts Appear Here"
@@ -380,19 +421,16 @@ const Profile = () => {
                       setOpenReactionId={setOpenReactionId}
                     />
                   )}
-
                   {activeTab === "archived" && (
-                    <DraftsTab
+                    <ArchivedTab
                       title="Your Archived Posts Appear Here"
                       openReactionId={openReactionId}
                       setOpenReactionId={setOpenReactionId}
                     />
                   )}
-
                   {activeTab === "reading" && (
                     <ReadingListTab mockCollections={mockCollections} />
                   )}
-
                   {activeTab === "dashboard" && (
                     <DashboardTab viewsData={viewsData} />
                   )}

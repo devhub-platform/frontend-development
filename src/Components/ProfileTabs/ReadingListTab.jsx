@@ -39,6 +39,9 @@ const ReadingListTab = ({ mockCollections }) => (
                     alt="preview"
                   />
                 ))}
+                <div className="text-sm bg-blue-800 text-white rounded-full px-3 py-1">
+                  +{collection.postCount - 3} more
+                </div>
               </div>
             </div>
             <div className="h-1 bg-gradient-to-r from-primary to-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>

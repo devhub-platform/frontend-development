@@ -43,7 +43,7 @@ export default function Register() {
       setApiError(null);
 
       let { data } = await axios.post(
-        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/register`,
+        `https://api.dev-hubs.tech/api/v1/register`,
         values,
         { headers },
       );
@@ -54,7 +54,7 @@ export default function Register() {
         localStorage.setItem("userEmail", values.email);
         try {
           await axios.post(
-            `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/email/send-otp`,
+            `https://api.dev-hubs.tech/api/v1/email/send-otp`,
             { email: values.email },
             { headers },
           );
@@ -102,7 +102,7 @@ export default function Register() {
     try {
       // 1. بننادي السيرفر بتاعنا الأول
       const { data } = await axios.post(
-        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/auth/google/login`,
+        `https://api.dev-hubs.tech/api/v1/auth/google/login`,
       );
       // 2. السيرفر بيرجع رابط (جوجل)، بنفتحه للمستخدم
       if (data.url) {
@@ -118,7 +118,7 @@ export default function Register() {
     try {
       setLoading(true);
       const { data } = await axios.post(
-        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/auth/github/login`,
+        `https://api.dev-hubs.tech/api/v1/auth/github/login`,
         {},
         { headers },
       );
