@@ -37,61 +37,6 @@ import {
 
 import axiosInstance from "../../config/api";
 
-const mockCollections = [
-  {
-    id: 1,
-    title: "Frontend Tips",
-    description: "Modern web development techniques and best practices",
-    postCount: 8,
-    posts: [
-      { id: 1, title: "The Art of Clean Code: Principles and Practices" },
-      { id: 2, title: "CSS Grid vs Flexbox: When to Use Each" },
-      { id: 3, title: "React Performance Optimization Techniques" },
-    ],
-    imgs: [
-      {
-        id: 1,
-        url: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=400",
-      },
-      {
-        id: 2,
-        url: "https://images.unsplash.com/photo-1537432376769-00f5c2f4c8d2?w=400",
-      },
-      {
-        id: 3,
-        url: "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400",
-      },
-    ],
-    updatedAt: "Updated 5 days ago",
-  },
-  {
-    id: 2,
-    title: "System Design",
-    description: "Scalable architecture patterns and distributed systems",
-    postCount: 15,
-    posts: [
-      { id: 1, title: "Understanding Microservices Architecture" },
-      { id: 2, title: "Building Resilient Distributed Systems" },
-      { id: 3, title: "Database Sharding Strategies Explained" },
-    ],
-    imgs: [
-      {
-        id: 1,
-        url: "https://images.unsplash.com/photo-1545235617-9465d2a55698?w=400",
-      },
-      {
-        id: 2,
-        url: "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=400",
-      },
-      {
-        id: 3,
-        url: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=400",
-      },
-    ],
-    updatedAt: "Updated 1 week ago",
-  },
-];
-
 const Profile = () => {
   const { userData } = useContext(UserContext);
   const token = localStorage.getItem("userToken");
@@ -436,7 +381,7 @@ const Profile = () => {
                     />
                   )}
                   {activeTab === "reading" && (
-                    <ReadingListTab mockCollections={mockCollections} />
+                    <ReadingListTab />
                   )}
                   {activeTab === "dashboard" && (
                     <DashboardTab viewsData={viewsData} />

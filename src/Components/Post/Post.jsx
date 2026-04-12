@@ -1,6 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MessageCircle, Share2, Bookmark, UserRoundPen, Eye, ThumbsUp } from "lucide-react";
+import {
+  MessageCircle,
+  Share2,
+  Bookmark,
+  Eye,
+  ThumbsUp,
+  Plus,
+  Loader2,
+  CheckCircle2,
+} from "lucide-react";
+import axiosInstance from "../../config/api";
 
 const reactionEmojis = [
   { emoji: "👍", label: "Like" },
@@ -16,6 +26,107 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
   const [reactionsCount, setReactionsCount] = useState(post.reactionsCount);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
+  // States للـ Reading List
+  const [isListOpen, setIsListOpen] = useState(false);
+  const [lists, setLists] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newListTitle, setNewListTitle] = useState("");
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("userToken");
+    return {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    };
+  };
+
+  // تشيك هل البوست محفوظ عند تحميل الصفحة
+  useEffect(() => {
+    const checkBookmarkStatus = async () => {
+      try {
+        const { data } = await axiosInstance.get("/reading-lists/lists/posts", {
+          headers: getAuthHeaders(),
+        });
+        const allLists = data.data || [];
+        const exists = allLists.some(
+          (list) => list.posts && list.posts.some((p) => p.id === post.id),
+        );
+        setIsBookmarked(exists);
+        setLists(allLists);
+      } catch (error) {
+        console.error("Error checking bookmark status", error);
+      }
+    };
+
+    checkBookmarkStatus();
+  }, [post.id]);
+
+  const fetchLists = async () => {
+    if (isListOpen) {
+      setIsListOpen(false);
+      return;
+    }
+
+    setIsListOpen(true);
+    setLoading(true);
+    try {
+      const { data } = await axiosInstance.get("/reading-lists/lists/posts", {
+        headers: getAuthHeaders(),
+      });
+      setLists(data.data || []);
+    } catch (error) {
+      console.error("Error fetching lists", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateList = async (e) => {
+    e.preventDefault();
+    if (!newListTitle.trim()) return;
+
+    try {
+      setLoading(true);
+      await axiosInstance.post(
+        "/reading-lists",
+        { title: newListTitle, description: "" },
+        { headers: getAuthHeaders() },
+      );
+      setNewListTitle("");
+      setIsCreating(false);
+
+      const { data } = await axiosInstance.get("/reading-lists/lists/posts", {
+        headers: getAuthHeaders(),
+      });
+      setLists(data.data || []);
+    } catch (error) {
+      console.error("Error creating list", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addPostToList = async (listId) => {
+    setLoading(true);
+    try {
+      await axiosInstance.post(
+        `/reading-lists/${listId}/add-post/${post.id}`,
+        {},
+        { headers: getAuthHeaders() },
+      );
+
+      setIsListOpen(false);
+      setIsBookmarked(true); // تلوين الأيقونة فوراً
+      alert("Post added to list successfully!");
+    } catch (error) {
+      console.error("Error adding post to list", error);
+      alert("Post already exists in the list.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleReactionSelect = (emoji) => {
     if (selectedReaction === emoji) {
       setReactionsCount((prev) => prev - 1);
@@ -25,18 +136,14 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
       setReactionsCount((prev) => prev + 1);
       setSelectedReaction(emoji);
     }
-    setOpenReactionId(null); // close popup after select
+    setOpenReactionId(null);
   };
 
   return (
-    <article
-      className="w-full bg-white border-b border-gray-300 hover:bg-gray-50 p-5 
-                        dark:bg-bg-secondary-dark relative dark:border-gray-700 dark:hover:bg-gray-800/50"
-    >
+    <article className="w-full bg-white border-b border-gray-300 hover:bg-gray-50 p-5 dark:bg-bg-secondary-dark relative dark:border-gray-700 dark:hover:bg-gray-800/50">
       <div className="flex gap-6">
-        {/* Left */}
         <div className="flex-1 flex flex-col gap-3">
-          {/* Author */}
+          {/* Author info */}
           <div className="flex items-center gap-2 text-sm">
             <div className="min-w-9 min-h-9 w-9 h-9 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700">
               <img
@@ -46,45 +153,31 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
                 }
                 alt={post.author}
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = `https://ui-avatars.com/api/?name=${post.author}&background=random`;
-                }}
               />
             </div>
-
             <div className="flex gap-2 flex-wrap">
               <span className="dark:text-white font-medium">{post.author}</span>
-              <span className="text-gray-400 hidden md:block">•</span>
-              <div className="flex gap-2">
-                <span className="text-gray-500 dark:text-gray-300">
-                  {post.date}
-                </span>
-                <span className="text-gray-400">•</span>
-                <span className="text-gray-500 dark:text-gray-300">
-                  {post.readingTime}
-                </span>
-              </div>
+              <span className="text-gray-400">
+                • {post.date} • {post.readingTime}
+              </span>
             </div>
           </div>
 
-          {/* Title */}
           <Link to={`/post/${post.id}`}>
-            <h2 className="text-xl font-semibold line-clamp-2 cursor-pointer hover:text-text-light dark:hover:text-text-dark">
+            <h2 className="text-xl font-semibold line-clamp-2 hover:text-blue-600 dark:hover:text-blue-400">
               {post.title}
             </h2>
           </Link>
 
-          {/* Excerpt */}
           <p className="text-gray-600 text-sm line-clamp-2 dark:text-white">
             {post.excerpt}
           </p>
 
-          {/* Tags */}
           <div className="flex gap-2 flex-wrap">
-            {post.tags.map((tag, index) => (
+            {post.tags.map((tag, i) => (
               <span
-                key={index}
-                className="bg-gray-100 text-xs px-2 py-1 rounded-full dark:bg-gray-800 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700"
+                key={i}
+                className="bg-gray-100 text-xs px-2 py-1 rounded-full dark:bg-gray-800 dark:text-gray-100"
               >
                 {tag}
               </span>
@@ -94,7 +187,6 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
           {/* Actions */}
           <div className="flex justify-between items-center text-gray-500 mt-2 dark:text-gray-300">
             <div className="flex gap-4 relative">
-              {/* Reactions */}
               <div className="relative">
                 <button
                   onClick={() =>
@@ -102,14 +194,11 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
                   }
                   className="flex items-center gap-1 cursor-pointer"
                 >
-                  <span>
-                    {selectedReaction || <ThumbsUp className="w-5 h-5" />}
-                  </span>
+                  {selectedReaction || <ThumbsUp className="w-5 h-5" />}
                   <span>{reactionsCount}</span>
                 </button>
-
                 {isReactionOpen && (
-                  <div className="absolute -top-13 bg-white border shadow rounded-full p-2 flex gap-1 z-10 dark:bg-gray-800 dark:border-gray-700 border-gray-300">
+                  <div className="absolute -top-13 bg-white border shadow-lg rounded-full p-2 flex gap-1 z-20 dark:bg-gray-800 dark:border-gray-700">
                     {reactionEmojis.map((r) => (
                       <button
                         key={r.label}
@@ -122,25 +211,21 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
                   </div>
                 )}
               </div>
-
-              {/* Comments */}
-              <button className="flex items-center gap-1 cursor-pointer">
+              <div className="flex items-center gap-1">
                 <MessageCircle size={18} />
                 <span>{post.commentsCount}</span>
-              </button>
-
-              {/* Views */}
-              <div className="flex items-center gap-1 ">
+              </div>
+              <div className="flex items-center gap-1">
                 <Eye size={18} />
                 <span>{post.views}</span>
               </div>
             </div>
 
-            <div className="flex gap-3 items-center">
-              {/* Bookmark */}
+            <div className="flex gap-3 items-center relative">
+              {/* التعديل هنا: التلوين يعتمد على isBookmarked وليس isListOpen */}
               <button
-                onClick={() => setIsBookmarked(!isBookmarked)}
-                className="cursor-pointer text-text-light dark:text-text-dark"
+                onClick={fetchLists}
+                className={`cursor-pointer transition hover:scale-110 ${isBookmarked ? "text-blue-600 dark:text-blue-400" : "text-text-light dark:text-text-dark"}`}
               >
                 <Bookmark
                   size={20}
@@ -148,7 +233,73 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
                 />
               </button>
 
-              {/* Share */}
+              {isListOpen && (
+                <div className="absolute right-0 bottom-full mb-2 w-64 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 p-3 overflow-hidden">
+                  <h4 className="text-sm font-bold mb-3 dark:text-white border-b pb-2">
+                    Add to Reading List
+                  </h4>
+                  <div className="max-h-48 overflow-y-auto mb-2 custom-scrollbar">
+                    {loading && (
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto my-2" />
+                    )}
+                    {!loading && lists.length === 0 && !isCreating && (
+                      <p className="text-xs text-gray-500 text-center py-2">
+                        No lists found.
+                      </p>
+                    )}
+                    {!loading &&
+                      lists.map((list) => (
+                        <button
+                          key={list.id}
+                          onClick={() => addPostToList(list.id)}
+                          className="w-full flex justify-between items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition group text-left"
+                        >
+                          <div>
+                            <p className="text-sm font-medium dark:text-gray-200">
+                              {list.title}
+                            </p>
+                            <p className="text-[10px] text-gray-500">
+                              {list.post_count} posts
+                            </p>
+                          </div>
+                          <Plus
+                            size={14}
+                            className="opacity-0 group-hover:opacity-100 transition text-blue-500"
+                          />
+                        </button>
+                      ))}
+                  </div>
+
+                  {isCreating ? (
+                    <form
+                      onSubmit={handleCreateList}
+                      className="mt-2 flex gap-1"
+                    >
+                      <input
+                        autoFocus
+                        type="text"
+                        value={newListTitle}
+                        onChange={(e) => setNewListTitle(e.target.value)}
+                        placeholder="List title..."
+                        className="flex-1 text-xs p-1.5 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white outline-none focus:border-blue-500"
+                      />
+                      <button
+                        type="submit"
+                        className="p-1.5 bg-blue-600 text-white rounded"
+                      >
+                        <CheckCircle2 size={16} />
+                      </button>
+                    </form>
+                  ) : (
+                    <button
+                      onClick={() => setIsCreating(true)}
+                      className="w-full mt-2 flex items-center justify-center gap-2 text-xs py-2 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition dark:text-gray-300"
+                    >
+                      <Plus size={14} /> Create New List
+                    </button>
+                  )}
+                </div>
+              )}
               <Share2
                 size={18}
                 className="cursor-pointer text-gray-500 dark:text-gray-300"
@@ -157,7 +308,6 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
           </div>
         </div>
 
-        {/* Image */}
         <Link to={`/post/${post.id}`} className="w-27.5 h-27.5 shrink-0">
           <img
             src={post.image}
