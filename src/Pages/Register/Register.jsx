@@ -13,7 +13,6 @@ import Helmet from "react-helmet";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
 import { UserContext } from "../../context/UserContext";
 import AuthBG from "../../assets/images/AuthBG.avif";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
@@ -22,6 +21,8 @@ import CryptoJS from "crypto-js";
 import { ThemeContext } from "../../context/ThemeContext";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
+
+import axiosInstance from "../../config/api"
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,8 +43,8 @@ export default function Register() {
       setLoading(true);
       setApiError(null);
 
-      let { data } = await axios.post(
-        `https://api.dev-hubs.tech/api/v1/register`,
+      let { data } = await axiosInstance.post(
+        `/register`,
         values,
         { headers },
       );
@@ -53,8 +54,8 @@ export default function Register() {
         setUserData(data.token);
         localStorage.setItem("userEmail", values.email);
         try {
-          await axios.post(
-            `https://api.dev-hubs.tech/api/v1/email/send-otp`,
+          await axiosInstance.post(
+            `/email/send-otp`,
             { email: values.email },
             { headers },
           );
@@ -101,8 +102,8 @@ export default function Register() {
   const handleGoogleLogin = async () => {
     try {
       // 1. بننادي السيرفر بتاعنا الأول
-      const { data } = await axios.post(
-        `https://api.dev-hubs.tech/api/v1/auth/google/login`,
+      const { data } = await axiosInstance.post(
+        `/auth/google/login`,
       );
       // 2. السيرفر بيرجع رابط (جوجل)، بنفتحه للمستخدم
       if (data.url) {
@@ -117,8 +118,8 @@ export default function Register() {
   const handleGithubLogin = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.post(
-        `https://api.dev-hubs.tech/api/v1/auth/github/login`,
+      const { data } = await axiosInstance.post(
+        `/auth/github/login`,
         {},
         { headers },
       );

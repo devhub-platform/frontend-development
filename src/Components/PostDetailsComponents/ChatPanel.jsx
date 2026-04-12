@@ -1,8 +1,9 @@
 import { X, Sparkles, Send } from "lucide-react"; // غيرت MessageCircle لـ Send كشكل أفضل
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useContext } from "react";
-import axios from "axios";
 import { UserContext } from "../../context/UserContext";
+
+import axiosInstance from "../../config/api";
 
 export function ChatPanel({ isOpen, onClose }) {
   const postId = 101;
@@ -41,8 +42,8 @@ export function ChatPanel({ isOpen, onClose }) {
         message: messageToSend,
         ...(sessionId && { session_id: sessionId }),
       };
-      const response = await axios.post(
-        `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/posts/${postId}/ai-chat`,
+      const response = await axiosInstance.post(
+        `/posts/${postId}/ai-chat`,
           requestData,
         {
           headers: {

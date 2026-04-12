@@ -23,6 +23,7 @@ import DraftsTab from "../../Components/ProfileTabs/DraftsTab";
 import ArchivedTab from "../../Components/ProfileTabs/ArchivedTab";
 import ReadingListTab from "../../Components/ProfileTabs/ReadingListTab";
 import DashboardTab from "../../Components/ProfileTabs/DashboardTab";
+import QATab from "../../Components/ProfileTabs/QATab";
 import { FaUserGraduate } from "react-icons/fa";
 import { SiOrcid } from "react-icons/si"; // أضفت أيقونة orcid كمثال
 import {
@@ -33,7 +34,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import axios from "axios";
+
+import axiosInstance from "../../config/api";
 
 const mockCollections = [
   {
@@ -132,8 +134,8 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const response = await axios.get(
-          "https://api.dev-hubs.tech/api/v1/profile",
+        const response = await axiosInstance.get(
+          "/profile",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -142,8 +144,8 @@ const Profile = () => {
           },
         );
 
-        const response2 = await axios.get(
-          "https://api.dev-hubs.tech/api/v1/profile/details",
+        const response2 = await axiosInstance.get(
+          "/profile/details",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -197,8 +199,8 @@ const Profile = () => {
         number_of_users_followed: profileData.number_of_users_followed,
       };
 
-      const response = await axios.patch(
-        "https://api.dev-hubs.tech/api/v1/profile",
+      const response = await axiosInstance.patch(
+        "/profile",
         payload,
         {
           headers: {
@@ -208,8 +210,8 @@ const Profile = () => {
         },
       );
 
-      const response2 = await axios.get(
-        "https://api.dev-hubs.tech/api/v1/profile/details",
+      const response2 = await axiosInstance.get(
+        "/profile/details",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -265,7 +267,7 @@ const Profile = () => {
       <div className="bg-slate-50 dark:bg-bg-primary-dark relative min-h-screen">
         <div className="flex-1 py-2">
           <div className="container sm:mx-auto px-2 sm:px-0 lg:px-3">
-            <div className="max-w-7xl sm:max-w-[85%] mx-auto">
+            <div className="max-w-7xl sm:max-w-[90%] mx-auto">
               {/* Profile Header */}
               <div className="bg-card rounded-xl border border-gray-200 overflow-hidden shadow-lg mb-5 dark:border-bg-primary-dark dark:bg-bg-secondary-dark">
                 <div className="relative h-50 sm:h-65">
@@ -389,22 +391,27 @@ const Profile = () => {
 
               {/* Tabs Section */}
               <div className="w-full">
-                <div className="grid lg:grid-cols-5 grid-cols-2 md:grid-cols-3 bg-card border border-gray-200 rounded-2xl p-1 shadow-xl dark:border-bg-secondary-dark dark:bg-bg-secondary-dark">
-                  {["posts", "reading", "draft", "archived", "dashboard"].map(
-                    (tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`rounded-xl py-2 text-sm font-medium transition-all duration-300 ${
-                          activeTab === tab
-                            ? "bg-primary text-white shadow-md"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                      </button>
-                    ),
-                  )}
+                <div className="grid lg:grid-cols-6 grid-cols-2 md:grid-cols-3 bg-card border border-gray-200 rounded-2xl p-1 shadow-xl dark:border-bg-secondary-dark dark:bg-bg-secondary-dark">
+                  {[
+                    "posts",
+                    "reading",
+                    "draft",
+                    "archived",
+                    "dashboard",
+                    "qestions",
+                  ].map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`rounded-xl py-2 text-sm font-medium transition-all duration-300 ${
+                        activeTab === tab
+                          ? "bg-primary text-white shadow-md"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </button>
+                  ))}
                 </div>
 
                 <div className="mt-6 mb-10">
@@ -433,6 +440,13 @@ const Profile = () => {
                   )}
                   {activeTab === "dashboard" && (
                     <DashboardTab viewsData={viewsData} />
+                  )}
+                  {activeTab === "qestions" && (
+                    <QATab
+                      title="Your Questions Appear Here"
+                      openReactionId={openReactionId}
+                      setOpenReactionId={setOpenReactionId}
+                    />
                   )}
                 </div>
               </div>

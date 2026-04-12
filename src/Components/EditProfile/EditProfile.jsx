@@ -12,7 +12,7 @@ import {
   Camera,
   Globe,
 } from "lucide-react";
-import axios from "axios";
+import axiosInstance from "../../config/api";
 
 const EditProfile = ({
   showEditDialog,
@@ -47,13 +47,13 @@ const EditProfile = ({
   const uploadImage = async (file, type) => {
     const isAvatar = type === "avatar";
     const endpoint = isAvatar
-      ? "https://api.dev-hubs.tech/api/v1/profile/upload/avatar"
-      : "https://api.dev-hubs.tech/api/v1/profile/upload/cover-image";
+      ? "/profile/upload/avatar"
+      : "/profile/upload/cover-image";
 
     const formData = new FormData();
     formData.append(isAvatar ? "avatar_url" : "cover_image", file);
 
-    const response = await axios.post(endpoint, formData, {
+    const response = await axiosInstance.post(endpoint, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
@@ -64,15 +64,14 @@ const EditProfile = ({
 
   // 2. دالة حفظ الحسابات الاجتماعية (API المنفصل)
   const saveSocialAccounts = async () => {
-    const socialEndpoint =
-      "https://api.dev-hubs.tech/api/v1/settings/social-accounts";
+    const socialEndpoint = "/settings/social-accounts";
     const payload = {
       linkedin_url: profileData.linkedin || "",
       github_url: profileData.github || "",
       orcid_url: profileData.orcid || "",
     };
 
-    await axios.post(socialEndpoint, payload, {
+    await axiosInstance.post(socialEndpoint, payload, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
@@ -244,7 +243,7 @@ const EditProfile = ({
               </h4>
               <div className="flex gap-4 mt-1">
                 <p className="text-xs text-gray-500">PNG, JPG (Max 2MB)</p>
-              {/* {avatarPreview && (
+                {/* {avatarPreview && (
                 <button
                   onClick={() => removeImage("avatar")}
                   className="text-red-500 text-xs mt-1 flex items-center gap-1"
@@ -280,6 +279,32 @@ const EditProfile = ({
                 value={profileData.username || ""}
                 onChange={(e) =>
                   setProfileData({ ...profileData, username: e.target.value })
+                }
+                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white outline-none focus:border-[#62b6cb]"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">
+                Education
+              </label>
+              <input
+                type="text"
+                value={profileData.education || ""}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, education: e.target.value })
+                }
+                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white outline-none focus:border-[#62b6cb]"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[#1b4965] dark:text-gray-200">
+                Location
+              </label>
+              <input
+                type="text"
+                value={profileData.location || ""}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, location: e.target.value })
                 }
                 className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white outline-none focus:border-[#62b6cb]"
               />

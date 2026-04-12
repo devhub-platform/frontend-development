@@ -6,9 +6,10 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import Helmet from "react-helmet";
 import AuthBG from "../../assets/images/AuthBG.avif";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
-import axios from "axios";
 import { UserContext } from "../../context/UserContext";
 import toast, { Toaster } from "react-hot-toast";
+
+import axiosInstance from "../../config/api";
 
 export default function OTPVerification() {
   const navigate = useNavigate();
@@ -36,8 +37,8 @@ export default function OTPVerification() {
   const handleResend = async () => {
     if (!isTimerActive) {
       try {
-        await axios.post(
-          `https://api.dev-hubs.tech/api/v1/email/send-otp`,
+        await axiosInstance.post(
+          `/email/send-otp`,
           { email: email },
         );
 
@@ -59,10 +60,10 @@ export default function OTPVerification() {
         const isForgot = location.state?.type === "forgot";
 
         const url = isForgot
-          ? `https://api.dev-hubs.tech/api/v1/password/verify-otp` // After forgot password, we verify the OTP with a different endpoint to allow password reset
-          : `https://api.dev-hubs.tech/api/v1/email/verify-otp`; // Regular OTP verification for email confirmation during registration
+          ? `/password/verify-otp` // After forgot password, we verify the OTP with a different endpoint to allow password reset
+          : `/email/verify-otp`; // Regular OTP verification for email confirmation during registration
 
-        const { data } = await axios.post(url, { email, otp });
+        const { data } = await axiosInstance.post(url, { email, otp });
 
         if (data.status === 200 || data.success || data.message?.includes("verified")) {
           if (isForgot) {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Post from "../Post/Post";
-import axios from "axios";
+import axiosInstance from "../../config/api";
 
 const ArchivedTab = ({ openReactionId, setOpenReactionId }) => {
   const [myPosts, setMyPosts] = useState([]);
@@ -10,8 +10,8 @@ const ArchivedTab = ({ openReactionId, setOpenReactionId }) => {
     const fetchArchivedPosts = async () => {
       const token = localStorage.getItem("userToken");
       try {
-        const { data } = await axios.get(
-          "https://api.dev-hubs.tech/api/v1/posts/archives",
+        const { data } = await axiosInstance.get(
+          "/posts/archives",
           {
             headers: { Authorization: `Bearer ${token}` },
           },

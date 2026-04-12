@@ -5,9 +5,10 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import AuthBG from "../../assets/images/AuthBG.avif";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
-import axios from "axios";
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
+
+import axiosInstance from "../../config/api";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -15,8 +16,8 @@ export default function ForgotPassword() {
   const handleEmail = async (values) => {
     try {
       setLoading(true);
-      const { data } = await axios.post(
-        `https://api.dev-hubs.tech/api/v1/password/forgot`,
+      const { data } = await axiosInstance.post(
+        `/password/forgot`,
         values,
         {
           headers: {

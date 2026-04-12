@@ -7,8 +7,9 @@ import * as Yup from "yup";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import AuthBG from "../../assets/images/AuthBG.avif";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
-import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
+
+import axiosInstance from "../../config/api";
 
 export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
@@ -31,8 +32,8 @@ export default function ResetPassword() {
         password_confirmation: values.password_confirmation,
       };
 
-      const { data } = await axios.post(
-        `https://api.dev-hubs.tech/api/v1/password/reset`,
+      const { data } = await axiosInstance.post(
+        `/password/reset`,
         payload,
       );
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Post from "../Post/Post";
-import axios from "axios";
+import axiosInstance from "../../config/api";
 
 const PostsTab = ({ openReactionId, setOpenReactionId }) => {
   const [myPosts, setMyPosts] = useState([]);
@@ -10,8 +10,8 @@ const PostsTab = ({ openReactionId, setOpenReactionId }) => {
     const fetchMyPosts = async () => {
       const token = localStorage.getItem("userToken");
       try {
-        const { data } = await axios.get(
-          "https://api.dev-hubs.tech/api/v1/profile/user/posts",
+        const { data } = await axiosInstance.get(
+          "/profile/user/posts",
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -49,8 +49,9 @@ const PostsTab = ({ openReactionId, setOpenReactionId }) => {
 
   if (loading) {
     return (
-      <div className="p-6 text-center dark:text-white">
-        Loading your posts...
+      <div className="p-10 text-center dark:text-white flex flex-col items-center gap-2">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+        <p>Loading your posts...</p>
       </div>
     );
   }
@@ -73,9 +74,11 @@ const PostsTab = ({ openReactionId, setOpenReactionId }) => {
           ))}
         </div>
       ) : (
-        <p className="text-gray-500 dark:text-gray-400">
-          You haven't published any posts yet.
-        </p>
+        <div className="py-10 text-center">
+          <p className="text-gray-500 dark:text-gray-400">
+            You haven't published any posts yet.
+          </p>
+        </div>
       )}
     </div>
   );

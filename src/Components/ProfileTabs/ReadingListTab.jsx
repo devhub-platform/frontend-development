@@ -49,7 +49,11 @@ const ReadingListTab = ({ mockCollections }) => (
         ))}
       </div>
     ) : (
-      <p className="dark:text-white">No Reading Lists Yet.</p>
+      <div className="py-10 text-center">
+        <p className="text-gray-500 dark:text-gray-400">
+          No reading lists yet.
+        </p>
+      </div>
     )}
   </div>
 );

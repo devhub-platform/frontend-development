@@ -4,7 +4,6 @@ import Helmet from "react-helmet";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
 import { UserContext } from "../../context/UserContext";
 import AuthBG from "../../assets/images/AuthBG.avif";
 import LogoWhite from "../../assets/images/DevHubLogoBlack.png";
@@ -12,6 +11,8 @@ import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
 import { ThemeContext } from "../../context/ThemeContext";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import toast, { Toaster }  from "react-hot-toast";
+
+import axiosInstance from "../../config/api";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -30,8 +31,8 @@ export default function Login() {
   // --- Functions for Social Login ---
   const handleGoogleLogin = async () => {
     try {
-      const { data } = await axios.post(
-        `https://api.dev-hubs.tech/api/v1/auth/google/login`,
+        const { data } = await axiosInstance.post(
+          `/auth/google/login`,
       );
       if (data.url) window.location.href = data.url;
     } catch (error) {
@@ -45,8 +46,8 @@ export default function Login() {
 
   const handleGithubLogin = async () => {
     try {
-      const { data } = await axios.post(
-        `https://api.dev-hubs.tech/api/v1/auth/github/login`,
+      const { data } = await axiosInstance.post(
+        `/auth/github/login`,
       );
       if (data.url) window.location.href = data.url;
     } catch (error) {
@@ -64,8 +65,8 @@ export default function Login() {
       setLoading(true);
       setApiError(null);
 
-      let { data } = await axios.post(
-        `https://api.dev-hubs.tech/api/v1/login`,
+      let { data } = await axiosInstance.post(
+        `/login`,
         values,
         { headers },
       );
