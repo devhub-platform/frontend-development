@@ -99,41 +99,16 @@ export default function Register() {
     onSubmit: handleRegister,
   });
 
-  const handleGoogleLogin = async () => {
-    try {
-      // 1. بننادي السيرفر بتاعنا الأول
-      const { data } = await axiosInstance.post(
-        `/auth/google/login`,
-      );
-      // 2. السيرفر بيرجع رابط (جوجل)، بنفتحه للمستخدم
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error("Google login initiation failed", error);
-      toast.error("Could not start Google login. Please try again.");
-    }
+  const handleGoogleLogin = () => {
+    // بنفتح اللينك مباشرة في المتصفح
+    window.location.href =
+      "https://dev-hubs.tech/api/v1/front/auth/google/login";
   };
-
-  const handleGithubLogin = async () => {
-    try {
-      setLoading(true);
-      const { data } = await axiosInstance.post(
-        `/auth/github/login`,
-        {},
-        { headers },
-      );
-
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error("Github login failed", error);
-      toast.error("Could not start GitHub login. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  const handleGithubLogin = () => {
+    window.location.href =
+      "https://dev-hubs.tech/api/v1/front/auth/github/login";
+    };
 
   return (
     <>
