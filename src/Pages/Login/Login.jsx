@@ -30,32 +30,6 @@ export default function Login() {
   };
 
   // --- Functions for Social Login ---
-<<<<<<< HEAD
-  const handleGoogleLogin = async () => {
-    try {
-        const { data } = await axiosInstance.post(`/front/auth/google/login`);
-      if (data.url) window.location.href = data.url;
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          "Google login failed. Please try again.",
-      );
-      // alert("Google login failed. Please try again.");
-    }
-  };
-
-  const handleGithubLogin = async () => {
-    try {
-      const { data } = await axiosInstance.post(`/front/auth/github/login`);
-      if (data.url) window.location.href = data.url;
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          "GitHub login failed. Please try again.",
-      );
-      // alert("GitHub login failed. Please try again.");
-    }
-=======
   const handleGoogleLogin = () => {
     window.location.href =
       "https://dev-hubs.tech/api/v1/front/auth/google/login";
@@ -64,7 +38,6 @@ export default function Login() {
   const handleGithubLogin = () => {
     window.location.href =
       "https://dev-hubs.tech/api/v1/front/auth/github/login";
->>>>>>> 5a16eaffcb4cda84746fdc07aac0aa1003ca4ea7
   };
 
   // --- Main Login Function ---
