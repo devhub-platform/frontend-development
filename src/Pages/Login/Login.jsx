@@ -31,9 +31,7 @@ export default function Login() {
   // --- Functions for Social Login ---
   const handleGoogleLogin = async () => {
     try {
-        const { data } = await axiosInstance.post(
-          `/auth/google/login`,
-      );
+        const { data } = await axiosInstance.post(`/front/auth/google/login`);
       if (data.url) window.location.href = data.url;
     } catch (error) {
       toast.error(
@@ -46,9 +44,7 @@ export default function Login() {
 
   const handleGithubLogin = async () => {
     try {
-      const { data } = await axiosInstance.post(
-        `/auth/github/login`,
-      );
+      const { data } = await axiosInstance.post(`/front/auth/github/login`);
       if (data.url) window.location.href = data.url;
     } catch (error) {
       toast.error(

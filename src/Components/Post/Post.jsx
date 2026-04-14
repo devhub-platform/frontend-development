@@ -225,7 +225,7 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
               {/* التعديل هنا: التلوين يعتمد على isBookmarked وليس isListOpen */}
               <button
                 onClick={fetchLists}
-                className={`cursor-pointer transition hover:scale-110 ${isBookmarked ? "text-blue-600 dark:text-blue-400" : "text-text-light dark:text-text-dark"}`}
+                className={`cursor-pointer transition hover:scale-110 ${isBookmarked ? "text-text-light dark:text-text-dark" : "text-text-light dark:text-text-dark"}`}
               >
                 <Bookmark
                   size={20}
@@ -264,7 +264,7 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
                           </div>
                           <Plus
                             size={14}
-                            className="opacity-0 group-hover:opacity-100 transition text-blue-500"
+                            className="opacity-0 group-hover:opacity-100 transition text-text-light dark:text-text-dark"
                           />
                         </button>
                       ))}
@@ -285,7 +285,7 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
                       />
                       <button
                         type="submit"
-                        className="p-1.5 bg-blue-600 text-white rounded"
+                        className="p-1.5 bg-text-light dark:bg-text-dark text-white rounded"
                       >
                         <CheckCircle2 size={16} />
                       </button>
@@ -293,7 +293,7 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
                   ) : (
                     <button
                       onClick={() => setIsCreating(true)}
-                      className="w-full mt-2 flex items-center justify-center gap-2 text-xs py-2 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition dark:text-gray-300"
+                      className="w-full mt-2 flex items-center justify-center gap-2 text-xs py-3 rounded-lg bg-primary text-white font-semibold transition"
                     >
                       <Plus size={14} /> Create New List
                     </button>

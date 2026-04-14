@@ -56,18 +56,18 @@ const ReadingListTab = () => {
                       {collection.description || ""}
                     </p>
                     <span className="text-[10px] text-gray-400 mt-1 block">
-                      Updated {collection.created_at}
+                      Created {collection.created_at} | {collection.post_count + " " + (collection.post_count === 1 ? "post" : "posts")}
                     </span>
                   </div>
                   <ChevronRight
                     size={24}
-                    className="text-gray-400 group-hover:text-blue-600 transition-colors"
+                    className="text-gray-400 group-hover:text-text-light dark:group-hover:text-text-dark transition-colors"
                   />
                 </div>
 
                 {/* الصور المصغرة للبوستات داخل الليست */}
                 <div className="flex items-center gap-3 mt-2">
-                  <div className="flex -space-x-4">
+                  <div className="flex space-x-1">
                     {collection.posts &&
                       collection.posts
                         .slice(0, 3)
@@ -75,25 +75,29 @@ const ReadingListTab = () => {
                           <img
                             key={post.id || index}
                             src={post.cover_image}
-                            className="w-16 h-16 rounded-lg object-cover border-2 border-white dark:border-gray-800 shadow-md"
-                            alt="post preview"
+                            className="w-38 h-30 rounded-lg object-cover border-2 border-white dark:border-gray-800 shadow-md"
+                            alt="Post Cover Image"
                           />
                         ))}
                   </div>
 
-                  {collection.post_count > 0 ? (
+                  {collection.post_count === 0 ? (
+                    <div className="text-xs text-gray-400 italic ml-2">
+                      Empty list
+                    </div>
+                  ) : collection.post_count <= 3 ?(
                     <div className="text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full px-3 py-1 ml-2">
                       {collection.post_count}{" "}
                       {collection.post_count === 1 ? "post" : "posts"}
                     </div>
                   ) : (
-                    <div className="text-xs text-gray-400 italic ml-2">
-                      Empty list
+                    <div className="text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full px-3 py-1 ml-2">
+                      +{collection.post_count - 3} more
                     </div>
                   )}
                 </div>
               </div>
-              <div className="h-1 bg-gradient-to-r from-blue-600 to-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+              <div className="h-1 bg-linear-to-r from-primary to-text-light dark:to-text-dark transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
             </article>
           ))}
         </div>
