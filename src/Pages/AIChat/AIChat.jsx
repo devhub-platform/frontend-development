@@ -73,7 +73,9 @@ export default function AIChat() {
           const exists = mapped.find((s) => String(s.id) === String(savedId));
           if (exists) {
             setCurrentChatId(exists.id);
-            setSelectedModel(exists.model || modelsRes.default || selectedModel);
+            setSelectedModel(
+              exists.model || modelsRes.default || selectedModel,
+            );
             const detail = await fetchSessionDetail(exists.id);
             const fullMessages = detail.messages || [];
             setChats((prev) =>
@@ -219,11 +221,16 @@ export default function AIChat() {
         userMsg.attachment = {
           id: pendingAttachment.attachment_id ?? pendingAttachment.id ?? null,
           url: pendingAttachment.url ?? "",
-          filename: pendingAttachment.filename ?? pendingAttachment.name ?? "Attachment",
+          filename:
+            pendingAttachment.filename ??
+            pendingAttachment.name ??
+            "Attachment",
           type: pendingAttachment.mime_type ?? pendingAttachment.type ?? "",
         };
         if (pendingAttachment.attachment_id || pendingAttachment.id) {
-          attachmentIds.push(pendingAttachment.attachment_id ?? pendingAttachment.id);
+          attachmentIds.push(
+            pendingAttachment.attachment_id ?? pendingAttachment.id,
+          );
         }
       }
 
@@ -304,11 +311,12 @@ export default function AIChat() {
 
   return (
     <div className="flex h-[90vh] dark:bg-[#0a0e1a] overflow-hidden">
-
       {/* ─── Desktop sidebar (collapsible) ─── */}
-      <div className={`hidden md:flex flex-col transition-all duration-300 ${
-        sidebarOpen ? "w-64" : "w-0"
-      } overflow-hidden shrink-0`}>
+      <div
+        className={`hidden md:flex flex-col transition-all duration-300 ${
+          sidebarOpen ? "w-64" : "w-0"
+        } overflow-hidden shrink-0`}
+      >
         <Sidebar
           chats={chats}
           currentChatId={currentChatId}
@@ -328,7 +336,6 @@ export default function AIChat() {
 
       {/* ─── Main chat area ─── */}
       <div className="flex-1 flex flex-col relative min-h-0 min-w-0">
-
         {/* Top bar */}
         <div className="flex items-center gap-3 px-4 pt-3 pb-2 border-b border-gray-200/60 dark:border-gray-800/50 bg-white/80 dark:bg-[#0a0e1a]/80 backdrop-blur-sm shrink-0">
           {/* Toggle sidebar button */}
@@ -337,10 +344,11 @@ export default function AIChat() {
             className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-all hover:text-gray-800 dark:hover:text-gray-200"
             title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
           >
-            {sidebarOpen
-              ? <PanelLeftClose className="w-5 h-5" />
-              : <PanelLeft className="w-5 h-5" />
-            }
+            {sidebarOpen ? (
+              <PanelLeftClose className="w-5 h-5" />
+            ) : (
+              <PanelLeft className="w-5 h-5" />
+            )}
           </button>
 
           {/* Chat title / breadcrumb */}
@@ -368,7 +376,9 @@ export default function AIChat() {
         <div className="overflow-y-auto no-scrollbar overflow-x-hidden min-h-0">
           <ChatArea
             messages={currentChat?.messages || []}
-            selectedModel={currentModelMeta?.title || selectedModel || defaultModelId}
+            selectedModel={
+              currentModelMeta?.title || selectedModel || defaultModelId
+            }
           />
         </div>
 

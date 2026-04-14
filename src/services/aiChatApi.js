@@ -1,13 +1,7 @@
 // src/services/aiChatApi.js
-import axios from "axios";
+import axiosInstance from "../config/api";
 
-const API_BASE = "https://api.dev-hubs.tech/api/v1/ai-chat";
-
-const api = axios.create({
-  baseURL: API_BASE,
-});
-
-api.interceptors.request.use((config) => {
+axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem("userToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -21,7 +15,7 @@ api.interceptors.request.use((config) => {
 
 // 1) جلب المودلز
 export async function fetchModels() {
-  const res = await api.get("/models");
+  const res = await axiosInstance.get("/ai-chat/models");
   // { default: "id", models: [ {id,title,best_for,vision,fallback?} ] }
   return res.data;
 }
@@ -44,7 +38,7 @@ export async function sendMessage({
   }
 
   try {
-    const res = await api.post("/send", payload);
+    const res = await axiosInstance.post("/ai-chat/send", payload);
     // مثال:
     // {
     //   "session_id": 8,
@@ -94,8 +88,8 @@ export async function uploadAttachment(file) {
   form.append("file", file);
 
   const token = localStorage.getItem("userToken");
-  const res = await axios.post(
-    "http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/ai-chat/attachments/upload",
+  const res = await axiosInstance.post(
+    "/ai-chat/attachments/upload",
     form,
     {
       headers: {
@@ -112,41 +106,46 @@ export async function uploadAttachment(file) {
 
 // 4) كل السيشنات
 export async function fetchSessions() {
-  const res = await api.get("/sessions");
+  const res = await axiosInstance.get("/ai-chat/sessions");
   // { sessions: [ { id, title, model, model_title, message_count, created_at, updated_at, pinned, active } ], ... }
   return res.data.sessions || [];
 }
 
 // 5) تفاصيل سيشن + الرسايل
 export async function fetchSessionDetail(sessionId) {
-  const res = await api.get(`/sessions/${sessionId}`);
+  const res = await axiosInstance.get(`/ai-chat/sessions/${sessionId}`);
   // { session: {...}, messages: [...] }
   return res.data;
 }
 
 // 6) إنشاء سيشن جديدة
 export async function createSession({ title, model }) {
-  const res = await api.post("/sessions/create", { title, model });
+  const res = await axiosInstance.post("/ai-chat/sessions/create", {
+    title,
+    model,
+  });
   // { id, title, model, created_at }
   return res.data;
 }
 
 // 7) حذف سيشن
 export async function deleteSession(sessionId) {
-  await api.delete(`/sessions/${sessionId}`);
+  await axiosInstance.delete(`/ai-chat/sessions/${sessionId}`);
 }
 
 // 8) pin / unpin
 export async function pinSession(sessionId) {
-  await api.post(`/sessions/${sessionId}/pin`);
+  await axiosInstance.post(`/ai-chat/sessions/${sessionId}/pin`);
 }
 
 export async function unpinSession(sessionId) {
-  await api.post(`/sessions/${sessionId}/unpin`);
+  await axiosInstance.post(`/ai-chat/sessions/${sessionId}/unpin`);
 }
 
 // 9) تحديث العنوان
 export async function updateSessionTitle(sessionId, title) {
-  const res = await api.put(`/sessions/${sessionId}/title`, { title });
+  const res = await axiosInstance.put(`/ai-chat/sessions/${sessionId}/title`, {
+    title,
+  });
   return res.data;
 }
