@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Mail, Lock, Eye, EyeOff, LoaderPinwheel, Github } from "lucide-react";
 import { useContext, useState } from "react";
 import Helmet from "react-helmet";
@@ -29,6 +30,7 @@ export default function Login() {
   };
 
   // --- Functions for Social Login ---
+<<<<<<< HEAD
   const handleGoogleLogin = async () => {
     try {
         const { data } = await axiosInstance.post(`/front/auth/google/login`);
@@ -53,6 +55,16 @@ export default function Login() {
       );
       // alert("GitHub login failed. Please try again.");
     }
+=======
+  const handleGoogleLogin = () => {
+    window.location.href =
+      "https://dev-hubs.tech/api/v1/front/auth/google/login";
+  };
+
+  const handleGithubLogin = () => {
+    window.location.href =
+      "https://dev-hubs.tech/api/v1/front/auth/github/login";
+>>>>>>> 5a16eaffcb4cda84746fdc07aac0aa1003ca4ea7
   };
 
   // --- Main Login Function ---

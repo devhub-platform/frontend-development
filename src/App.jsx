@@ -21,6 +21,7 @@ import QuestionPage from "./Pages/Question/QuestionPage";
 import CodePlaygroundPage from "./Pages/Playground/CodePlaygroundPage";
 import Interests from "./Pages/Interests/Interests";
 import Recommendations from "./Pages/Recommendations/Recommendations";
+import AuthCallback from "./Pages/AuthCallback";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/forgot" element={<ForgotPassword />} />
         <Route path="/otp-verification" element={<OTPVerification />} />
         <Route path="/reset-password" element={<ResetPassword />} />
