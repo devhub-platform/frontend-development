@@ -102,12 +102,12 @@ export default function Register() {
   const handleGoogleLogin = () => {
     // بنفتح اللينك مباشرة في المتصفح
     window.location.href =
-      "https://dev-hubs.tech/api/v1/front/auth/google/login";
+      "https://dev-hubs.tech/api/v1/api/v1/auth/google/login";
   };
   
   const handleGithubLogin = () => {
     window.location.href =
-      "https://dev-hubs.tech/api/v1/front/auth/github/login";
+      "https://dev-hubs.tech/api/v1/api/v1/auth/github/login";
     };
 
   return (

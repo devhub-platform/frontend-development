@@ -32,12 +32,12 @@ export default function Login() {
   // --- Functions for Social Login ---
   const handleGoogleLogin = () => {
     window.location.href =
-      "https://dev-hubs.tech/api/v1/front/auth/google/login";
+      "https://dev-hubs.tech/api/v1/api/v1/auth/google/login";
   };
 
   const handleGithubLogin = () => {
     window.location.href =
-      "https://dev-hubs.tech/api/v1/front/auth/github/login";
+      "https://dev-hubs.tech/api/v1/api/v1/auth/github/login";
   };
 
   // --- Main Login Function ---
