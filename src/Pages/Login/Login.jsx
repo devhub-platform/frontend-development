@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-import { Mail, Lock, Eye, EyeOff, LoaderPinwheel, Github } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, LoaderPinwheel } from "lucide-react";
 import { useContext, useState } from "react";
 import Helmet from "react-helmet";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,7 +10,7 @@ import LogoWhite from "../../assets/images/DevHubLogoBlack.png";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
 import { ThemeContext } from "../../context/ThemeContext";
 import { FaGoogle, FaGithub } from "react-icons/fa";
-import toast, { Toaster }  from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
 import axiosInstance from "../../config/api";
 
@@ -19,9 +18,11 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const {  setUserData } = useContext(UserContext);
+  const { setUserData } = useContext(UserContext);
   const { theme } = useContext(ThemeContext);
 
   const headers = {
@@ -30,14 +31,46 @@ export default function Login() {
   };
 
   // --- Functions for Social Login ---
-  const handleGoogleLogin = () => {
-    window.location.href =
-      "https://dev-hubs.tech/api/v1/api/v1/auth/google/login";
+  const handleGoogleLogin = async () => {
+    try {
+      setSocialLoading(true);
+      const { data } = await axiosInstance.post(
+        `/front/auth/google/login`,
+        {},
+        { headers },
+      );
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("Google login URL not received");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Google login failed");
+    } finally {
+      setSocialLoading(false);
+    }
   };
 
-  const handleGithubLogin = () => {
-    window.location.href =
-      "https://dev-hubs.tech/api/v1/api/v1/auth/github/login";
+  const handleGithubLogin = async () => {
+    try {
+      setSocialLoading(true);
+      const { data } = await axiosInstance.post(
+        `/front/auth/github/login`,
+        {},
+        { headers },
+      );
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("GitHub login URL not received");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("GitHub login failed");
+    } finally {
+      setSocialLoading(false);
+    }
   };
 
   // --- Main Login Function ---
@@ -46,18 +79,13 @@ export default function Login() {
       setLoading(true);
       setApiError(null);
 
-      let { data } = await axiosInstance.post(
-        `/login`,
-        values,
-        { headers },
-      );
+      const { data } = await axiosInstance.post(`/login`, values, { headers });
 
       if (data.token) {
         localStorage.setItem("userToken", data.token);
         localStorage.setItem("userEmail", data.user.email);
         setUserData(data.token);
 
-        // 3. هندلة خاصية Remember Me
         if (values.remember_me) {
           localStorage.setItem("rememberEmail", values.email);
         } else {
@@ -149,7 +177,7 @@ export default function Login() {
               <div className="mb-6">
                 <div className="flex items-center justify-center">
                   <Link to="/">
-                    {theme == "dark" ? (
+                    {theme === "dark" ? (
                       <img src={LogoBlack} className="w-72 mb-12 lg:hidden" />
                     ) : (
                       <img src={LogoWhite} className="w-72 mb-12 lg:hidden" />
@@ -266,20 +294,22 @@ export default function Login() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 cursor-pointer"
+                    disabled={socialLoading}
+                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 cursor-pointer disabled:opacity-70"
                     onClick={handleGoogleLogin}
                   >
                     <FaGoogle className="w-5 h-5 mr-2" />
-                    Google
+                    {socialLoading ? "Loading..." : "Google"}
                   </button>
 
                   <button
                     type="button"
-                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 cursor-pointer"
+                    disabled={socialLoading}
+                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 cursor-pointer disabled:opacity-70"
                     onClick={handleGithubLogin}
                   >
                     <FaGithub className="w-5 h-5 mr-2" />
-                    GitHub
+                    {socialLoading ? "Loading..." : "GitHub"}
                   </button>
                 </div>
               </form>

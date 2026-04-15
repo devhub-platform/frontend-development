@@ -17,22 +17,23 @@ import { UserContext } from "../../context/UserContext";
 import AuthBG from "../../assets/images/AuthBG.avif";
 import LogoBlack from "../../assets/images/DevHubLogoWhite.png";
 import LogoWhite from "../../assets/images/DevHubLogoBlack.png";
-import CryptoJS from "crypto-js";
 import { ThemeContext } from "../../context/ThemeContext";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
 
-import axiosInstance from "../../config/api"
+import axiosInstance from "../../config/api";
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState(false);
+
   const navigate = useNavigate();
   const { setUserData } = useContext(UserContext);
   const { theme } = useContext(ThemeContext);
-  const key = import.meta.env.VITE_SECRET_KEY;
+
   const headers = {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -43,16 +44,15 @@ export default function Register() {
       setLoading(true);
       setApiError(null);
 
-      let { data } = await axiosInstance.post(
-        `/register`,
-        values,
-        { headers },
-      );
+      const { data } = await axiosInstance.post(`/register`, values, {
+        headers,
+      });
 
       if (data.token) {
         localStorage.setItem("userToken", data.token);
         setUserData(data.token);
         localStorage.setItem("userEmail", values.email);
+
         try {
           await axiosInstance.post(
             `/email/send-otp`,
@@ -62,6 +62,7 @@ export default function Register() {
         } catch (e) {
           console.log("OTP Auto-send failed");
         }
+
         navigate("/otp-verification", { state: { email: values.email } });
       }
     } catch (error) {
@@ -99,16 +100,48 @@ export default function Register() {
     onSubmit: handleRegister,
   });
 
-  const handleGoogleLogin = () => {
-    // بنفتح اللينك مباشرة في المتصفح
-    window.location.href =
-      "https://dev-hubs.tech/api/v1/api/v1/auth/google/login";
+  // ========== Social Login ==========
+  const handleGoogleLogin = async () => {
+    try {
+      setSocialLoading(true);
+      const { data } = await axiosInstance.post(
+        `/front/auth/google/login`,
+        {},
+        { headers },
+      );
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("Google login URL not received");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Google login failed");
+    } finally {
+      setSocialLoading(false);
+    }
   };
-  
-  const handleGithubLogin = () => {
-    window.location.href =
-      "https://dev-hubs.tech/api/v1/api/v1/auth/github/login";
-    };
+
+  const handleGithubLogin = async () => {
+    try {
+      setSocialLoading(true);
+      const { data } = await axiosInstance.post(
+        `/front/auth/github/login`,
+        {},
+        { headers },
+      );
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("GitHub login URL not received");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("GitHub login failed");
+    } finally {
+      setSocialLoading(false);
+    }
+  };
 
   return (
     <>
@@ -167,7 +200,7 @@ export default function Register() {
               <div className="mb-6">
                 <div className="flex items-center justify-center">
                   <Link to="/">
-                    {theme == "dark" ? (
+                    {theme === "dark" ? (
                       <img src={LogoBlack} className="w-72 mb-12 lg:hidden" />
                     ) : (
                       <img src={LogoWhite} className="w-72 mb-12 lg:hidden" />
@@ -321,20 +354,22 @@ export default function Register() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 cursor-pointer"
+                    disabled={socialLoading}
+                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 cursor-pointer disabled:opacity-70"
                     onClick={handleGoogleLogin}
                   >
                     <FaGoogle className="w-5 h-5 mr-2" />
-                    Google
+                    {socialLoading ? "Loading..." : "Google"}
                   </button>
 
                   <button
                     type="button"
-                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 cursor-pointer"
+                    disabled={socialLoading}
+                    className="flex items-center justify-center rounded-xl h-12 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 transition-all font-medium dark:bg-bg-primary-dark dark:text-text-dark dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 cursor-pointer disabled:opacity-70"
                     onClick={handleGithubLogin}
                   >
                     <FaGithub className="w-5 h-5 mr-2" />
-                    GitHub
+                    {socialLoading ? "Loading..." : "GitHub"}
                   </button>
                 </div>
               </form>
