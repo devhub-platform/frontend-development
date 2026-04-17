@@ -1,11 +1,36 @@
 import { useState, useRef, useEffect } from "react";
-import { User, Settings, LogOut, History } from "lucide-react";
+import { User, Settings, LogOut, History, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../config/api";
 
 export default function ProfileDropDown() {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const navigate = useNavigate();
+
+  const [userData, setUserData] = useState(null);
+  const [imgLoading, setImgLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("userToken");
+        if (!token) return;
+
+        const { data } = await axiosInstance.get("/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUserData(data.data); // حسب شكل الـ Response بتاع السيرفر بتاعك
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      } finally {
+        setImgLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -17,9 +42,23 @@ export default function ProfileDropDown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    console.log("logout");
-    // logout logic here
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const token = localStorage.getItem("userToken");
+
+      await axiosInstance.post(`/logout`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Logged out successfully");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      localStorage.removeItem("userToken");
+      setIsLoggingOut(false);
+      setOpen(false);
+      navigate("/login");
+    }
   };
 
   return (
@@ -27,9 +66,20 @@ export default function ProfileDropDown() {
       {/* Avatar button */}
       <button
         onClick={() => setOpen(!open)}
-        className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center"
+        className="w-11.5 h-11 rounded-full text-white flex items-center justify-center overflow-hidden border-2 border-transparent hover:border-primary/50 transition-all"
       >
-        <User size={18} strokeWidth={2.5} />
+        {/* لو فيه صورة اعرضيها، لو لسه بيحمل اظهر سبينر، لو مفيش خالص اظهر أيقونة المستخدم */}
+        {userData?.avatar_url ? (
+          <img
+            src={userData.avatar_url}
+            alt="profile"
+            className="w-full h-full object-cover bg-white"
+          />
+        ) : imgLoading ? (
+          <Loader2 size={16} className="animate-spin bg-primary" />
+        ) : (
+          <User size={20} strokeWidth={2.5} className="bg-primary" />
+        )}
       </button>
 
       {/* Dropdown */}
@@ -46,16 +96,12 @@ export default function ProfileDropDown() {
             Profile
           </button>
 
-          <button
-            className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
+          <button className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
             <History size={16} />
             History
           </button>
 
-          <button
-            className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
+          <button className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
             <Settings size={16} />
             Settings
           </button>
@@ -64,10 +110,20 @@ export default function ProfileDropDown() {
 
           <button
             onClick={handleLogout}
+            disabled={isLoggingOut}
             className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
           >
-            <LogOut size={16} />
-            Logout
+            {isLoggingOut ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Logging out...
+              </>
+            ) : (
+              <>
+                <LogOut size={16} />
+                Logout
+              </>
+            )}
           </button>
         </div>
       )}

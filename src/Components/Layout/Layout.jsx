@@ -7,7 +7,7 @@ export default function Layout() {
   return <>
     <div className="pt-2.5">
       <Navbar/>
-      <div className='mt-15 min-h-[40vh]'>
+      <div className='mt-15 min-h-[40vh] bg-slate-50 dark:bg-gray-800/40'>
         <Outlet></Outlet>
       </div>
       <Footer/>

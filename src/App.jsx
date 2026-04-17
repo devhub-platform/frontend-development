@@ -22,6 +22,7 @@ import CodePlaygroundPage from "./Pages/Playground/CodePlaygroundPage";
 import Interests from "./Pages/Interests/Interests";
 import Recommendations from "./Pages/Recommendations/Recommendations";
 import AuthCallback from "./Pages/AuthCallback";
+import ReadingListDetails from "./Components/ReadingListDetails/ReadingListDetails";
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
           <Route path="notification" element={<Notifications />} />
           <Route path="write" element={<Write />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="/reading-list/:id" element={<ReadingListDetails />} />
           <Route path="editor-guide" element={<EditorGuide />} />
           <Route path="*" element={<NotFound />} />
         </Route>
