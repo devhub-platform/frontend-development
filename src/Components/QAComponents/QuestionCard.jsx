@@ -35,7 +35,7 @@ export function QuestionCard({ question }) {
                 hover:bg-primary/5 dark:hover:bg-text-dark/10
                 transition-colors"
             >
-              #{tag}
+              #{tag.name}
             </span>
           ))}
         </div>

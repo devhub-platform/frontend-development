@@ -5,7 +5,7 @@ import { PopularTags } from "../../Components/PopularTags/PopularTags";
 import { RecommendedTopics } from "../../Components/RecommendedTopics/RecommendedTopics";
 import { SuggestedToFollow } from "../../Components/SuggestedToFollow/SuggestedToFollow";
 import { Messages } from "../../Components/Messages/Messages";
-import axios from "axios";
+import axiosInstance from "../../config/api";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 
@@ -34,8 +34,8 @@ const Home = () => {
       if (!currentToken) return;
 
       try {
-        const { data } = await axios.get(
-          `http://devhub.eu-north-1.elasticbeanstalk.com/api/v1/email/is-verified`,
+        const { data } = await axiosInstance.get(
+          `/email/is-verified`,
           { headers: { Authorization: `Bearer ${currentToken}` } },
         );
 
