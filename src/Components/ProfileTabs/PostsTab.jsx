@@ -1,10 +1,40 @@
 import React, { useEffect, useState } from "react";
 import Post from "../Post/Post";
 import axiosInstance from "../../config/api";
+import { Edit3, Archive, Trash2 } from "lucide-react";
 
 const PostsTab = ({ openReactionId, setOpenReactionId }) => {
   const [myPosts, setMyPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleArchive = async (postId) => {
+    const token = localStorage.getItem("userToken");
+    try {
+      await axiosInstance.delete(`/posts/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMyPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+      alert("Post archived successfully");
+    } catch (error) {
+      console.error("Error archiving post:", error);
+      alert("Failed to archive the post. Please try again.");
+    }
+  };
+
+  const handleDelete = async (postId) => {
+    if (!window.confirm("This will delete the post permanently. Are you sure?")) return;
+    const token = localStorage.getItem("userToken");
+    try {
+      await axiosInstance.delete(`/posts/${postId}/force`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMyPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+      alert("Post deleted permanently!");
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      alert("Failed to delete the post. Please try again.");
+    }
+  };
 
   useEffect(() => {
     const fetchMyPosts = async () => {
@@ -70,6 +100,24 @@ const PostsTab = ({ openReactionId, setOpenReactionId }) => {
               post={post}
               isReactionOpen={openReactionId === post.id}
               setOpenReactionId={setOpenReactionId}
+              menuOptions={[
+                {
+                  label: "Edit",
+                  icon: <Edit3 size={16} />,
+                  onClick: (id) => console.log("Edit post", id),
+                },
+                {
+                  label: "Archive",
+                  icon: <Archive size={16} />,
+                  onClick: (id) => handleArchive(id),
+                },
+                {
+                  label: "Delete",
+                  icon: <Trash2 size={16} />,
+                  variant: "danger",
+                  onClick: (id) => handleDelete(id),
+                },
+              ]}
             />
           ))}
         </div>

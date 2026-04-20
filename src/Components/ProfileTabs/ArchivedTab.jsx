@@ -1,10 +1,40 @@
 import React, { useEffect, useState } from "react";
 import Post from "../Post/Post";
 import axiosInstance from "../../config/api";
+import { RotateCcw, Trash2 } from "lucide-react";
 
 const ArchivedTab = ({ openReactionId, setOpenReactionId }) => {
   const [myPosts, setMyPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleRestore = async (postId) => {
+    const token = localStorage.getItem("userToken");
+    try {
+      await axiosInstance.post(`/posts/${postId}/restore`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMyPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+      alert("Post restored successfully!");
+    } catch (error) {
+      console.error("Error restoring post:", error);
+      alert("Failed to restore the post. Please try again.");
+    }
+  }
+
+  const handleDelete = async (postId) => {
+    if (!window.confirm("This will delete the post permanently. Are you sure?")) return;
+    const token = localStorage.getItem("userToken");
+    try {
+      await axiosInstance.delete(`/posts/${postId}/force`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMyPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+      alert("Post deleted permanently!");
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      alert("Failed to delete the post. Please try again.");
+    }
+  };
 
   useEffect(() => {
     const fetchArchivedPosts = async () => {
@@ -67,6 +97,19 @@ const ArchivedTab = ({ openReactionId, setOpenReactionId }) => {
               post={post}
               isReactionOpen={openReactionId === post.id}
               setOpenReactionId={setOpenReactionId}
+              menuOptions={[
+                {
+                  label: "Restore",
+                  icon: <RotateCcw size={16} />,
+                  onClick: (id) => handleRestore(id), // Function تنادي API فك الأرشفة
+                },
+                {
+                  label: "Delete",
+                  icon: <Trash2 size={16} />,
+                  variant: "danger",
+                  onClick: (id) => handleDelete(id),
+                },
+              ]}
             />
           ))}
         </div>

@@ -1,7 +1,11 @@
 import { Home, LayoutDashboard, Link } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import Helmet from "react-helmet";
 export default function NotFound() {
-  return (
+  return <>
+    <Helmet>
+      <title>DevHub | Not Found</title>
+    </Helmet>
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-bg-primary-dark transition-all duration-300">
       {/* Main Content */}
       <div className="flex items-center justify-center min-h-screen px-4 py-12">
@@ -72,5 +76,5 @@ export default function NotFound() {
         </div>
       </div>
     </div>
-  );
+  </>;
 }

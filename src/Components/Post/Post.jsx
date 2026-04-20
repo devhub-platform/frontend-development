@@ -9,6 +9,11 @@ import {
   Plus,
   Loader2,
   CheckCircle2,
+  MoreVertical,
+  Edit3,
+  Trash2,
+  Archive,
+  Delete,
 } from "lucide-react";
 import axiosInstance from "../../config/api";
 
@@ -21,7 +26,8 @@ const reactionEmojis = [
   { emoji: "👎", label: "Dislike" },
 ];
 
-const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
+const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedReaction, setSelectedReaction] = useState(null);
   const [reactionsCount, setReactionsCount] = useState(post.reactionsCount);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -141,7 +147,45 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
 
   return (
     <article className="w-full bg-white border-b border-gray-300 hover:bg-gray-50 p-5 dark:bg-bg-secondary-dark relative dark:border-gray-700 dark:hover:bg-gray-800/50">
-      <div className="flex gap-6">
+      {/* زرار الثلاث نقاط - يظهر فقط لو فيه menuOptions */}
+      {menuOptions && (
+        <div className="absolute top-5 right-5 z-30">
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition"
+          >
+            <MoreVertical size={20} className="text-gray-500" />
+          </button>
+
+          {isMenuOpen && (
+            <>
+              {/* Overlay عشان لما تدوس بره المنيو تقفل */}
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setIsMenuOpen(false)}
+              ></div>
+
+              <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-20 overflow-hidden">
+                {menuOptions.map((option, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      option.onClick(post.id);
+                      setIsMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition ${option.variant === "danger" ? "text-red-500" : "dark:text-gray-200"}`}
+                  >
+                    {option.icon}
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      <div className="flex gap-6 mx-4 mr-8">
         <div className="flex-1 flex flex-col gap-3">
           {/* Author info */}
           <div className="flex items-center gap-2 text-sm">
@@ -234,8 +278,8 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
               </button>
 
               {isListOpen && (
-                <div className="absolute right-0 bottom-full mb-2 w-64 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 p-3 overflow-hidden">
-                  <h4 className="text-sm font-bold mb-3 dark:text-white border-b pb-2">
+                <div className="absolute right-0 bottom-full mb-2 w-70 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 p-3 overflow-hidden">
+                  <h4 className="text-lg font-bold mb-3 dark:text-white border-b pb-2">
                     Add to Reading List
                   </h4>
                   <div className="max-h-48 overflow-y-auto mb-2 custom-scrollbar">
@@ -255,10 +299,10 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
                           className="w-full flex justify-between items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition group text-left"
                         >
                           <div>
-                            <p className="text-sm font-medium dark:text-gray-200">
+                            <p className="text-md font-medium dark:text-gray-200">
                               {list.title}
                             </p>
-                            <p className="text-[10px] text-gray-500">
+                            <p className="text-[14px] text-gray-500">
                               {list.post_count} posts
                             </p>
                           </div>
@@ -293,7 +337,7 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
                   ) : (
                     <button
                       onClick={() => setIsCreating(true)}
-                      className="w-full mt-2 flex items-center justify-center gap-2 text-xs py-3 rounded-lg bg-primary text-white font-semibold transition"
+                      className="w-full mt-2 flex items-center justify-center gap-2 text-md py-3 rounded-lg bg-primary text-white font-semibold transition"
                     >
                       <Plus size={14} /> Create New List
                     </button>
@@ -308,7 +352,7 @@ const Post = ({ post, isReactionOpen, setOpenReactionId }) => {
           </div>
         </div>
 
-        <Link to={`/post/${post.id}`} className="w-27.5 h-27.5 shrink-0">
+        <Link to={`/post/${post.id}`} className="w-30 h-32 shrink-0">
           <img
             src={post.image}
             alt="Post"

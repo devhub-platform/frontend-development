@@ -23,13 +23,13 @@ import Interests from "./Pages/Interests/Interests";
 import Recommendations from "./Pages/Recommendations/Recommendations";
 import AuthCallback from "./Pages/AuthCallback";
 import ReadingListDetails from "./Components/ReadingListDetails/ReadingListDetails";
+import MyFollowing from "./Pages/MyFollowing/MyFollowing";
 
 function App() {
   return (
     <BrowserRouter basename="/frontend-development">
       <Routes>
         <Route path="/" element={<Landing />} />
-
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/auth/social-callback" element={<AuthCallback />} />
@@ -51,6 +51,7 @@ function App() {
           <Route path="write" element={<Write />} />
           <Route path="profile" element={<Profile />} />
           <Route path="/reading-list/:id" element={<ReadingListDetails />} />
+          <Route path="my-following" element={<MyFollowing />} />
           <Route path="editor-guide" element={<EditorGuide />} />
           <Route path="*" element={<NotFound />} />
         </Route>

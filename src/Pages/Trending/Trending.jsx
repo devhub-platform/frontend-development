@@ -6,12 +6,16 @@ import { PopularTags } from "../../Components/PopularTags/PopularTags";
 import { RecommendedTopics } from "../../Components/RecommendedTopics/RecommendedTopics";
 import { SuggestedToFollow } from "../../Components/SuggestedToFollow/SuggestedToFollow";
 import { Messages } from "../../Components/Messages/Messages";
+import Helmet from "react-helmet";
 
 const Trending = () => {
   const [openReactionId, setOpenReactionId] = useState(null);
 
   return (
     <>
+    <Helmet>
+      <title>DevHub | Trending Posts : Looking for new</title>
+    </Helmet>
       <div className="dark:bg-bg-primary-dark flex">
         {/* زر عائم للموبايل / تابلت (أيقونة فقط) */}
         <div className="fixed bottom-4 right-4 z-50 lg:hidden">

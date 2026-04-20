@@ -34,11 +34,14 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import Helmet from "react-helmet";
 
 import axiosInstance from "../../config/api";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const { userData } = useContext(UserContext);
+  const navigate = useNavigate();
   const token = localStorage.getItem("userToken");
 
   const [isLoading, setIsLoading] = useState(true);
@@ -209,6 +212,9 @@ const Profile = () => {
 
   return (
     <>
+    <Helmet>
+      <title>DevHub | My Profile</title>
+    </Helmet>
       <div className="bg-slate-50 dark:bg-bg-primary-dark relative min-h-screen">
         <div className="flex-1 py-2">
           <div className="container sm:mx-auto px-2 sm:px-0 lg:px-3">
@@ -316,7 +322,7 @@ const Profile = () => {
                       </p>
                       <p className="text-sm text-muted-foreground">Followers</p>
                     </div>
-                    <div>
+                    <div onClick={() => navigate("/my-following")} className="cursor-pointer">
                       <p className="text-text-light dark:text-text-dark font-bold">
                         {profileData.number_of_users_followed || 0}
                       </p>
