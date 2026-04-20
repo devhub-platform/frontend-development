@@ -24,6 +24,7 @@ import Recommendations from "./Pages/Recommendations/Recommendations";
 import AuthCallback from "./Pages/AuthCallback";
 import ReadingListDetails from "./Components/ReadingListDetails/ReadingListDetails";
 import MyFollowing from "./Pages/MyFollowing/MyFollowing";
+import MyFollowers from "./Pages/MyFollowers/MyFollowers";
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
           <Route path="write" element={<Write />} />
           <Route path="profile" element={<Profile />} />
           <Route path="/reading-list/:id" element={<ReadingListDetails />} />
+          <Route path="my-followers" element={<MyFollowers />} />
           <Route path="my-following" element={<MyFollowing />} />
           <Route path="editor-guide" element={<EditorGuide />} />
           <Route path="*" element={<NotFound />} />

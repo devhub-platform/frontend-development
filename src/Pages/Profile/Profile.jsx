@@ -316,7 +316,7 @@ const Profile = () => {
                       </p>
                       <p className="text-sm text-muted-foreground">Posts</p>
                     </div>
-                    <div>
+                    <div onClick={() => navigate("/my-followers")} className="cursor-pointer">
                       <p className="text-text-light dark:text-text-dark font-bold">
                         {profileData.number_of_followers || 0}
                       </p>
