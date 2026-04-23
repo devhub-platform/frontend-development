@@ -22,7 +22,6 @@ export default function QuestionPage() {
   const [question, setQuestion] = useState(null);
   const [questionScore, setQuestionScore] = useState(0);
   const [bookmarked, setBookmarked] = useState(false);
-  const [answerSort, setAnswerSort] = useState("score");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -55,16 +54,8 @@ export default function QuestionPage() {
 
   const answers = useMemo(() => {
     if (!question || !question.answers) return [];
-    const base = [...question.answers];
-    if (answerSort === "score") {
-      return base.sort((a, b) => (b.vote_score ?? 0) - (a.vote_score ?? 0));
-    }
-    if (answerSort === "oldest") {
-      return base; // الـ API راجعهم أصلاً أقدم لأحدث
-    }
-    // newest
-    return base.reverse();
-  }, [question, answerSort]);
+    return [...question.answers];
+  }, [question]);
 
   if (loading) {
     return (
@@ -187,23 +178,6 @@ export default function QuestionPage() {
                 <h2 className="text-2xl font-black text-[#0F172A] dark:text-white uppercase tracking-tighter">
                   Discussion ({answers.length})
                 </h2>
-                <div className="flex items-center gap-2 p-1 bg-gray-100/50 dark:bg-bg-primary-dark rounded-full border border-gray-200 dark:border-gray-700">
-                  <SortPill
-                    label="Top"
-                    active={answerSort === "score"}
-                    onClick={() => setAnswerSort("score")}
-                  />
-                  <SortPill
-                    label="Oldest"
-                    active={answerSort === "oldest"}
-                    onClick={() => setAnswerSort("oldest")}
-                  />
-                  <SortPill
-                    label="Newest"
-                    active={answerSort === "newest"}
-                    onClick={() => setAnswerSort("newest")}
-                  />
-                </div>
               </div>
               <AnswersList answers={answers} />
             </div>
