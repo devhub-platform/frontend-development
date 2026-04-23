@@ -52,3 +52,14 @@ export async function fetchQuestionById(id) {
   // الـ API بيرجع { success, data: {...} }
   return res.data.data;
 }
+
+// تصويت على سؤال
+// vote_type = "upvote" | "downvote"
+export async function voteQuestion(id, vote_type) {
+  const res = await axiosInstance.post(`/questions/${id}/vote`, {
+    vote_type, // "upvote" | "downvote"
+  });
+  // API sample:
+  // { success: true, message: "Vote recorded", data: { question_id, vote_score, current_user_vote } }
+  return res.data.data;
+}

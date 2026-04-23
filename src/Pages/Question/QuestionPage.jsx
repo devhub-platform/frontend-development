@@ -11,18 +11,21 @@ import {
   ArrowBigDown,
   User as UserIcon,
 } from "lucide-react";
-import { fetchQuestionById } from "../../services/qaApi";
+import { fetchQuestionById, voteQuestion } from "../../services/qaApi";
 import { QuestionBody } from "../../Components/Question/QuestionBody";
 import { AnswerEditor } from "../../Components/Question/AnswerEditor";
 import { AnswersList } from "../../Components/Question/AnswersList";
 import { Comments } from "../../Components/Question/Comments";
+import toast from "react-hot-toast";
 
 export default function QuestionPage() {
   const { id } = useParams();
   const [question, setQuestion] = useState(null);
   const [questionScore, setQuestionScore] = useState(0);
+  const [currentUserVote, setCurrentUserVote] = useState(null); // "upvote" | "downvote" | null
   const [bookmarked, setBookmarked] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [voteLoading, setVoteLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // تحميل السؤال من الـ API
@@ -36,6 +39,7 @@ export default function QuestionPage() {
         if (!isMounted) return;
         setQuestion(data);
         setQuestionScore(data.vote_score ?? 0);
+        setCurrentUserVote(data.current_user_vote); // راجعالك من الباك
       } catch (err) {
         if (!isMounted) return;
         setError(
@@ -56,6 +60,75 @@ export default function QuestionPage() {
     if (!question || !question.answers) return [];
     return [...question.answers];
   }, [question]);
+
+  // هندلة التصويت على السؤال 
+  const handleVote = async (direction) => {
+    if (!question || voteLoading) return;
+
+    const isUp = direction === "up";
+
+    // نوع الفوت الجديد اللي هنرسله
+    const newType = isUp ? "upvote" : "downvote";
+
+    // optimistic UI: نحسب السكور المتوقع حسب الحالة القديمة
+    const prevVote = currentUserVote; // "upvote" | "downvote" | null
+    const prevScore = questionScore;
+
+    let optimisticScore = questionScore;
+
+    if (newType === "upvote") {
+      if (prevVote === "upvote") {
+        // احتمال إن الباك يستخدم نفس النوع كتوجّل (يلغي الفوت)
+        // مبدئياً ننقص 1 كتوقّع
+        optimisticScore -= 1;
+      } else if (prevVote === "downvote") {
+        optimisticScore += 2; // -1 → +1
+      } else if (prevVote === null) {
+        optimisticScore += 1;
+      }
+    } else if (newType === "downvote") {
+      if (prevVote === "downvote") {
+        // نفس الفكرة - ممكن يكون توجل لإلغاء الفوت
+        optimisticScore += 1;
+      } else if (prevVote === "upvote") {
+        optimisticScore -= 2; // +1 → -1
+      } else if (prevVote === null) {
+        optimisticScore -= 1;
+      }
+    }
+
+    // نحدّث الواجهة بشكل متوقَّع
+    setQuestionScore(optimisticScore);
+    setCurrentUserVote(newType);
+    setVoteLoading(true);
+
+    try {
+      const data = await voteQuestion(id, newType);
+
+      // sync مع القيم اللي رجعت من الباك
+      // لو الباك عمل toggle وألغى الفوت، هيبعت current_user_vote = null
+      setQuestionScore(
+        typeof data.vote_score === "number" ? data.vote_score : optimisticScore,
+      );
+      setCurrentUserVote(data.current_user_vote); // "upvote" | "downvote" | null
+    } catch (err) {
+      // rollback
+      setQuestionScore(prevScore);
+      setCurrentUserVote(prevVote);
+
+      if (err.response?.status === 401) {
+        toast.error("You must be logged in to vote.");
+      } else if (err.response?.data?.errors?.vote_type) {
+        toast.error(err.response.data.errors.vote_type[0]);
+      } else {
+        toast.error(
+          err.response?.data?.message || "Failed to record your vote.",
+        );
+      }
+    } finally {
+      setVoteLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -136,12 +209,17 @@ export default function QuestionPage() {
               <div className="p-8 sm:p-10">
                 <QuestionBody question={question} />
 
-                {/* Footer bar */}
+                {/* Footer bar (Voting + Actions) */}
                 <div className="mt-10 pt-8 border-t border-gray-100 dark:border-gray-700 flex flex-wrap items-center justify-between gap-6">
                   <div className="flex items-center bg-gray-50 dark:bg-bg-secondary-dark p-1.5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-[0_0_15px_rgba(15,23,42,0.85)]">
                     <button
-                      onClick={() => setQuestionScore((s) => s + 1)}
-                      className="w-11 h-11 flex items-center justify-center rounded-xl hover:bg-primary hover:text-white text-gray-400 transition-all"
+                      onClick={() => handleVote("up")}
+                      disabled={voteLoading}
+                      className={`w-11 h-11 flex items-center justify-center rounded-xl transition-all ${
+                        currentUserVote === "upvote"
+                          ? "bg-primary text-white shadow-md"
+                          : "hover:bg-primary hover:text-white text-gray-400"
+                      }`}
                     >
                       <ArrowBigUp className="w-7 h-7" />
                     </button>
@@ -149,8 +227,13 @@ export default function QuestionPage() {
                       {questionScore}
                     </span>
                     <button
-                      onClick={() => setQuestionScore((s) => s - 1)}
-                      className="w-11 h-11 flex items-center justify-center rounded-xl hover:bg-red-500 hover:text-white text-gray-400 transition-all"
+                      onClick={() => handleVote("down")}
+                      disabled={voteLoading}
+                      className={`w-11 h-11 flex items-center justify-center rounded-xl transition-all ${
+                        currentUserVote === "downvote"
+                          ? "bg-red-500 text-white shadow-md"
+                          : "hover:bg-red-500 hover:text-white text-gray-400"
+                      }`}
                     >
                       <ArrowBigDown className="w-7 h-7" />
                     </button>
@@ -236,20 +319,5 @@ export default function QuestionPage() {
         </div>
       </main>
     </div>
-  );
-}
-
-function SortPill({ label, active, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-        active
-          ? "bg-white dark:bg-bg-secondary-dark text-primary shadow-sm dark:shadow-[0_0_12px_rgba(15,23,42,0.7)]"
-          : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-      }`}
-    >
-      {label}
-    </button>
   );
 }
