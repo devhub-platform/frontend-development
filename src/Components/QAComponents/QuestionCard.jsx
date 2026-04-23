@@ -80,7 +80,7 @@ export function QuestionCard({ question }) {
           <div className="flex items-center gap-2">
             <img
               src={
-                question.user?.avatar_url ||
+                question.user?.avatar ||
                 `https://ui-avatars.com/api/?name=${question.user?.name}&background=random`
               }
               className="w-7 h-7 rounded-full object-cover border border-gray-100 dark:border-gray-700"
