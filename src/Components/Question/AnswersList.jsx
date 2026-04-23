@@ -1,3 +1,4 @@
+// src/Components/Question/AnswersList.jsx
 import React from "react";
 import {
   ArrowBigUp,
@@ -31,11 +32,13 @@ export function AnswersList({ answers }) {
 }
 
 function AnswerCard({ answer }) {
-  const [score, setScore] = React.useState(answer.votes ?? 0);
+  const [score, setScore] = React.useState(answer.vote_score ?? 0);
 
-  const acceptedClasses = answer.isAccepted
+  const acceptedClasses = answer.is_accepted
     ? "border-emerald-500/40 bg-emerald-500/5 dark:bg-emerald-500/10 shadow-lg shadow-emerald-500/20"
     : "";
+
+  const user = answer.user || {};
 
   return (
     <article
@@ -44,7 +47,7 @@ function AnswerCard({ answer }) {
       bg-white dark:bg-bg-primary-dark 
       shadow-sm dark:shadow-[0_0_20px_rgba(15,23,42,0.9)] ${acceptedClasses}`}
     >
-      {answer.isAccepted && (
+      {answer.is_accepted && (
         <div className="absolute top-0 right-10 px-4 py-1.5 bg-emerald-500 text-white text-[10px] font-black uppercase rounded-b-2xl flex items-center gap-1.5 shadow-md">
           <CheckCircle2 className="w-3.5 h-3.5" /> Solution Accepted
         </div>
@@ -53,7 +56,7 @@ function AnswerCard({ answer }) {
       <div className="flex flex-col w-full">
         <div className="prose prose-sm max-w-none dark:prose-invert text-[#475569] dark:text-gray-300 mb-8">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {answer.body}
+            {answer.content || ""}
           </ReactMarkdown>
         </div>
 
@@ -99,14 +102,22 @@ function AnswerCard({ answer }) {
           <div className="flex items-center gap-3 pr-2">
             <div className="text-right">
               <p className="text-[13px] font-black text-[#0F172A] dark:text-white leading-none mb-1">
-                {answer.author}
+                {user.name || "Anonymous"}
               </p>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                Answered {answer.timeAgo}
+                Answered {answer.created_at}
               </p>
             </div>
-            <div className="w-9 h-9 rounded-xl bg-gray-900 dark:bg-bg-secondary-dark text-white flex items-center justify-center font-black text-xs shadow-sm border border-white/10">
-              {answer.avatar}
+            <div className="w-9 h-9 rounded-xl bg-gray-900 dark:bg-bg-secondary-dark text-white flex items-center justify-center font-black text-xs shadow-sm border border-white/10 overflow-hidden">
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="w-full h-full object-cover rounded-xl"
+                />
+              ) : (
+                (user.name && user.name[0]) || "U"
+              )}
             </div>
           </div>
         </div>

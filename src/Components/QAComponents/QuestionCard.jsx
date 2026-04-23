@@ -6,7 +6,7 @@ export function QuestionCard({ question }) {
   const isResolved = question.is_resolved;
 
   return (
-    <Link to={`/questions/${question.slug}`} className="block group">
+    <Link to={`/questions/${question.id}`} className="block group">
       <article className="bg-white dark:bg-bg-primary-dark border border-gray-200 dark:border-gray-700 rounded-2xl p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
         <div className="flex items-start justify-between gap-3 mb-3">
           <h3 className="text-lg font-bold text-gray-900 dark:text-text-dark group-hover:underline transition-colors line-clamp-2">

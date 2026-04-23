@@ -45,3 +45,10 @@ export async function fetchHotQuestions() {
   const res = await axiosInstance.get(`/questions/hot`);
   return res.data.data || [];
 }
+
+// 3) سؤال واحد بالتفاصيل
+export async function fetchQuestionById(id) {
+  const res = await axiosInstance.get(`/questions/${id}`);
+  // الـ API بيرجع { success, data: {...} }
+  return res.data.data;
+}

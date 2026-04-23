@@ -22,7 +22,7 @@ export function Sidebar({ hotQuestions, onViewMoreHot }) {
               <li key={q.id} className="flex items-start gap-2 group">
                 <Flame className="w-3 h-3 text-orange-400 mt-1 shrink-0" />
                 <Link
-                  to={`/questions/${q.slug}`}
+                  to={`/questions/${q.id}`}
                   className="block text-sm text-text-light dark:text-text-dark group-hover:underline line-clamp-2 transition-colors"
                 >
                   {q.title}
