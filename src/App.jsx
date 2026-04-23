@@ -13,6 +13,7 @@ import AIChat from "./Pages/AIChat/AIChat";
 import Notifications from "./Pages/Notifications/Notifications";
 import Write from "./Pages/Write/Write";
 import Profile from "./Pages/Profile/Profile";
+import UsersProfile from "./Pages/UsersProfile/UsersProfile";
 import OTPVerification from "./Pages/OTPVerification/OTPVerification";
 import ResetPassword from "./Pages/ResetPassword/ResetPassword";
 import EditorGuide from "./Pages/EditorGuide";
@@ -25,6 +26,8 @@ import AuthCallback from "./Pages/AuthCallback";
 import ReadingListDetails from "./Components/ReadingListDetails/ReadingListDetails";
 import MyFollowing from "./Pages/MyFollowing/MyFollowing";
 import MyFollowers from "./Pages/MyFollowers/MyFollowers";
+import UserFollowing from "./Pages/UsersFollowing/UsersFollowing"
+import UserFollowers from "./Pages/UsersFollowers/UsersFollowers";
 
 function App() {
   return (
@@ -51,9 +54,12 @@ function App() {
           <Route path="notification" element={<Notifications />} />
           <Route path="write" element={<Write />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="/users/:id" element={<UsersProfile />} />
           <Route path="/reading-list/:id" element={<ReadingListDetails />} />
           <Route path="my-followers" element={<MyFollowers />} />
           <Route path="my-following" element={<MyFollowing />} />
+          <Route path="/users/:id/followers" element={<UserFollowers />} />
+          <Route path="/users/:id/following" element={<UserFollowing />} />
           <Route path="editor-guide" element={<EditorGuide />} />
           <Route path="*" element={<NotFound />} />
         </Route>

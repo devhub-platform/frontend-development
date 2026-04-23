@@ -2,12 +2,15 @@ import React, { useEffect, useState } from "react";
 import Helmet from "react-helmet";
 import { UserCheck, UserPlus, Loader2, Users } from "lucide-react";
 import axiosInstance from "../../config/api";
+import { useNavigate } from "react-router-dom";
 
 export default function MyFollowers() {
   const [followersList, setFollowersList] = useState([]);
   const [followingIds, setFollowingIds] = useState(new Set()); // لتخزين IDs الأشخاص الذين أتابعهم
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+
+  const navigate = useNavigate();
 
   const fetchData = async () => {
     const token = localStorage.getItem("userToken");
@@ -106,7 +109,9 @@ export default function MyFollowers() {
             {followersList.map((user) => (
               <div
                 key={user.id}
-                className="group flex items-center justify-between p-5 bg-white dark:bg-slate-900/40 backdrop-blur-sm rounded-xl md:rounded-[2.5rem] border border-slate-100 dark:border-slate-800 hover:border-primary/40 transition-all shadow-2xl hover:-translate-y-1"
+                className="group flex items-center justify-between p-5 bg-white dark:bg-slate-900/40 backdrop-blur-sm rounded-xl md:rounded-[2.5rem] border border-slate-100 dark:border-slate-800 hover:border-primary/40 transition-all shadow-2xl hover:-translate-y-1
+                cursor-pointer"
+                onClick = {() => navigate(`/users/${user.id}`)}
               >
                 <div className="flex items-center gap-4">
                   <img

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Helmet from "react-helmet";
 import { UserCheck, UserPlus, Sparkles, Loader2 } from "lucide-react";
 import axiosInstance from "../../config/api";
@@ -7,7 +7,7 @@ import axiosInstance from "../../config/api";
 export default function MyFollowing() {
   const [followingList, setFollowingList] = useState([]);
   const [loading, setLoading] = useState(true);
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
   const fetchFollowing = async () => {
@@ -83,7 +83,9 @@ export default function MyFollowing() {
             {followingList.map((user, index) => (
               <div
                 key={user.id || index}
-                className="group flex items-center justify-between p-5 bg-white dark:bg-slate-900/40 backdrop-blur-sm rounded-xl md:rounded-[2.5rem] border border-slate-100 dark:border-slate-800 hover:border-primary/40 dark:hover:border-primary transition-all duration-500 shadow-2xl shadow-slate-200 dark:shadow-slate-800/50 hover:-translate-y-1"
+                className="group flex items-center justify-between p-5 bg-white dark:bg-slate-900/40 backdrop-blur-sm rounded-xl md:rounded-[2.5rem] border border-slate-100 dark:border-slate-800 hover:border-primary/40 dark:hover:border-primary transition-all duration-500 shadow-2xl shadow-slate-200 dark:shadow-slate-800/50 hover:-translate-y-1
+                cursor-pointer"
+                onClick={() => navigate(`/users/${user.id}`)}
               >
                 <div className="flex items-center gap-4">
                   <img

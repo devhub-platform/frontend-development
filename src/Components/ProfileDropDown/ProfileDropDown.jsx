@@ -66,14 +66,14 @@ export default function ProfileDropDown() {
       {/* Avatar button */}
       <button
         onClick={() => setOpen(!open)}
-        className="w-11.5 h-11 rounded-full text-white flex items-center justify-center overflow-hidden border-2 border-transparent hover:border-primary/50 transition-all"
+        className="w-11.5 h-11 rounded-full bg-primary text-white flex items-center justify-center overflow-hidden border-2 border-transparent hover:border-primary/50 transition-all"
       >
         {/* لو فيه صورة اعرضيها، لو لسه بيحمل اظهر سبينر، لو مفيش خالص اظهر أيقونة المستخدم */}
         {userData?.avatar_url ? (
           <img
             src={userData.avatar_url}
             alt="profile"
-            className="w-full h-full object-cover bg-white"
+            className="w-full h-full object-cover hover:border hover:border-blue-900"
           />
         ) : imgLoading ? (
           <Loader2 size={16} className="animate-spin bg-primary" />
