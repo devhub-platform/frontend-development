@@ -1,18 +1,22 @@
+// src/Components/AskQuestion/QuestionForm.jsx
 import React, { useState } from "react";
-import { Eye, Edit3 } from "lucide-react";
+import { Eye, Edit3, Image as ImageIcon, Trash2 } from "lucide-react";
 import { toast, Toaster } from "react-hot-toast";
-import { QuestionTypeDropdown } from "./QuestionTypeDropdown";
+import { useNavigate } from "react-router-dom";
+
 import { TagInput } from "./TagInput";
-import { WhereToPost } from "./WhereToPost";
-// استيراد المكون السحري بتاعك
 import { MarkdownWriteEditor } from "../WriteComponents/MarkdownWriteEditor";
+import { createQuestion } from "../../services/qaApi";
 
 export function QuestionForm() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [activeTab, setActiveTab] = useState("edit"); // 'edit' | 'preview'
-  const [selectedType, setSelectedType] = useState("troubleshooting");
-  const [selectedPostLocation, setSelectedPostLocation] = useState("staging");
+  const [tags, setTags] = useState([]);
+  const [images, setImages] = useState([]); // File[]
+  const [submitting, setSubmitting] = useState(false);
+
+  const navigate = useNavigate();
 
   const getTitleQuality = () => {
     if (!title.length) return null;
@@ -24,16 +28,92 @@ export function QuestionForm() {
 
   const quality = getTitleQuality();
 
-  const handlePostNow = () => {
-    if (body.length < 20) {
-      toast.error("Please explain your question in more detail.");
-      return;
-    }
-    toast.success("Question posted on DevHub!");
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setImages((prev) => [...prev, ...files]);
+    e.target.value = "";
   };
 
-  const handleSubmitReview = () => {
-    toast.success("Submitted to Staging Ground for feedback.");
+  const handleRemoveImage = (index) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const validate = () => {
+    if (!title.trim()) {
+      toast.error("Title is required.");
+      return false;
+    }
+    if (!body.trim() || body.trim().length < 20) {
+      toast.error(
+        "Please explain your question in more detail (at least 20 characters).",
+      );
+      return false;
+    }
+    if (tags.length === 0) {
+      toast.error("Please add at least one tag.");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+
+    setSubmitting(true);
+    try {
+      const payload = {
+        title: title.trim(),
+        content: body,
+        tags,
+        images,
+      };
+
+      const res = await createQuestion(payload);
+
+      toast.success(res.message || "Question created successfully!");
+
+      // إعادة تعيين الفورم
+      setTitle("");
+      setBody("");
+      setTags([]);
+      setImages([]);
+
+      const newId = res.data?.id;
+      if (newId) {
+        // روح لصفحة السؤال الجديد
+        setTimeout(() => {
+          navigate(`/questions/${newId}`);
+        }, 800);
+      }
+    } catch (err) {
+      if (err.response?.status === 422) {
+        const errors = err.response.data.errors || {};
+        const firstKey = Object.keys(errors)[0];
+        toast.error(errors[firstKey]?.[0] || "Validation failed.");
+      } else if (err.response?.status === 401) {
+        toast.error("You must be logged in to ask a question.");
+      } else {
+        toast.error(
+          err.response?.data?.message ||
+            "Failed to create question. Please try again.",
+        );
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDiscard = () => {
+    if (!title && !body && tags.length === 0 && images.length === 0) {
+      return;
+    }
+    if (window.confirm("Discard your draft? This cannot be undone.")) {
+      setTitle("");
+      setBody("");
+      setTags([]);
+      setImages([]);
+    }
   };
 
   return (
@@ -60,18 +140,6 @@ export function QuestionForm() {
       />
 
       <div className="space-y-5">
-        {/* نوع السؤال */}
-        <Card>
-          <SectionHeader
-            title="Question type"
-            helper="This helps others quickly understand what kind of help you need."
-          />
-          <QuestionTypeDropdown
-            value={selectedType}
-            onChange={setSelectedType}
-          />
-        </Card>
-
         {/* العنوان */}
         <Card>
           <SectionHeader
@@ -86,7 +154,7 @@ export function QuestionForm() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. React useEffect runs in an infinite loop..."
+              placeholder="e.g. How to use Laravel queues with jobs and workers?"
               className="w-full px-4 py-3 bg-white dark:bg-bg-primary-dark border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-all"
             />
             {quality && (
@@ -99,7 +167,7 @@ export function QuestionForm() {
           </div>
         </Card>
 
-        {/* البودي (المحرر الجديد) */}
+        {/* البودي + المحرر */}
         <Card>
           <SectionHeader
             title="Body"
@@ -111,7 +179,6 @@ export function QuestionForm() {
               Body <span className="text-red-500">*</span>
             </label>
 
-            {/* أزرار التبديل بنفس ستايل صفحة الرايت */}
             <div className="flex bg-gray-100 dark:bg-bg-primary-dark p-1 rounded-lg">
               <button
                 type="button"
@@ -138,7 +205,6 @@ export function QuestionForm() {
             </div>
           </div>
 
-          {/* استخدام المحرر المتطور */}
           <MarkdownWriteEditor
             value={body}
             onChange={setBody}
@@ -157,46 +223,89 @@ export function QuestionForm() {
           </div>
         </Card>
 
+        {/* الصور المرفقة */}
+        <Card>
+          <SectionHeader
+            title="Images"
+            helper="Attach screenshots or diagrams that help explain your problem."
+          />
+          <div className="flex flex-col gap-3">
+            <label className="inline-flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer hover:border-primary dark:hover:border-text-dark hover:bg-primary/5 dark:hover:bg-text-dark/10 transition-colors w-fit">
+              <ImageIcon className="w-4 h-4 text-primary dark:text-text-dark" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                Upload images
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageChange}
+              />
+            </label>
+
+            {images.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {images.map((file, index) => (
+                  <div
+                    key={index}
+                    className="relative group rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-bg-primary-dark"
+                  >
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={file.name}
+                      className="w-full h-28 object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute top-1 right-1 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                    <div className="px-2 py-1 text-[10px] text-gray-600 dark:text-gray-300 truncate">
+                      {file.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {images.length === 0 && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                You can optionally attach multiple images. Max size per file
+                depends on server limits.
+              </p>
+            )}
+          </div>
+        </Card>
+
         {/* التاجز */}
         <Card>
           <SectionHeader
             title="Tags"
             helper="Add up to 5 tags to describe the technologies."
           />
-          <TagInput />
-        </Card>
-
-        {/* مكان البوست */}
-        <Card>
-          <SectionHeader
-            title="Where to post"
-            helper="Staging Ground for feedback or Public for everyone."
-          />
-          <WhereToPost
-            value={selectedPostLocation}
-            onChange={setSelectedPostLocation}
-          />
+          <TagInput value={tags} onChange={setTags} />
         </Card>
 
         {/* الأزرار النهائية */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
-          <button className="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors">
+          <button
+            type="button"
+            onClick={handleDiscard}
+            className="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors"
+          >
             Discard draft
           </button>
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
             <button
               type="button"
-              onClick={handlePostNow}
-              className="w-full sm:w-auto px-8 py-3 border-2 border-primary text-primary dark:border-text-dark dark:text-text-dark rounded-full font-bold hover:bg-primary/5 transition-all"
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="w-full sm:w-auto px-8 py-3 bg-primary text-white rounded-full font-bold hover:shadow-lg hover:shadow-primary/30 transition-all hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Post question now
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmitReview}
-              className="w-full sm:w-auto px-8 py-3 bg-primary text-white rounded-full font-bold hover:shadow-lg hover:shadow-primary/30 transition-all hover:-translate-y-0.5"
-            >
-              Submit to review
+              {submitting ? "Posting..." : "Post your question"}
             </button>
           </div>
         </div>

@@ -63,3 +63,30 @@ export async function voteQuestion(id, vote_type) {
   // { success: true, message: "Vote recorded", data: { question_id, vote_score, current_user_vote } }
   return res.data.data;
 }
+
+// إنشاء سؤال جديد (multipart/form-data)
+// payload: { title, content, tags: string[], images: File[] }
+export async function createQuestion(payload) {
+  const formData = new FormData();
+  formData.append("title", payload.title);
+  formData.append("content", payload.content);
+
+  (payload.tags || []).forEach((tag) => {
+    formData.append("tags[]", tag);
+  });
+
+  (payload.images || []).forEach((file) => {
+    formData.append("images[]", file);
+  });
+
+  const res = await axiosInstance.post("/questions/create", formData, {
+    headers: {
+      // خلي axios يسيب الـ boundary
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  // response sample اللي بعتِيه
+  // { success: true, message: "...", data: { id, title, content, slug, ... } }
+  return res.data;
+}

@@ -1,20 +1,64 @@
 // src/Components/Question/QuestionBody.jsx
 import React from "react";
-import ReactMarkdown from "react-markdown";
+import MDEditor from "@uiw/react-md-editor";
 import remarkGfm from "remark-gfm";
 
 export function QuestionBody({ question }) {
   const bodyText = question.content || "";
-
   const tags = question.tags || [];
   const user = question.user || {};
+  const images = question.images || [];
 
   return (
-    <div className="w-full">
-      {/* Markdown Body */}
-      <div className="prose prose-sm sm:prose-base max-w-none dark:prose-invert text-[#475569] dark:text-gray-300 mb-8 leading-relaxed">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{bodyText}</ReactMarkdown>
+    <div className="w-full" data-color-mode="light">
+      {/* Markdown Body (نفس رندر الـ preview بالظبط) */}
+      <div className="prose prose-sm sm:prose-base max-w-none dark:prose-invert text-[#475569] dark:text-gray-300 mb-6 leading-relaxed">
+        {bodyText?.trim() ? (
+          <MDEditor.Markdown
+            source={bodyText}
+            previewOptions={{
+              remarkPlugins: [remarkGfm],
+            }}
+            style={{
+              backgroundColor: "transparent",
+              color: "inherit",
+            }}
+          />
+        ) : (
+          <p className="text-gray-400 dark:text-gray-500">
+            No description provided for this question.
+          </p>
+        )}
       </div>
+
+      {/* Images gallery */}
+      {images.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+            Attached images
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {images.map((img) => (
+              <a
+                key={img.id}
+                href={img.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-bg-secondary-dark"
+              >
+                <img
+                  src={img.url}
+                  alt={img.file_id || "Question image"}
+                  className="w-full h-40 object-cover group-hover:scale-[1.02] transition-transform"
+                />
+                <div className="px-3 py-2 text-[11px] text-gray-600 dark:text-gray-300 truncate">
+                  {img.file_id || "View image"}
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tags & Meta Row */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-50 dark:border-gray-700 pt-6">

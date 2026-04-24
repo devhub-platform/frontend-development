@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import MDEditor, { commands } from "@uiw/react-md-editor";
 import {
   Bold,
@@ -16,6 +15,8 @@ import {
 } from "lucide-react";
 import { Link as RouterLink } from "react-router-dom";
 import { useRef } from "react";
+import remarkGfm from "remark-gfm";
+import React from "react";
 
 export function MarkdownWriteEditor({ value, onChange, mode }) {
   const editorRef = useRef(null);
@@ -26,19 +27,23 @@ export function MarkdownWriteEditor({ value, onChange, mode }) {
     {
       ...commands.bold,
       icon: <Bold className={iconClass} />,
+      label: "Bold (**text**)",
     },
     {
       ...commands.italic,
       icon: <Italic className={iconClass} />,
+      label: "Italic (*text*)",
     },
     {
       ...commands.strikethrough,
       icon: <Strikethrough className={iconClass} />,
+      label: "Strikethrough (~~text~~)",
     },
     {
       name: "underline",
       keyCommand: "underline",
       icon: <Underline className={iconClass} />,
+      label: "Underline (<u>text</u>)",
       execute: (state, api) => {
         api.replaceSelection(`<u>${state.selectedText || ""}</u>`);
       },
@@ -46,31 +51,38 @@ export function MarkdownWriteEditor({ value, onChange, mode }) {
     {
       ...commands.link,
       icon: <LinkIcon className={iconClass} />,
+      label: "Link ([text](url))",
     },
     {
       ...commands.unorderedListCommand,
       icon: <List className={iconClass} />,
+      label: "Bulleted list",
     },
     {
       ...commands.orderedListCommand,
       icon: <ListOrdered className={iconClass} />,
+      label: "Numbered list",
     },
     {
       ...commands.title2,
       icon: <Heading className={iconClass} />,
+      label: "Heading (##)",
     },
     {
       ...commands.quote,
       icon: <Quote className={iconClass} />,
+      label: "Quote (>)",
     },
     {
       ...commands.codeBlock,
       icon: <SquareCode className={iconClass} />,
+      label: "Code block (```)",
     },
     {
       name: "divider",
       keyCommand: "divider",
       icon: <Minus className={iconClass} />,
+      label: "Horizontal rule (---)",
       execute: (state, api) => {
         api.replaceSelection("\n\n---\n\n");
       },
@@ -80,19 +92,16 @@ export function MarkdownWriteEditor({ value, onChange, mode }) {
   /* ---------- Preview Mode ---------- */
   if (mode === "preview") {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-8 min-h-125 dark:bg-bg-primary-dark dark:border-gray-700 transition-colors">
+      <div
+        className="bg-white border border-gray-200 rounded-lg p-8 min-h-125 dark:bg-bg-primary-dark dark:border-gray-700 transition-colors"
+        data-color-mode="light"
+      >
         {value?.trim() ? (
-          /* إضافة wmde-markdown-var وكلاسات الـ lists لضمان ظهور النقط والأرقام */
-          <div
-            data-color-mode="light"
-            className="dark:bg-transparent! prose prose-slate dark:prose-invert max-w-none"
-          >
+          <div className="prose prose-sm sm:prose-base max-w-none dark:prose-invert">
             <MDEditor.Markdown
               source={value}
-              components={{
-                a: ({ node, ...props }) => (
-                  <a {...props} target="_blank" rel="noopener noreferrer" />
-                ),
+              previewOptions={{
+                remarkPlugins: [remarkGfm],
               }}
               style={{
                 backgroundColor: "transparent",
@@ -117,6 +126,7 @@ export function MarkdownWriteEditor({ value, onChange, mode }) {
             <button
               key={cmd.name}
               type="button"
+              title={cmd.label}
               onClick={() => {
                 if (editorRef.current) {
                   editorRef.current.commandOrchestrator.executeCommand(cmd);
@@ -132,7 +142,7 @@ export function MarkdownWriteEditor({ value, onChange, mode }) {
 
           <RouterLink
             to="/editor-guide"
-            title="Editor Guide"
+            title="Editor guide and Markdown syntax"
             className="p-2 rounded hover:bg-gray-100 dark:hover:bg-bg-secondary-dark transition-colors"
           >
             <CircleHelp className={iconClass} />
@@ -141,26 +151,24 @@ export function MarkdownWriteEditor({ value, onChange, mode }) {
       </div>
 
       {/* Editor Area */}
-      <div className="p-6">
-        <div data-color-mode="auto">
-          <MDEditor
-            ref={editorRef}
-            value={value}
-            onChange={onChange}
-            commands={[]}
-            extraCommands={[]}
-            hideToolbar={true}
-            preview="edit"
-            visibleDragbar={false}
-            height="auto"
-            minHeight={500}
-            textareaProps={{
-              placeholder: "Write in Markdown...",
-              className: "outline-none focus:ring-0 text-black dark:text-white",
-            }}
-            className="border-none! bg-transparent! shadow-none! dark:text-white!"
-          />
-        </div>
+      <div className="p-6" data-color-mode="auto">
+        <MDEditor
+          ref={editorRef}
+          value={value}
+          onChange={onChange}
+          commands={[]}
+          extraCommands={[]}
+          hideToolbar={true}
+          preview="edit"
+          visibleDragbar={false}
+          height="auto"
+          minHeight={500}
+          textareaProps={{
+            placeholder: "Write in Markdown...",
+            className: "outline-none focus:ring-0 text-black dark:text-white",
+          }}
+          className="border-none! bg-transparent! shadow-none! dark:text-white!"
+        />
       </div>
     </div>
   );

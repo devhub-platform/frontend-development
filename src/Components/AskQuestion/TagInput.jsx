@@ -1,3 +1,4 @@
+// src/Components/AskQuestion/TagInput.jsx
 import React, { useState } from "react";
 import { X } from "lucide-react";
 
@@ -14,21 +15,22 @@ const suggestedTags = [
   "express",
 ];
 
-export function TagInput() {
-  const [tags, setTags] = useState([]);
+export function TagInput({ value, onChange }) {
   const [inputValue, setInputValue] = useState("");
 
+  const tags = value || [];
+
   const addTag = (tag) => {
-    const value = tag.trim();
-    if (!value) return;
+    const v = tag.trim();
+    if (!v) return;
     if (tags.length >= 5) return;
-    if (tags.includes(value)) return;
-    setTags([...tags, value]);
+    if (tags.includes(v)) return;
+    onChange([...tags, v]);
     setInputValue("");
   };
 
   const removeTag = (tagToRemove) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
+    onChange(tags.filter((tag) => tag !== tagToRemove));
   };
 
   const handleKeyDown = (e) => {
@@ -43,7 +45,7 @@ export function TagInput() {
   const filteredSuggestions = suggestedTags.filter(
     (tag) =>
       !tags.includes(tag) &&
-      (inputValue ? tag.toLowerCase().includes(inputValue.toLowerCase()) : true)
+      (inputValue ? tag.toLowerCase().includes(inputValue.toLowerCase()) : true),
   );
 
   return (
@@ -79,7 +81,9 @@ export function TagInput() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={tags.length === 0 ? "e.g. css python-3.x node.js" : ""}
+            placeholder={
+              tags.length === 0 ? "e.g. css php laravel api" : ""
+            }
             className="flex-1 min-w-[180px] bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400"
           />
         )}
