@@ -1,45 +1,64 @@
-const BASE_URL = "http://127.0.0.1:8000/api/v1";
+import axiosInstance from "../config/api";
 
-const AUTH_TOKEN =
-  "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDAvYXBpL3YxL3JlZ2lzdGVyIiwiaWF0IjoxNzY5NjI0MjAwLCJleHAiOjE3Njk2Mjc4MDAsIm5iZiI6MTc2OTYyNDIwMCwianRpIjoiT1RBSjZSTWJ6YUEwNlRGUCIsInN1YiI6IjUiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.C4eI3c-24J-7L71yp5xlYXl3qjcPcfhUucFstWHQgXw";
-
-export async function getRuntimes() {
-  try {
-    const response = await fetch(`${BASE_URL}/code/runtimes`, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${AUTH_TOKEN}`,
-      },
-    });
-    const result = await response.json();
-    return result.data || [];
-  } catch (error) {
-    console.error("Error fetching runtimes:", error);
-    return [];
+// interceptor للهيدرز والتوكن
+axiosInstance.interceptors.request.use((config) => {
+  const token = localStorage.getItem("userToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+  config.headers.Accept = "application/json";
+  return config;
+});
+
+// 1) كل اللغات المتاحة (string[])
+export async function fetchCodeLanguages() {
+  const res = await axiosInstance.get("/code/languages");
+  // response: { success, data: [...], count }
+  return res.data.data || [];
 }
 
-export async function runCode({ language, version, code, stdin }) {
-  const response = await fetch(`${BASE_URL}/code/execute`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      Authorization: `Bearer ${AUTH_TOKEN}`,
-    },
-    body: JSON.stringify({
-      language,
-      version,
-      code,
-      stdin, // هنا بنبعت الـ user input للباك
-    }),
-  });
+// 2) كل الـ runtimes (language + version + aliases + runtime?)
+export async function fetchCodeRuntimes() {
+  const res = await axiosInstance.get("/code/runtimes");
+  // response: { success, data: [...], count }
+  return res.data.data || [];
+}
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to execute code");
+// 3) search عن runtime معين بالـ language
+// search: string (مثلاً "php" أو "java 15")
+export async function searchRuntimes(search) {
+  const res = await axiosInstance.get("/code/search-runtimes", {
+    params: { search },
+  });
+  // response sample اللي بعتّيه:
+  // { success, search_term, data: [...], meta: {...} }
+  return res.data;
+}
+
+// 4) Execute code
+// payload: { language, version, code, stdin? }
+export async function executeCode(payload) {
+  const body = {
+    language: payload.language,
+    version: payload.version,
+    code: payload.code,
+  };
+
+  if (payload.stdin !== undefined && payload.stdin !== null) {
+    body.stdin = payload.stdin;
   }
 
-  return await response.json();
+  const res = await axiosInstance.post("/code/execute", body, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  // response:
+  // {
+  //   success: true,
+  //   language, version,
+  //   run: { stdout, stderr, output, code, memory, cpu_time, wall_time, ... }
+  // }
+  return res.data;
 }

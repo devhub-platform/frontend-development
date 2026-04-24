@@ -29,6 +29,7 @@ export default function CodePlaygroundPage() {
     loadingRuntimes,
     selectedRuntime,
     setSelectedRuntime,
+    currentLanguage,
     code,
     setCode,
     stdin,
@@ -44,12 +45,14 @@ export default function CodePlaygroundPage() {
   const fileInputRef = useRef(null);
   const [isEditorExpanded, setIsEditorExpanded] = useState(false);
 
-  const currentLang = selectedRuntime?.language?.toLowerCase() || "javascript";
+  const currentLang = currentLanguage || "javascript";
+
   const tabLabel =
     currentLang === "java"
       ? "Main.java"
       : `main.${currentLang === "javascript" ? "js" : currentLang}`;
 
+  // أول ما اللغة تتغير نحط snippet مناسب
   useEffect(() => {
     const snippet =
       INITIAL_SNIPPETS[currentLang] || `// Welcome to DevHub! (${currentLang})`;
@@ -57,6 +60,7 @@ export default function CodePlaygroundPage() {
   }, [currentLang]);
 
   const handleOpenFromDisk = () => fileInputRef.current?.click();
+
   const handleSaveToDisk = () => {
     const blob = new Blob([code || ""], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -66,9 +70,12 @@ export default function CodePlaygroundPage() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
   const handleResetCode = () =>
     setCode(INITIAL_SNIPPETS[currentLang] || INITIAL_SNIPPETS.javascript);
+
   const handleCopyCode = () => navigator.clipboard.writeText(code);
+
   const handleClearOutput = () => {
     setOutput("");
     setError("");
@@ -77,7 +84,7 @@ export default function CodePlaygroundPage() {
   return (
     <div className="min-h-screen bg-[#f1f5f9] dark:bg-[#020617] px-3 py-4 sm:px-4 lg:px-8 lg:py-8 transition-all duration-500">
       <div className="max-w-6xl xl:max-w-7xl mx-auto flex flex-col h-full gap-4 sm:gap-6">
-        {/* Header - Toolbar (Matches image top bar) */}
+        {/* Header - Toolbar */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-white/90 dark:bg-[#111827] px-4 py-4 rounded-2xl border border-white/20 dark:border-gray-800 shadow-2xl">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 bg-white dark:bg-[#1f2937] px-4 py-2 rounded-xl border border-gray-100 dark:border-gray-700 shadow-inner">
@@ -96,11 +103,11 @@ export default function CodePlaygroundPage() {
                 ) : (
                   runtimes.map((rt) => (
                     <option
-                      key={rt.language}
+                      key={`${rt.language}-${rt.version}`}
                       value={rt.language}
                       className="dark:bg-[#111827]"
                     >
-                      {rt.language.toUpperCase()}{" "}
+                      {rt.language.toUpperCase()}
                       {rt.version ? ` (${rt.version})` : ""}
                     </option>
                   ))
@@ -122,7 +129,9 @@ export default function CodePlaygroundPage() {
             }`}
           >
             <Play
-              className={`w-5 h-5 ${isRunning ? "animate-spin" : "fill-current"}`}
+              className={`w-5 h-5 ${
+                isRunning ? "animate-spin" : "fill-current"
+              }`}
             />
             <span>{isRunning ? "Executing..." : "Run Code"}</span>
           </button>
@@ -130,9 +139,13 @@ export default function CodePlaygroundPage() {
 
         {/* Main Workspace */}
         <div
-          className={`grid flex-1 gap-6 transition-all duration-500 ${isEditorExpanded ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-[1.1fr_0.9fr]"}`}
+          className={`grid flex-1 gap-6 transition-all duration-500 ${
+            isEditorExpanded
+              ? "grid-cols-1"
+              : "grid-cols-1 lg:grid-cols-[1.1fr_0.9fr]"
+          }`}
         >
-          {/* Editor Container (Matches Left Box in images) */}
+          {/* Editor Container */}
           <div className="flex flex-col bg-white dark:bg-[#111827] rounded-3xl border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden min-h-125">
             <div className="flex items-center justify-between px-6 py-4 bg-gray-50/60 dark:bg-[#1f2937]/50 border-b border-gray-200 dark:border-gray-800">
               <div className="flex items-center gap-3">
@@ -195,7 +208,7 @@ export default function CodePlaygroundPage() {
               </div>
             </div>
 
-            {/* Input Bar (Matches Bottom Input in images) */}
+            {/* Input Bar */}
             <div className="px-6 py-4 bg-gray-50 dark:bg-[#111827] border-t border-gray-200 dark:border-gray-800 flex gap-4 items-center">
               <span className="text-[11px] font-black text-gray-500 dark:text-gray-400 tracking-tighter">
                 INPUT:
@@ -210,7 +223,7 @@ export default function CodePlaygroundPage() {
             </div>
           </div>
 
-          {/* Console Container (Matches Right Box in images) */}
+          {/* Console Container */}
           {!isEditorExpanded && (
             <div className="flex flex-col bg-white dark:bg-[#0b0f1a] rounded-3xl border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden min-h-75">
               <div className="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-[#111827] border-b border-gray-200 dark:border-gray-800">
@@ -221,7 +234,12 @@ export default function CodePlaygroundPage() {
                   </span>
                 </div>
                 <div className="flex gap-2">
-                  <button className="p-2 text-gray-500 hover:text-blue-500 transition-colors">
+                  <button
+                    className="p-2 text-gray-500 hover:text-blue-500 transition-colors"
+                    onClick={() => {
+                      if (output) navigator.clipboard.writeText(output);
+                    }}
+                  >
                     <Copy className="w-4 h-4" />
                   </button>
                   <button

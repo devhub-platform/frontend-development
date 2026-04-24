@@ -1,8 +1,15 @@
-import { useEffect, useState } from "react";
-import { getRuntimes, runCode } from "../services/codeRunnerApi";
+// src/hooks/useCodeRunner.js
+import { useEffect, useMemo, useState } from "react";
+import {
+  fetchCodeRuntimes,
+  fetchCodeLanguages,
+  searchRuntimes,
+  executeCode,
+} from "../services/codeRunnerApi";
 
 export function useCodeRunner() {
-  const [runtimes, setRuntimes] = useState([]);
+  const [languages, setLanguages] = useState([]); // from /code/languages
+  const [runtimes, setRuntimes] = useState([]); // from /code/runtimes
   const [loadingRuntimes, setLoadingRuntimes] = useState(true);
   const [selectedRuntime, setSelectedRuntime] = useState(null);
 
@@ -11,27 +18,80 @@ export function useCodeRunner() {
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
+  // Load languages + runtimes at mount
   useEffect(() => {
-    async function load() {
+    let cancelled = false;
+
+    async function loadData() {
       try {
         setLoadingRuntimes(true);
-        const list = await getRuntimes();
-        const uniqueList = list.filter(
-          (item, index, self) =>
-            index === self.findIndex((t) => t.language === item.language),
-        );
-        setRuntimes(uniqueList);
-        if (uniqueList.length > 0) setSelectedRuntime(uniqueList[0]);
-      } catch (e) {
-        console.error(e);
+
+        const [langs, rts] = await Promise.all([
+          fetchCodeLanguages(),
+          fetchCodeRuntimes(),
+        ]);
+
+        if (cancelled) return;
+
+        setLanguages(langs || []);
+        setRuntimes(rts || []);
+
+        // اختار default runtime بشكل عاقل:
+        // لو عندنا JS استخدمه، لو لأ Python، لو لأ أول واحد
+        const preferredOrder = ["javascript", "python", "java"];
+        let defaultRt = null;
+
+        for (const lang of preferredOrder) {
+          const found = rts.find((rt) => rt.language.toLowerCase() === lang);
+          if (found) {
+            defaultRt = found;
+            break;
+          }
+        }
+
+        if (!defaultRt && rts.length > 0) {
+          defaultRt = rts[0];
+        }
+
+        setSelectedRuntime(defaultRt || null);
+      } catch (err) {
+        console.error("Failed to load runtimes/languages", err);
       } finally {
-        setLoadingRuntimes(false);
+        if (!cancelled) setLoadingRuntimes(false);
       }
     }
-    load();
+
+    loadData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
+  // Search helper using /code/search-runtimes
+  const handleSearchRuntime = async (term) => {
+    setSearchTerm(term);
+    if (!term.trim()) return;
+
+    try {
+      const res = await searchRuntimes(term.trim());
+      const first = res.data?.[0];
+      if (first) {
+        // لو لقينا runtime مشابه، نخليه selectedRuntime
+        setSelectedRuntime(first);
+      }
+    } catch (err) {
+      console.error("Failed to search runtimes", err);
+    }
+  };
+
+  const currentLanguage = useMemo(
+    () => selectedRuntime?.language?.toLowerCase() || "",
+    [selectedRuntime],
+  );
+
+  // Run code using executeCode
   const handleRun = async () => {
     if (!selectedRuntime || !code.trim()) return;
 
@@ -40,61 +100,63 @@ export function useCodeRunner() {
     setError("");
 
     try {
-      const res = await runCode({
+      const res = await executeCode({
         language: selectedRuntime.language,
         version: selectedRuntime.version,
         code,
         stdin,
       });
 
-      // بناءً على صورة الـ API: النتيجة موجودة داخل res.output
-      const execution = res.output || res.run || res;
+      const run = res.run || {};
 
-      let finalOutput = "";
-      let finalError = "";
-
-      if (execution && typeof execution === "object") {
-        // استخراج stdout و stderr من كائن الـ output القادم من الـ API
-        finalOutput = execution.stdout !== undefined ? execution.stdout : "";
-        finalError = execution.stderr !== undefined ? execution.stderr : "";
-      } else {
-        finalOutput = execution || "";
+      // back بيبعت:
+      // stdout, stderr, output, code, memory, cpu_time, wall_time...
+      if (run.stderr) {
+        setError(run.stderr || "Execution error");
       }
 
-      // تحويل القيم لنصوص قبل استخدام trim() لتجنب خطأ "is not a function"
-      const cleanOutput = String(finalOutput).trim();
-      const cleanError = String(finalError).trim();
+      // نعرض stdout أو output لو مفيش stderr
+      const finalOutput =
+        run.stdout ||
+        run.output ||
+        (!run.stderr ? "Program finished with no output." : "");
 
-      if (cleanError !== "") {
-        setError(cleanError);
-      }
-
-      if (cleanOutput !== "") {
-        setOutput(cleanOutput);
-      } else if (cleanError === "") {
-        setOutput("Success (No Output)");
-      }
-    } catch (e) {
-      setError(e.message || "Something went wrong!");
+      setOutput(finalOutput);
+    } catch (err) {
+      console.error("Execute error", err);
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to execute code. Please try again.",
+      );
     } finally {
       setIsRunning(false);
     }
   };
 
   return {
+    // data
+    languages,
     runtimes,
     loadingRuntimes,
     selectedRuntime,
-    setSelectedRuntime,
+    currentLanguage,
     code,
-    setCode,
     stdin,
-    setStdin,
     output,
     error,
     isRunning,
-    handleRun,
+    searchTerm,
+
+    // setters
+    setSelectedRuntime,
+    setCode,
+    setStdin,
     setOutput,
     setError,
+
+    // actions
+    handleRun,
+    handleSearchRuntime,
   };
 }
