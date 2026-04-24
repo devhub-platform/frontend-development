@@ -1,5 +1,5 @@
 // src/Components/AskQuestion/QuestionForm.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Eye, Edit3, Image as ImageIcon, Trash2 } from "lucide-react";
 import { toast, Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { TagInput } from "./TagInput";
 import { MarkdownWriteEditor } from "../WriteComponents/MarkdownWriteEditor";
 import { createQuestion } from "../../services/qaApi";
+
+const DRAFT_KEY = "askQuestionDraft";
 
 export function QuestionForm() {
   const [title, setTitle] = useState("");
@@ -17,6 +19,40 @@ export function QuestionForm() {
   const [submitting, setSubmitting] = useState(false);
 
   const navigate = useNavigate();
+
+  // -------- 1) Load draft from localStorage on mount --------
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed.title) setTitle(parsed.title);
+      if (parsed.body) setBody(parsed.body);
+      if (Array.isArray(parsed.tags)) setTags(parsed.tags);
+      // الصور مش هننسخها من الـ draft لأن مفيش فايل أوبجكت حقيقي في localStorage
+    } catch (e) {
+      console.error("Failed to parse draft", e);
+    }
+  }, []);
+
+  // -------- 2) Save draft on changes (title/body/tags) --------
+  useEffect(() => {
+    const draft = {
+      title,
+      body,
+      tags,
+      // images intentionally not stored
+    };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  }, [title, body, tags]);
+
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    setTitle("");
+    setBody("");
+    setTags([]);
+    setImages([]);
+  };
 
   const getTitleQuality = () => {
     if (!title.length) return null;
@@ -73,15 +109,11 @@ export function QuestionForm() {
 
       toast.success(res.message || "Question created successfully!");
 
-      // إعادة تعيين الفورم
-      setTitle("");
-      setBody("");
-      setTags([]);
-      setImages([]);
+      // clear draft + localStorage
+      clearDraft();
 
       const newId = res.data?.id;
       if (newId) {
-        // روح لصفحة السؤال الجديد
         setTimeout(() => {
           navigate(`/questions/${newId}`);
         }, 800);
@@ -108,11 +140,10 @@ export function QuestionForm() {
     if (!title && !body && tags.length === 0 && images.length === 0) {
       return;
     }
-    if (window.confirm("Discard your draft? This cannot be undone.")) {
-      setTitle("");
-      setBody("");
-      setTags([]);
-      setImages([]);
+    if (
+      window.confirm("Discard your draft? This will clear saved content too.")
+    ) {
+      clearDraft();
     }
   };
 
