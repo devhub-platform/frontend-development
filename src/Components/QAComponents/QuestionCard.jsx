@@ -1,6 +1,9 @@
+/* eslint-disable no-unused-vars */
 import React from "react";
 import { ArrowBigUp, MessageSquare, Eye, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export function QuestionCard({ question }) {
   const isResolved = question.is_resolved;
@@ -19,9 +22,46 @@ export function QuestionCard({ question }) {
           )}
         </div>
 
-        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
-          {question.content}
-        </p>
+        {/* Preview للـ content كـ Markdown، مش نص خام */}
+        <div className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2 overflow-hidden">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              // علشان الكارد صغير: نخلي الهيدنج باراجراف عادي
+              h1: "p",
+              h2: "p",
+              h3: "p",
+              h4: "p",
+              h5: "p",
+              h6: "p",
+              // الكود inline يبقى واضح، البلوك نخليه بسيط جوه الكارد
+              code: ({ node, inline, className, children, ...props }) =>
+                inline ? (
+                  <code
+                    className="px-1 rounded bg-gray-100 dark:bg-gray-800 text-[12px]"
+                    {...props}
+                  >
+                    {children}
+                  </code>
+                ) : (
+                  <code className="text-[12px]" {...props}>
+                    {children}
+                  </code>
+                ),
+              // الكوت كـ باراجراف ببوردر خفيف
+              blockquote: ({ node, children, ...props }) => (
+                <blockquote
+                  className="border-l-2 border-gray-200 dark:border-gray-700 pl-2 italic text-gray-500 dark:text-gray-400"
+                  {...props}
+                >
+                  {children}
+                </blockquote>
+              ),
+            }}
+          >
+            {question.content || ""}
+          </ReactMarkdown>
+        </div>
 
         <div className="flex flex-wrap gap-2 mb-4">
           {question.tags?.map((tag, index) => (
@@ -41,7 +81,7 @@ export function QuestionCard({ question }) {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-gray-50 dark:border-gray-800">
-          {/* Stats Bar - الشكل القديم اللي حبيتيه */}
+          {/* Stats Bar */}
           <div className="flex items-center gap-2">
             {/* Votes Pill */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-[13px] border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300">
@@ -50,7 +90,7 @@ export function QuestionCard({ question }) {
               <span className="hidden sm:inline">votes</span>
             </div>
 
-            {/* Answers Pill - مع لوجيك الألوان الذكي */}
+            {/* Answers Pill */}
             <div
               className={`
         inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-[13px] border transition-colors
@@ -76,7 +116,7 @@ export function QuestionCard({ question }) {
             </div>
           </div>
 
-          {/* Author & Time - الجزء اليمين */}
+          {/* Author & Time */}
           <div className="flex items-center gap-2">
             <img
               src={
@@ -99,13 +139,5 @@ export function QuestionCard({ question }) {
         </div>
       </article>
     </Link>
-  );
-}
-
-function Stat({ icon, value }) {
-  return (
-    <div className="flex items-center gap-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
-      {icon} {value}
-    </div>
   );
 }
