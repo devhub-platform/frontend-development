@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Comments } from "./Comments";
 
 export function AnswersList({ answers }) {
   if (!answers || answers.length === 0) {
@@ -120,10 +119,6 @@ function AnswerCard({ answer }) {
               )}
             </div>
           </div>
-        </div>
-
-        <div className="mt-6 pt-4 border-t border-gray-50 dark:border-gray-700/70">
-          <Comments />
         </div>
       </div>
     </article>

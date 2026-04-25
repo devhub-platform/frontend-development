@@ -15,7 +15,6 @@ import { fetchQuestionById, voteQuestion } from "../../services/qaApi";
 import { QuestionBody } from "../../Components/Question/QuestionBody";
 import { AnswerEditor } from "../../Components/Question/AnswerEditor";
 import { AnswersList } from "../../Components/Question/AnswersList";
-import { Comments } from "../../Components/Question/Comments";
 import toast from "react-hot-toast";
 
 export default function QuestionPage() {
@@ -247,10 +246,6 @@ export default function QuestionPage() {
                       <Edit3 className="w-4 h-4" /> Edit
                     </button>
                   </div>
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-gray-50 dark:border-gray-700/70">
-                  <Comments />
                 </div>
               </div>
             </article>
