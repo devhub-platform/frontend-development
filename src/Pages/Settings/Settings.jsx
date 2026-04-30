@@ -108,8 +108,8 @@ function Settings() {
         );
       case "appearance":
         return (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-            <h2 className="text-2xl font-black dark:text-white">Appearance</h2>
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 ml-8 w-full">
+            <h2 className="text-2xl font-black dark:text-white">Theme Color</h2>
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-between">
               <div>
                 <h4 className="font-bold dark:text-white">Dark Mode</h4>
@@ -131,7 +131,7 @@ function Settings() {
             <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
               <div>
                 <h2 className="text-2xl font-black dark:text-white">
-                  Typography
+                  Font Style
                 </h2>
               </div>
 
