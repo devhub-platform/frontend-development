@@ -28,6 +28,7 @@ import MyFollowing from "./Pages/MyFollowing/MyFollowing";
 import MyFollowers from "./Pages/MyFollowers/MyFollowers";
 import UserFollowing from "./Pages/UsersFollowing/UsersFollowing"
 import UserFollowers from "./Pages/UsersFollowers/UsersFollowers";
+import Settings from "./Pages/Settings/Settings";
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
           <Route path="/users/:id/followers" element={<UserFollowers />} />
           <Route path="/users/:id/following" element={<UserFollowing />} />
           <Route path="editor-guide" element={<EditorGuide />} />
+          <Route path="settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

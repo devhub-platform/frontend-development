@@ -101,7 +101,13 @@ export default function ProfileDropDown() {
             History
           </button>
 
-          <button className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
+          <button
+            className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+            onClick={() => {
+              navigate("/settings");
+              setOpen(false);
+            }}
+          >
             <Settings size={16} />
             Settings
           </button>

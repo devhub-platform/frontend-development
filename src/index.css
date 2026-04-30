@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Poppins:wght@400;700&family=Roboto+Mono:wght@400;700&family=Playfair+Display:wght@400;900&display=swap');
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
@@ -15,8 +16,13 @@
 
 * {
   box-sizing: border-box;
-  font-family: "Roboto", sans-serif;
+  /* font-family: "Roboto", sans-serif; */
   scroll-behavior: smooth;
+}
+
+/* عشان الخط يطبق على كل حاجة فعلاً */
+html, body {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .dark {
@@ -111,3 +117,8 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
 }
+
+.font-inter { font-family: 'Inter', sans-serif !important; }
+.font-poppins { font-family: 'Poppins', sans-serif !important; }
+.font-mono { font-family: 'Roboto Mono', monospace !important; }
+.font-playfair { font-family: 'Playfair Display', serif !important; }
