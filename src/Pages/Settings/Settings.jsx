@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   User,
   Lock,
@@ -13,12 +13,16 @@ import {
   Palette,
 } from "lucide-react";
 import { ThemeContext } from "../../context/ThemeContext";
+import axiosInstance from "../../config/api";
 
 function Settings() {
   const [activeTab, setActiveTab] = useState("account");
   const { theme, toggleTheme, font, changeFont } = useContext(ThemeContext);
 
-  // قائمة الأقسام في السايد بار
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const [unblockingIds, setUnblockingIds] = useState([]);
+  const [loading, setLoading] = useState(false);
+
   const menuItems = [
     { id: "account", label: "Account", icon: User },
     { id: "security", label: "Security", icon: Lock },
@@ -55,7 +59,43 @@ function Settings() {
     },
   ];
 
-  // محتوى كل قسم (ممكن تفصليهم في Components تانية)
+  const fetchBlockedUsers = async () => {
+    setLoading(true);
+    try {
+        const token = localStorage.getItem("userToken");
+        const response = await axiosInstance.get("/reports/blocked-users", {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = response.data;
+        setBlockedUsers(data.data);
+    } catch (error) {
+        console.error("Error fetching blocked users:", error);
+    } finally {
+        setLoading(false);
+    }
+};
+
+    const handleUnblock = async (userId) => {
+        setUnblockingIds((prev) => [...prev, userId]);
+        try {
+            const token = localStorage.getItem("userToken");
+            await axiosInstance.post(`/reports/unblock/${userId}`, {}, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setBlockedUsers((prev) => prev.filter((user) => user.id !== userId));
+        } catch (error) {
+            console.error("Error unblocking user:", error);
+        } finally {            
+            setUnblockingIds((prev) => prev.filter((id) => id !== userId));
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === "privacy") {
+            fetchBlockedUsers();
+        }
+    }, [activeTab]);
+
   const renderContent = () => {
     switch (activeTab) {
       case "account":
@@ -142,10 +182,10 @@ function Settings() {
                     key={f.id}
                     onClick={() => changeFont(f.class)}
                     className={`relative p-12 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 group
-              ${font === f.class ? "bg-primary/5 dark:bg-primary/10" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"}
-              ${index === 0 ? "border-r border-b border-slate-200 dark:border-slate-800" : ""}
-              ${index === 1 ? "border-b border-slate-200 dark:border-slate-800" : ""}
-              ${index === 2 ? "border-r border-slate-200 dark:border-slate-800" : ""}
+                ${font === f.class ? "bg-primary/5 dark:bg-primary/10" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"}
+                ${index === 0 ? "border-r border-b border-slate-200 dark:border-slate-800" : ""}
+                ${index === 1 ? "border-b border-slate-200 dark:border-slate-800" : ""}
+                ${index === 2 ? "border-r border-slate-200 dark:border-slate-800" : ""}
             `}
                   >
                     {/* علامة الاختيار بتظهر لما تختار الخط */}
@@ -170,10 +210,89 @@ function Settings() {
               {/* Preview Box - عشان اليوزر يشوف الخط شغال إزاي في الكلام الكتير */}
               <div className="p-6 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                 <p className={`text-lg dark:text-slate-300 ${font}`}>
-                  "Turn Your Wounds Into Wisdom" -  Select your preferred font
+                  "Turn Your Wounds Into Wisdom" - Select your preferred font
                   style for the entire platform.
                 </p>
               </div>
+            </div>
+          </div>
+        );
+      case "privacy":
+        return (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+            <h2 className="text-2xl font-black dark:text-white">
+              Blocked Users
+            </h2>
+
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+              <div className="mb-6">
+                <p className="text-sm text-slate-500">
+                  Manage the people you've previously blocked.
+                </p>
+              </div>
+
+              {loading ? (
+                <div className="py-10 text-center text-slate-400">
+                  Loading users...
+                </div>
+              ) : blockedUsers.length > 0 ? (
+                <div className="space-y-4">
+                  {blockedUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50"
+                    >
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={
+                            user.avatar ||
+                            `https://ui-avatars.com/api/?name=${user.name}`
+                          }
+                          className="w-12 h-12 rounded-xl object-cover"
+                          alt={user.name}
+                          onError={(e) => {
+                            e.target.src = `https://ui-avatars.com/api/?name=${user.name}&background=random`;
+                          }}
+                        />
+                        <div>
+                          <h5 className="font-bold text-sm dark:text-white">
+                            {user.name}
+                          </h5>
+                          <p className="text-xs text-slate-500">
+                            @{user.username}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleUnblock(user.id)}
+                        disabled={unblockingIds.includes(user.id)}
+                        className={`min-w-25 flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold transition-all
+    ${
+      unblockingIds.includes(user.id)
+        ? "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
+        : "bg-white dark:bg-slate-900 text-red-500 border border-red-100 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20"
+    }`}
+                      >
+                        {unblockingIds.includes(user.id) ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                            <span>Unblocking...</span>
+                          </div>
+                        ) : (
+                          "Unblock"
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-10 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl">
+                  <p className="text-slate-400 text-sm italic">
+                    No blocked users found.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -218,13 +337,6 @@ function Settings() {
             </button>
           ))}
         </nav>
-
-        <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-red-500 font-bold hover:bg-red-50 dark:hover:bg-red-500/10 rounded-2xl transition-colors">
-            <LogOut size={20} />
-            <span className="text-sm">Sign Out</span>
-          </button>
-        </div>
       </div>
 
       {/* --- Content Area (Right) --- */}
