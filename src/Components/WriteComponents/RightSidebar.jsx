@@ -1,9 +1,11 @@
-import { Upload, Wand2, Eye, EyeOff, FileText, Lightbulb } from "lucide-react";
+// src/Components/WriteComponents/RightSidebar.jsx
+import { Upload, Wand2, EyeOff, Lightbulb } from "lucide-react";
 import { useCallback } from "react";
 
 export function RightSidebar({
-  coverImage,
-  onCoverImageChange,
+  coverImagePreview,
+  onCoverImagePreviewChange,
+  onCoverFileChange,
   variant = "desktop",
 }) {
   const handleImageUpload = useCallback(
@@ -11,23 +13,29 @@ export function RightSidebar({
       const file = e.target.files && e.target.files[0];
       if (!file) return;
 
+      // نحفظ الـ file الحقيقي في الستيت بتاعة الصفحة
+      onCoverFileChange(file);
+
+      // نقرأه كـ DataURL بس عشان الـ preview
       const reader = new FileReader();
       reader.onload = (event) => {
         const result = event?.target?.result;
-        if (typeof result === "string") onCoverImageChange(result);
+        if (typeof result === "string") onCoverImagePreviewChange(result);
       };
       reader.readAsDataURL(file);
     },
-    [onCoverImageChange],
+    [onCoverFileChange, onCoverImagePreviewChange],
   );
 
   const handleGenerateImage = async () => {
+    // لحد ماتربط الـ AI تول اللي هتولد صورة cover، هنسيبها Placeholder
     alert(
-      "AI Image generation would happen here. For demo purposes, using a placeholder.",
+      "AI Cover Image generation would happen here. For now, using a placeholder.",
     );
-    onCoverImageChange(
+    onCoverImagePreviewChange(
       "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=800&h=400&fit=crop",
     );
+    onCoverFileChange(null); // مفيش file حقيقي
   };
 
   return (
@@ -54,16 +62,19 @@ export function RightSidebar({
             Cover Image
           </h3>
 
-          {coverImage ? (
+          {coverImagePreview ? (
             <div className="relative group">
               <img
-                src={coverImage}
+                src={coverImagePreview}
                 alt="Cover"
                 className="w-full h-32 object-cover rounded-lg"
               />
               <button
                 type="button"
-                onClick={() => onCoverImageChange(null)}
+                onClick={() => {
+                  onCoverImagePreviewChange(null);
+                  onCoverFileChange(null);
+                }}
                 className="
                   absolute top-2 right-2 p-1 rounded
                   bg-red-600 text-white

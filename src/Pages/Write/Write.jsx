@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+// src/pages/Write/Write.jsx (أو المسار اللي عندك)
 import { useState } from "react";
 import { useLocalStorageState } from "../../hooks/useLocalStorageState";
 import TagInput from "../../Components/WriteComponents/TagInput";
@@ -6,47 +8,146 @@ import { AIAssistantModal } from "../../Components/WriteComponents/AIAssistantMo
 import { RightSidebar } from "../../Components/WriteComponents/RightSidebar";
 import { ActionButtons } from "../../Components/WriteComponents/ActionButtons";
 import toast, { Toaster } from "react-hot-toast";
-import { Lightbulb, Settings, X } from "lucide-react";
+import { Lightbulb, Settings, X, Image as ImageIcon } from "lucide-react";
+import { createPost } from "../../services/postsApi";
 
 export default function Write() {
   const [title, setTitle] = useLocalStorageState("devhub_write_title", "");
   const [selectedTags, setSelectedTags] = useLocalStorageState(
     "devhub_write_tags",
-    []
+    [],
   );
   const [editorContent, setEditorContent] = useLocalStorageState(
     "devhub_write_md",
-    ""
+    "",
   );
-  const [coverImage, setCoverImage] = useLocalStorageState(
-    "devhub_write_cover",
-    null
+  const [coverImagePreview, setCoverImagePreview] = useLocalStorageState(
+    "devhub_write_cover_preview",
+    null,
   );
-  const [visibility, setVisibility] = useLocalStorageState(
+  const [visibility] = useLocalStorageState(
     "devhub_write_visibility",
-    "public"
-  );
+    "public",
+  ); // لحد ما تستخدمها في الـ API (status/public/private)
+
+  // ملف حقيقي للـ cover عشان الـ API
+  const [coverImageFile, setCoverImageFile] = useState(null);
 
   const [editorMode, setEditorMode] = useState("edit"); // 'edit' | 'preview'
   const [showAIModal, setShowAIModal] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // NEW: Mobile drawer
+  // Mobile drawer
   const [showMobileSettings, setShowMobileSettings] = useState(false);
 
+  // NEW: صورة جوه البوست (غير الـ cover)
+  const [postImagePreview, setPostImagePreview] = useState(null);
+  const [postImageFile, setPostImageFile] = useState(null);
+
+  const handlePostImageUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    setPostImageFile(file);
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev?.target?.result;
+      if (typeof result === "string") setPostImagePreview(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePostImage = () => {
+    setPostImageFile(null);
+    setPostImagePreview(null);
+  };
+
+  const validatePost = () => {
+    if (!title.trim()) {
+      toast.error("Please add a title for your post.");
+      return false;
+    }
+    if (!editorContent.trim()) {
+      toast.error("Post content cannot be empty.");
+      return false;
+    }
+    if (selectedTags.length === 0) {
+      toast.error("Please add at least one tag.");
+      return false;
+    }
+    return true;
+  };
+
   const handlePublish = async () => {
-    setIsPublishing(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsPublishing(false);
-    toast.success("Post published successfully!");
+    if (!validatePost()) return;
+
+    try {
+      setIsPublishing(true);
+
+      const payload = {
+        title: title.trim(),
+        content: editorContent,
+        status: "published",
+        // ممكن تحسبي read_time تقريبياً بعدين (عدد الكلمات / 200 مثلاً)
+        read_time: undefined,
+        tags: selectedTags,
+        coverImageFile,
+        imageFile: postImageFile,
+      };
+
+      const res = await createPost(payload);
+
+      toast.success(res?.message || "Post published successfully!");
+
+      // TODO: ممكن هنا تعملي navigation لصفحة البوست res.post.ID
+      // أو تفرّغي الفورم:
+      // setTitle("");
+      // setSelectedTags([]);
+      // setEditorContent("");
+      // setCoverImagePreview(null);
+      // setCoverImageFile(null);
+      // setPostImagePreview(null);
+      // setPostImageFile(null);
+    } catch (err) {
+      console.error(err);
+      const msg =
+        err?.response?.data?.message ||
+        "Failed to publish post. Please try again.";
+      toast.error(msg);
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const handleSaveDraft = async () => {
-    setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSaving(false);
-    toast.success("Draft saved successfully!");
+    if (!validatePost()) return;
+
+    try {
+      setIsSaving(true);
+
+      const payload = {
+        title: title.trim(),
+        content: editorContent,
+        status: "draft",
+        read_time: undefined,
+        tags: selectedTags,
+        coverImageFile,
+        imageFile: postImageFile,
+      };
+
+      const res = await createPost(payload);
+      toast.success(res?.message || "Draft saved successfully!");
+    } catch (err) {
+      console.error(err);
+      const msg =
+        err?.response?.data?.message ||
+        "Failed to save draft. Please try again.";
+      toast.error(msg);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -128,9 +229,59 @@ export default function Write() {
                       transition-colors cursor-pointer font-bold
                     "
                   >
-                    <Settings className="w-5 h-5 text-primary dark:text-text-dark"/>
+                    <Settings className="w-5 h-5 text-primary dark:text-text-dark" />
                     Settings
                   </button>
+                </div>
+
+                {/* NEW: Post inner image (غير الـ cover) */}
+                <div className="mb-6">
+                  <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#475569] dark:text-gray-300">
+                    <ImageIcon className="w-4 h-4" />
+                    Image inside the post (optional)
+                  </h3>
+
+                  {postImagePreview ? (
+                    <div className="relative group max-w-xl">
+                      <img
+                        src={postImagePreview}
+                        alt="Post"
+                        className="w-full max-h-72 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemovePostImage}
+                        className="
+                          absolute top-2 right-2 p-1.5 rounded-lg
+                          bg-red-600 text-white text-xs
+                          opacity-0 group-hover:opacity-100
+                          transition-opacity
+                        "
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <label
+                      className="
+                        inline-flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer
+                        bg-white border border-dashed border-gray-300 text-[#475569]
+                        hover:border-primary hover:text-primary hover:bg-slate-50
+                        dark:bg-bg-primary-dark dark:border-gray-700 dark:text-gray-200
+                        dark:hover:border-primary dark:hover:text-white
+                        transition-colors text-sm font-medium
+                      "
+                    >
+                      <ImageIcon className="w-4 h-4" />
+                      Upload image for content
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePostImageUpload}
+                      />
+                    </label>
+                  )}
                 </div>
 
                 {/* Editor Tabs */}
@@ -172,10 +323,9 @@ export default function Write() {
             {/* Right Sidebar (Desktop فقط) */}
             <div className="hidden lg:block">
               <RightSidebar
-                coverImage={coverImage}
-                onCoverImageChange={setCoverImage}
-                visibility={visibility}
-                onVisibilityChange={setVisibility}
+                coverImagePreview={coverImagePreview}
+                onCoverImagePreviewChange={setCoverImagePreview}
+                onCoverFileChange={setCoverImageFile}
                 variant="desktop"
               />
             </div>
@@ -220,10 +370,9 @@ export default function Write() {
 
               <div className="p-4">
                 <RightSidebar
-                  coverImage={coverImage}
-                  onCoverImageChange={setCoverImage}
-                  visibility={visibility}
-                  onVisibilityChange={setVisibility}
+                  coverImagePreview={coverImagePreview}
+                  onCoverImagePreviewChange={setCoverImagePreview}
+                  onCoverFileChange={setCoverImageFile}
                   variant="drawer"
                 />
               </div>
