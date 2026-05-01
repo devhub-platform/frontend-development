@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Poppins:wght@400;700&family=Roboto+Mono:wght@400;700&family=Playfair+Display:wght@400;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Poppins:wght@400;700&family=Roboto+Mono:wght@400;700&family=Playfair+Display:wght@400;900&display=swap");
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
@@ -21,8 +21,11 @@
 }
 
 /* عشان الخط يطبق على كل حاجة فعلاً */
-html, body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+html,
+body {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .dark {
@@ -105,6 +108,10 @@ html, body {
 .wmde-markdown pre code {
   background-color: #0f172a !important; /* لو عايزاه غامق بنص فاتح */
   color: #e5e7eb !important;
+  white-space: pre-wrap !important; /* يخلي السطر يتكسر */
+  word-break: break-word !important; /* يمنع overflow */
+  overflow-x: auto; /* fallback لو السطر طويل */
+  max-width: 100%;
 }
 
 /* .wmde-markdown pre code {
@@ -112,13 +119,24 @@ html, body {
   color: #111827 !important;
 } */
 
-
+/* حل مشكلة الريسبونسيف في الكود */
 .wmde-markdown code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
 }
 
-.font-inter { font-family: 'Inter', sans-serif !important; }
-.font-poppins { font-family: 'Poppins', sans-serif !important; }
-.font-mono { font-family: 'Roboto Mono', monospace !important; }
-.font-playfair { font-family: 'Playfair Display', serif !important; }
+.font-inter {
+  font-family: "Inter", sans-serif !important;
+}
+.font-poppins {
+  font-family: "Poppins", sans-serif !important;
+}
+.font-mono {
+  font-family: "Roboto Mono", monospace !important;
+}
+.font-playfair {
+  font-family: "Playfair Display", serif !important;
+}

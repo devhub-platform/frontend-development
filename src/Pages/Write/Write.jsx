@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-// src/pages/Write/Write.jsx (أو المسار اللي عندك)
-import { useState } from "react";
+// src/pages/Write/Write.jsx
+import { useEffect, useRef, useState } from "react";
 import { useLocalStorageState } from "../../hooks/useLocalStorageState";
 import TagInput from "../../Components/WriteComponents/TagInput";
 import { MarkdownWriteEditor } from "../../Components/WriteComponents/MarkdownWriteEditor";
@@ -28,9 +28,8 @@ export default function Write() {
   const [visibility] = useLocalStorageState(
     "devhub_write_visibility",
     "public",
-  ); // لحد ما تستخدمها في الـ API (status/public/private)
+  ); // لحد ما تستخدمها في الـ API
 
-  // ملف حقيقي للـ cover عشان الـ API
   const [coverImageFile, setCoverImageFile] = useState(null);
 
   const [editorMode, setEditorMode] = useState("edit"); // 'edit' | 'preview'
@@ -41,28 +40,99 @@ export default function Write() {
   // Mobile drawer
   const [showMobileSettings, setShowMobileSettings] = useState(false);
 
-  // NEW: صورة جوه البوست (غير الـ cover)
-  const [postImagePreview, setPostImagePreview] = useState(null);
-  const [postImageFile, setPostImageFile] = useState(null);
+  // NEW: عدة صور جوه البوست (غير الـ cover)
+  const [postImagePreviews, setPostImagePreviews] = useState([]); // array of dataURLs
+  const [postImageFiles, setPostImageFiles] = useState([]); // array of File
+  const dropZoneRef = useRef(null);
 
-  const handlePostImageUpload = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
+  const handlePostImagesSelect = (filesList) => {
+    const files = Array.from(filesList || []);
+    if (!files.length) return;
 
-    setPostImageFile(file);
+    const newFiles = [...postImageFiles];
+    const newPreviews = [...postImagePreviews];
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = ev?.target?.result;
-      if (typeof result === "string") setPostImagePreview(result);
+    files.forEach((file) => {
+      newFiles.push(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const result = ev?.target?.result;
+        if (typeof result === "string") {
+          newPreviews.push(result);
+          setPostImagePreviews([...newPreviews]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    setPostImageFiles(newFiles);
+  };
+
+  const handlePostImageInputChange = (e) => {
+    handlePostImagesSelect(e.target.files);
+    e.target.value = "";
+  };
+
+  const handleRemovePostImage = (index) => {
+    setPostImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setPostImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Drag & Drop handlers
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    if (dropZoneRef.current) {
+      dropZoneRef.current.classList.add("ring-2", "ring-primary/60");
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    if (dropZoneRef.current) {
+      dropZoneRef.current.classList.remove("ring-2", "ring-primary/60");
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (dropZoneRef.current) {
+      dropZoneRef.current.classList.remove("ring-2", "ring-primary/60");
+    }
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handlePostImagesSelect(e.dataTransfer.files);
+      e.dataTransfer.clearData();
+    }
+  };
+
+  // Ctrl+V لصق صور من الـ clipboard
+  const handlePasteImages = (e) => {
+    if (!e.clipboardData || !e.clipboardData.items) return;
+    const items = Array.from(e.clipboardData.items);
+    const files = items
+      .filter((it) => it.kind === "file" && it.type.startsWith("image/"))
+      .map((it) => it.getAsFile())
+      .filter(Boolean);
+    if (files.length) {
+      handlePostImagesSelect(files);
+    }
+  };
+
+  // نحط paste listener على مستوى الصفحة
+  useEffect(() => {
+    window.addEventListener("paste", handlePasteImages);
+    return () => {
+      window.removeEventListener("paste", handlePasteImages);
     };
-    reader.readAsDataURL(file);
-  };
+  });
 
-  const handleRemovePostImage = () => {
-    setPostImageFile(null);
-    setPostImagePreview(null);
-  };
+  // Title textarea auto-resize بدل input
+  const titleRef = useRef(null);
+  useEffect(() => {
+    const el = titleRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [title]);
 
   const validatePost = () => {
     if (!title.trim()) {
@@ -80,6 +150,16 @@ export default function Write() {
     return true;
   };
 
+  const resetForm = () => {
+    setTitle("");
+    setSelectedTags([]);
+    setEditorContent("");
+    setCoverImagePreview(null);
+    setCoverImageFile(null);
+    setPostImageFiles([]);
+    setPostImagePreviews([]);
+  };
+
   const handlePublish = async () => {
     if (!validatePost()) return;
 
@@ -90,26 +170,17 @@ export default function Write() {
         title: title.trim(),
         content: editorContent,
         status: "published",
-        // ممكن تحسبي read_time تقريبياً بعدين (عدد الكلمات / 200 مثلاً)
         read_time: undefined,
         tags: selectedTags,
         coverImageFile,
-        imageFile: postImageFile,
+        imageFiles: postImageFiles, // Array من الصور
       };
 
       const res = await createPost(payload);
 
       toast.success(res?.message || "Post published successfully!");
 
-      // TODO: ممكن هنا تعملي navigation لصفحة البوست res.post.ID
-      // أو تفرّغي الفورم:
-      // setTitle("");
-      // setSelectedTags([]);
-      // setEditorContent("");
-      // setCoverImagePreview(null);
-      // setCoverImageFile(null);
-      // setPostImagePreview(null);
-      // setPostImageFile(null);
+      resetForm();
     } catch (err) {
       console.error(err);
       const msg =
@@ -134,11 +205,13 @@ export default function Write() {
         read_time: undefined,
         tags: selectedTags,
         coverImageFile,
-        imageFile: postImageFile,
+        imageFiles: postImageFiles,
       };
 
       const res = await createPost(payload);
       toast.success(res?.message || "Draft saved successfully!");
+
+      resetForm();
     } catch (err) {
       console.error(err);
       const msg =
@@ -180,20 +253,22 @@ export default function Write() {
             {/* Left/Center - Editor Area */}
             <div className="flex-1">
               <div className="max-w-225 mx-auto py-6 lg:py-8">
-                {/* Title Input */}
+                {/* Title Input (textarea auto-resize) */}
                 <div className="mb-6">
-                  <input
-                    type="text"
+                  <textarea
+                    ref={titleRef}
+                    rows={1}
                     placeholder="New post title here..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="
                       w-full px-3 sm:px-4 py-3
-                      text-3xl sm:text-4xl lg:text-5xl
+                      text-3xl sm:text-2xl lg:text-3xl
                       border-none outline-none
                       bg-white text-black placeholder-gray-300
                       dark:bg-bg-primary-dark dark:text-white dark:placeholder-gray-500
                       transition-colors rounded-sm font-extrabold leading-[1.1]
+                      resize-none overflow-hidden
                     "
                   />
                 </div>
@@ -234,57 +309,85 @@ export default function Write() {
                   </button>
                 </div>
 
-                {/* NEW: Post inner image (غير الـ cover) */}
+                {/* Post inner images (غير الـ cover) بنفس المكان اللي عاجبك */}
                 <div className="mb-6">
                   <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#475569] dark:text-gray-300">
                     <ImageIcon className="w-4 h-4" />
-                    Image inside the post (optional)
+                    Images inside the post (optional)
                   </h3>
 
-                  {postImagePreview ? (
-                    <div className="relative group max-w-xl">
-                      <img
-                        src={postImagePreview}
-                        alt="Post"
-                        className="w-full max-h-72 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleRemovePostImage}
-                        className="
-                          absolute top-2 right-2 p-1.5 rounded-lg
-                          bg-red-600 text-white text-xs
-                          opacity-0 group-hover:opacity-100
-                          transition-opacity
-                        "
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <label
-                      className="
-                        inline-flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer
-                        bg-white border border-dashed border-gray-300 text-[#475569]
-                        hover:border-primary hover:text-primary hover:bg-slate-50
-                        dark:bg-bg-primary-dark dark:border-gray-700 dark:text-gray-200
-                        dark:hover:border-primary dark:hover:text-white
-                        transition-colors text-sm font-medium
-                      "
-                    >
+                  <div
+                    ref={dropZoneRef}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className="
+                      flex flex-col gap-2 p-4 rounded-lg border border-dashed border-gray-300
+                      bg-white/70 dark:bg-bg-primary-dark/80 dark:border-gray-700
+                      text-xs sm:text-sm text-[#64748b] dark:text-gray-300
+                      cursor-pointer transition-colors
+                      hover:border-primary hover:bg-slate-50 dark:hover:bg-bg-primary-dark
+                    "
+                    onClick={() =>
+                      dropZoneRef.current
+                        ?.querySelector("input[type=file]")
+                        ?.click()
+                    }
+                  >
+                    <div className="flex items-center gap-2">
                       <ImageIcon className="w-4 h-4" />
-                      Upload image for content
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handlePostImageUpload}
-                      />
-                    </label>
+                      <span className="font-medium">
+                        Drag & drop images here, click to browse, or paste with
+                        Ctrl+V
+                      </span>
+                    </div>
+                    <span>Supports multiple images (JPG, PNG, GIF...)</span>
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={handlePostImageInputChange}
+                    />
+                  </div>
+
+                  {/* Thumbnails */}
+                  {postImagePreviews.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      {postImagePreviews.map((src, idx) => (
+                        <div
+                          key={idx}
+                          className="relative w-28 h-20 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden group bg-white dark:bg-bg-primary-dark"
+                        >
+                          <img
+                            src={src}
+                            alt={`Post ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemovePostImage(idx);
+                            }}
+                            className="
+                              absolute top-1 right-1 p-1 rounded-md
+                              bg-black/60 text-white
+                              opacity-0 group-hover:opacity-100
+                              transition-opacity
+                            "
+                            title="Remove image"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
 
-                {/* Editor Tabs */}
+                {/* Editor Tabs (زي ما هي) */}
                 <div className="mb-4 border-b border-gray-200 dark:border-gray-700">
                   <div className="flex gap-4">
                     <button
