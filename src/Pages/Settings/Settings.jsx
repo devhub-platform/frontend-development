@@ -22,6 +22,7 @@ function Settings() {
   const [blockedUsers, setBlockedUsers] = useState([]);
   const [unblockingIds, setUnblockingIds] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [reportedUsers, setReportedUsers] = useState([]);
 
   const menuItems = [
     { id: "account", label: "Account", icon: User },
@@ -75,6 +76,22 @@ function Settings() {
     }
 };
 
+  const fetchReportedUsers = async () => {
+    setLoading(true);
+    try{
+      const token = localStorage.getItem("userToken");
+      const response = await axiosInstance.get("/reports/reported-users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = response.data;
+      setReportedUsers(data.data);
+    } catch (error) {
+        console.error("Error fetching reported users:", error);
+    } finally {
+        setLoading(false);
+    }
+};
+
     const handleUnblock = async (userId) => {
         setUnblockingIds((prev) => [...prev, userId]);
         try {
@@ -93,6 +110,7 @@ function Settings() {
     useEffect(() => {
         if (activeTab === "privacy") {
             fetchBlockedUsers();
+            fetchReportedUsers();
         }
     }, [activeTab]);
 
@@ -219,82 +237,140 @@ function Settings() {
         );
       case "privacy":
         return (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-            <h2 className="text-2xl font-black dark:text-white">
-              Blocked Users
-            </h2>
+          <>
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+              <h2 className="text-2xl font-black dark:text-white">
+                Blocked Users
+              </h2>
 
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
-              <div className="mb-6">
-                <p className="text-sm text-slate-500">
-                  Manage the people you've previously blocked.
-                </p>
-              </div>
-
-              {loading ? (
-                <div className="py-10 text-center text-slate-400">
-                  Loading users...
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+                <div className="mb-6">
+                  <p className="text-sm text-slate-500">
+                    Manage the people you've previously blocked.
+                  </p>
                 </div>
-              ) : blockedUsers.length > 0 ? (
-                <div className="space-y-4">
-                  {blockedUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50"
-                    >
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={
-                            user.avatar ||
-                            `https://ui-avatars.com/api/?name=${user.name}`
-                          }
-                          className="w-12 h-12 rounded-xl object-cover"
-                          alt={user.name}
-                          onError={(e) => {
-                            e.target.src = `https://ui-avatars.com/api/?name=${user.name}&background=random`;
-                          }}
-                        />
-                        <div>
-                          <h5 className="font-bold text-sm dark:text-white">
-                            {user.name}
-                          </h5>
-                          <p className="text-xs text-slate-500">
-                            @{user.username}
-                          </p>
-                        </div>
-                      </div>
 
-                      <button
-                        onClick={() => handleUnblock(user.id)}
-                        disabled={unblockingIds.includes(user.id)}
-                        className={`min-w-25 flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold transition-all
+                {loading ? (
+                  <div className="py-10 text-center text-slate-400">
+                    Loading users...
+                  </div>
+                ) : blockedUsers.length > 0 ? (
+                  <div className="space-y-4">
+                    {blockedUsers.map((user) => (
+                      <div
+                        key={user.id}
+                        className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50"
+                      >
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={
+                              user.avatar ||
+                              `https://ui-avatars.com/api/?name=${user.name}`
+                            }
+                            className="w-12 h-12 rounded-xl object-cover"
+                            alt={user.name}
+                            onError={(e) => {
+                              e.target.src = `https://ui-avatars.com/api/?name=${user.name}&background=random`;
+                            }}
+                          />
+                          <div>
+                            <h5 className="font-bold text-sm dark:text-white">
+                              {user.name}
+                            </h5>
+                            <p className="text-xs text-slate-500">
+                              @{user.username}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleUnblock(user.id)}
+                          disabled={unblockingIds.includes(user.id)}
+                          className={`min-w-25 flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold transition-all
     ${
       unblockingIds.includes(user.id)
         ? "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
         : "bg-white dark:bg-slate-900 text-red-500 border border-red-100 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20"
     }`}
-                      >
-                        {unblockingIds.includes(user.id) ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
-                            <span>Unblocking...</span>
-                          </div>
-                        ) : (
-                          "Unblock"
-                        )}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-10 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl">
-                  <p className="text-slate-400 text-sm italic">
-                    No blocked users found.
+                        >
+                          {unblockingIds.includes(user.id) ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                              <span>Unblocking...</span>
+                            </div>
+                          ) : (
+                            "Unblock"
+                          )}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-10 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl">
+                    <p className="text-slate-400 text-sm italic">
+                      No blocked users found.
+                    </p>
+                  </div>
+                )}
+              </div>
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+              <h2 className="text-2xl font-black dark:text-white">
+                Reported Users
+              </h2>
+
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+                <div className="mb-6">
+                  <p className="text-sm text-slate-500">
+                    The people who you have reported already blocked automatically.
                   </p>
                 </div>
-              )}
+
+                {loading ? (
+                  <div className="py-10 text-center text-slate-400">
+                    Loading users...
+                  </div>
+                ) : reportedUsers.length > 0 ? (
+                  <div className="space-y-4">
+                    {reportedUsers.map((user) => (
+                      <div
+                        key={user.id}
+                        className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50"
+                      >
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={
+                              user.avatar ||
+                              `https://ui-avatars.com/api/?name=${user.name}`
+                            }
+                            className="w-12 h-12 rounded-xl object-cover"
+                            alt={user.name}
+                            onError={(e) => {
+                              e.target.src = `https://ui-avatars.com/api/?name=${user.name}&background=random`;
+                            }}
+                          />
+                          <div>
+                            <h5 className="font-bold text-sm dark:text-white">
+                              {user.name}
+                            </h5>
+                            <p className="text-xs text-slate-500">
+                              @{user.username}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-10 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl">
+                    <p className="text-slate-400 text-sm italic">
+                      No reported users found.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+            </div>
+          </>
         );
       default:
         return (
