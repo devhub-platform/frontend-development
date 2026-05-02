@@ -13,11 +13,73 @@ import {
   Palette,
 } from "lucide-react";
 import { ThemeContext } from "../../context/ThemeContext";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../config/api";
 
 function Settings() {
   const [activeTab, setActiveTab] = useState("account");
   const { theme, toggleTheme, font, changeFont } = useContext(ThemeContext);
+  const navigate = useNavigate();
+
+  const [passwords, setPasswords] = useState({
+  current_password: "",
+  new_password: "",
+  new_password_confirmation: "",
+});
+const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handlePasswordChange = (e) => {
+    setPasswords({ ...passwords, [e.target.name]: e.target.value });
+  }
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    if(passwords.new_password !== passwords.new_password_confirmation) {
+      alert("New password and confirmation do not match.");
+      return;
+    }
+    setIsUpdatingPassword(true);
+    try {
+      const token = localStorage.getItem("userToken");
+      const response = await axiosInstance.patch("/settings/update-password", passwords, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Password updated:", response.data);
+      alert("Password updated successfully!");
+      setPasswords({
+        current_password: "",
+        new_password: "",
+        new_password_confirmation: "",
+      });
+    } catch (error) {
+      console.error("Error updating password:", error);
+      alert(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const token = localStorage.getItem("userToken");
+      await axiosInstance.post(
+        `/logout`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      console.log("Logged out successfully");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      localStorage.removeItem("userToken");
+      setIsLoggingOut(false);
+      navigate("/login");
+    }
+  };
 
   const [blockedUsers, setBlockedUsers] = useState([]);
   const [unblockingIds, setUnblockingIds] = useState([]);
@@ -161,6 +223,136 @@ function Settings() {
                   />
                 </div>
               </div>
+            </div>
+          </div>
+        );
+      case "security":
+        return (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+            <h2 className="text-2xl font-black dark:text-white">
+              Security Settings
+            </h2>
+
+            {/* Change Password Section */}
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <Lock size={20} className="text-blue-500" />
+                </div>
+                <h4 className="font-bold text-lg dark:text-white">
+                  Update Password
+                </h4>
+              </div>
+
+              <form onSubmit={handleUpdatePassword} className="space-y-4">
+                <div className="grid gap-2">
+                  <label className="text-sm font-bold text-slate-500">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    name="current_password"
+                    value={passwords.current_password}
+                    onChange={handlePasswordChange}
+                    required
+                    className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-all"
+                    placeholder="Enter current password"
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <label className="text-sm font-bold text-slate-500">
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      name="new_password"
+                      value={passwords.new_password}
+                      onChange={handlePasswordChange}
+                      required
+                      className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-all"
+                      placeholder="Min. 8 characters"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm font-bold text-slate-500">
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      name="new_password_confirmation"
+                      value={passwords.new_password_confirmation}
+                      onChange={handlePasswordChange}
+                      required
+                      className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-all"
+                      placeholder="Repeat new password"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isUpdatingPassword}
+                    className={`w-full md:w-auto px-8 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 
+    ${isUpdatingPassword ? "bg-slate-400 cursor-not-allowed" : "bg-primary text-white hover:opacity-90 shadow-lg shadow-primary/20"}`}
+                  >
+                    {isUpdatingPassword ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        Updating...
+                      </>
+                    ) : (
+                      "Save New Password"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Danger Zone / Logout */}
+            <div className="bg-red-50/50 dark:bg-red-900/10 rounded-3xl p-6 border border-red-100 dark:border-red-900/20">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h4 className="font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+                    <LogOut size={18} /> Logout from DevHub
+                  </h4>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Are you sure you want to log out? You will need to log in
+                    again to access your account.
+                  </p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 shadow-sm flex items-center gap-2
+    ${
+      isLoggingOut
+        ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+        : "bg-white dark:bg-slate-900 text-red-600 border border-red-200 dark:border-red-900/50 hover:bg-red-600 hover:text-white"
+    }`}
+                >
+                  {isLoggingOut ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin"></div>
+                      Logging out...
+                    </>
+                  ) : (
+                    "Logout"
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Additional Security Info */}
+            <div className="bg-slate-100 dark:bg-slate-800/40 rounded-2xl p-4 flex items-start gap-3">
+              <Shield size={18} className="text-slate-400 mt-0.5" />
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Your account security is important. Make sure to use a strong
+                password with at least 8 characters, including numbers and
+                special symbols.
+              </p>
             </div>
           </div>
         );
@@ -313,62 +505,63 @@ function Settings() {
                   </div>
                 )}
               </div>
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-              <h2 className="text-2xl font-black dark:text-white">
-                Reported Users
-              </h2>
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <h2 className="text-2xl font-black dark:text-white">
+                  Reported Users
+                </h2>
 
-              <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
-                <div className="mb-6">
-                  <p className="text-sm text-slate-500">
-                    The people who you have reported already blocked automatically.
-                  </p>
-                </div>
-
-                {loading ? (
-                  <div className="py-10 text-center text-slate-400">
-                    Loading users...
-                  </div>
-                ) : reportedUsers.length > 0 ? (
-                  <div className="space-y-4">
-                    {reportedUsers.map((user) => (
-                      <div
-                        key={user.id}
-                        className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50"
-                      >
-                        <div className="flex items-center gap-4">
-                          <img
-                            src={
-                              user.avatar ||
-                              `https://ui-avatars.com/api/?name=${user.name}`
-                            }
-                            className="w-12 h-12 rounded-xl object-cover"
-                            alt={user.name}
-                            onError={(e) => {
-                              e.target.src = `https://ui-avatars.com/api/?name=${user.name}&background=random`;
-                            }}
-                          />
-                          <div>
-                            <h5 className="font-bold text-sm dark:text-white">
-                              {user.name}
-                            </h5>
-                            <p className="text-xs text-slate-500">
-                              @{user.username}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="py-10 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl">
-                    <p className="text-slate-400 text-sm italic">
-                      No reported users found.
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+                  <div className="mb-6">
+                    <p className="text-sm text-slate-500">
+                      The people who you have reported already blocked
+                      automatically.
                     </p>
                   </div>
-                )}
+
+                  {loading ? (
+                    <div className="py-10 text-center text-slate-400">
+                      Loading users...
+                    </div>
+                  ) : reportedUsers.length > 0 ? (
+                    <div className="space-y-4">
+                      {reportedUsers.map((user) => (
+                        <div
+                          key={user.id}
+                          className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50"
+                        >
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={
+                                user.avatar ||
+                                `https://ui-avatars.com/api/?name=${user.name}`
+                              }
+                              className="w-12 h-12 rounded-xl object-cover"
+                              alt={user.name}
+                              onError={(e) => {
+                                e.target.src = `https://ui-avatars.com/api/?name=${user.name}&background=random`;
+                              }}
+                            />
+                            <div>
+                              <h5 className="font-bold text-sm dark:text-white">
+                                {user.name}
+                              </h5>
+                              <p className="text-xs text-slate-500">
+                                @{user.username}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-10 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl">
+                      <p className="text-slate-400 text-sm italic">
+                        No reported users found.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
             </div>
           </>
         );
