@@ -6,7 +6,10 @@ import { useNavigate, useParams } from "react-router-dom";
 
 export default function UserFollowers() {
   const { id } = useParams();
-  const myId = parseInt(localStorage.getItem("aiChat_currentSessionId"));
+  const token = localStorage.getItem("userToken");
+  const payload = JSON.parse(atob(token.split(".")[1]));
+  const myId = Number(payload.sub);
+  
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [userName, setUserName] = useState("");

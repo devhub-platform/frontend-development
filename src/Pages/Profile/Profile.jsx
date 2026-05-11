@@ -242,6 +242,9 @@ const Profile = () => {
                           profileImage ||
                           `https://ui-avatars.com/api/?name=${profileData.name || "User"}&background=random`
                         }
+                        onError={(e)=> {
+                          e.target.src = `https://ui-avatars.com/api/?name=${profileData.name}&background=random`;
+                        }}
                         alt={profileData.name}
                         className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover border-4 border-white dark:border-black shadow-xl"
                       />

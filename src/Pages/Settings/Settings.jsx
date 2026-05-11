@@ -11,15 +11,178 @@ import {
   Globe,
   Settings as SettingsIcon,
   Palette,
+  Trash2,
 } from "lucide-react";
 import { ThemeContext } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../config/api";
+import OtpInput from "react-otp-input";
 
 function Settings() {
   const [activeTab, setActiveTab] = useState("account");
   const { theme, toggleTheme, font, changeFont } = useContext(ThemeContext);
   const navigate = useNavigate();
+
+  const [profileData, setProfileData] = useState({
+    name: "",
+    username: "",
+    email: "",
+    bio: "",
+    alt_email: "",
+  });
+    const [profileImage, setProfileImage] = useState(null);
+
+    const fetchProfileData = async () => {
+      try {
+        const token = localStorage.getItem("userToken");
+        if (!token) return;
+        const { data } = await axiosInstance.get("/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const profile = data.data; // حسب شكل الـ Response بتاع السيرفر بتاعك
+        setProfileData({
+          name: profile.name || "",
+          username: profile.username || "",
+          email: profile.email || "",
+          bio: profile.bio || "",
+          alt_email: profile.alt_email || "",
+        });
+
+        setProfileImage(profile.avatar_url);
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+      }
+    };
+
+    const [altEmail, setAltEmail] = useState("");
+    const [otp, setOtp] = useState("");
+    const [step, setStep] = useState("input"); // 'input' أو 'verify'
+    const [isSendingOtp, setIsSendingOtp] = useState(false);
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [isMakingPrimary, setIsMakingPrimary] = useState(false);
+
+    const handleSendOtp = async () => {
+      setIsSendingOtp(true);
+      try {
+        const token = localStorage.getItem("userToken");
+        const response = await axiosInstance.post("/settings/alt-email/send-otp", 
+      { alt_email: altEmail },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+        alert(response.data.message);
+        setStep("verify");
+      } catch (error) {
+        console.error("Error sending OTP:", error);
+        alert(error.response?.data?.message || "Failed to send OTP");
+      } finally {
+        setIsSendingOtp(false);
+      }
+    };
+
+    const handleResendOtp = async () => {
+      try {
+        const token = localStorage.getItem("userToken");
+        const response = await axiosInstance.post(
+          "/settings/alt-email/send-reset-otp",
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        alert(response.data.message);
+      } catch (error) {
+        alert("Error resending code");
+        console.log("Error resending OTP:", error);
+      }
+    };
+
+    const handleVerifyOtp = async (e) => {
+      e.preventDefault();
+      setIsVerifying(true);
+      try {
+        const token = localStorage.getItem("userToken");
+        await axiosInstance.post(
+          "/settings/alt-email/verify-otp",
+          { otp },
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        alert("Alternative email verified successfully!");
+        setStep("input");
+        setAltEmail("");
+        setOtp("");
+        fetchProfileData(); // لتحديث البيانات وعرض الايميل الجديد
+      } catch (error) {
+        alert(error.response?.data?.message || "Invalid OTP");
+      } finally {
+        setIsVerifying(false);
+      }
+    };
+
+    const handleMakePrimary = async () => {
+      setIsMakingPrimary(true);
+      try {
+        const token = localStorage.getItem("userToken");
+        const response = await axiosInstance.post(
+          "/settings/alt-email/make-as-primary",
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+
+        alert("Success! Your alternative email is now your primary email.");
+        fetchProfileData();
+      } catch (error) {
+        alert(
+          error.response?.data?.message || "Failed to update primary email.",
+        );
+      } finally {
+        setIsMakingPrimary(false);
+      }
+    };
+
+    const handleDeleteAltEmail = async () => {
+      if (!window.confirm("Are you sure you want to remove your alternative email?")) return;
+      const token = localStorage.getItem("userToken");
+      try {
+        await axiosInstance.delete("/settings/alt-email/remove", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        alert("Alternative email removed successfully!");
+        fetchProfileData();
+      } catch (error) {
+        console.log("Error removing alternative email:", error);
+        alert("Error removing alternative email");
+      }
+    };
+
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const handleDeleteAccount = async () => {
+    const confirmFirst = window.confirm("Are you sure you want to delete your account? This action is permanent and cannot be undone.");
+    if (!confirmFirst) return;
+
+    const confirmSecond = window.prompt("To confirm deletion, please type 'DELETE' in the box below:");
+    if (confirmSecond !== "DELETE") {
+      alert("Confirmation failed. Account was not deleted.");
+      return;
+    }
+    setIsDeletingAccount(true);
+
+    try {
+      const token = localStorage.getItem("userToken");
+      await axiosInstance.post("/settings/force/delete-account", {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+      alert("Your account has been deleted permanently. We're sorry to see you go.");
+      localStorage.removeItem("userToken");
+      navigate("/login");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      alert("Failed to delete account.");
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
 
   const [passwords, setPasswords] = useState({
   current_password: "",
@@ -89,7 +252,6 @@ const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuItems = [
     { id: "account", label: "Account", icon: User },
     { id: "security", label: "Security", icon: Lock },
-    { id: "notifications", label: "Notifications", icon: Bell },
     { id: "appearance", label: "Appearance", icon: Palette },
     { id: "privacy", label: "Privacy & Safety", icon: Shield },
     { id: "system", label: "System", icon: Monitor },
@@ -173,6 +335,8 @@ const [isLoggingOut, setIsLoggingOut] = useState(false);
         if (activeTab === "privacy") {
             fetchBlockedUsers();
             fetchReportedUsers();
+        } else if (activeTab === "account") {
+          fetchProfileData();
         }
     }, [activeTab]);
 
@@ -187,29 +351,34 @@ const [isLoggingOut, setIsLoggingOut] = useState(false);
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
               <div className="flex items-center gap-4 mb-8">
                 <img
-                  src="https://ui-avatars.com/api/?name=User&background=random"
+                  src={
+                    profileImage ||
+                    `https://ui-avatars.com/api/?name=${profileData.name || "User"}&background=random`
+                  }
                   className="w-20 h-20 rounded-2xl"
-                  alt="Avatar"
+                  alt={profileData.name}
+                  onError={(e) => {
+                    e.target.src = `https://ui-avatars.com/api/?name=${profileData.name}&background=random`;
+                  }}
                 />
                 <div>
                   <h4 className="font-bold text-lg dark:text-white">
-                    Profile Picture
+                    {profileData.name}
                   </h4>
-                  <p className="text-sm text-slate-500">PNG, JPG max 10MB</p>
+                  <p className="text-sm text-slate-500">{profileData.bio}</p>
                 </div>
-                <button className="ml-auto bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold">
-                  Change
-                </button>
               </div>
               <div className="space-y-4">
                 <div className="grid gap-2">
                   <label className="text-sm font-bold text-slate-500">
-                    Display Name
+                    Display Username
                   </label>
                   <input
                     type="text"
                     className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 dark:text-white focus:ring-2 focus:ring-primary outline-none"
                     placeholder="Your Name"
+                    disabled
+                    value={profileData.username}
                   />
                 </div>
                 <div className="grid gap-2">
@@ -220,8 +389,181 @@ const [isLoggingOut, setIsLoggingOut] = useState(false);
                     type="email"
                     className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 dark:text-white focus:ring-2 focus:ring-primary outline-none"
                     placeholder="email@example.com"
+                    disabled
+                    value={profileData.email}
                   />
                 </div>
+                {profileData.alt_email ? (
+                  <div className="grid gap-2 relative">
+                    <label className="text-sm font-bold text-slate-500">
+                      Alternative Email
+                    </label>
+                    <input
+                      type="email"
+                      className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 dark:text-white focus:ring-2 focus:ring-primary outline-none"
+                      placeholder="alt@example.com"
+                      disabled
+                      value={profileData.alt_email}
+                    />
+                    <div>
+                      <button
+                        type="button"
+                        onClick={handleDeleteAltEmail}
+                        className="text-sm font-bold text-red-500 hover:text-red-700 absolute top-10 right-5"
+                      >
+                        <Trash2 size={16} className="inline" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  ""
+                )}
+              </div>
+            </div>
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+              <h4 className="text-2xl font-black dark:text-white">
+                Alternative Email
+              </h4>
+
+              {/* 1. لو المستخدم عنده إيميل بديل متأكد (Verified) - نعرض زرار التحويل */}
+              {profileData?.alt_email && step === "input" ? (
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm transition-all">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block">
+                        Verified Alternative
+                      </label>
+                      <p className="text-lg font-bold dark:text-white">
+                        {profileData.alt_email}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleMakePrimary}
+                      disabled={isMakingPrimary}
+                      className="flex items-center justify-center gap-2 px-6 py-3 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      {isMakingPrimary ? (
+                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        "Make as Primary"
+                      )}
+                    </button>
+                  </div>
+                  <p className="mt-4 text-[10px] text-slate-400 italic">
+                    * This will swap your primary email with this one.
+                  </p>
+                </div>
+              ) : /* 2. حالة إدخال إيميل جديد */
+              step === "input" ? (
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+                  <label className="text-sm font-bold text-slate-500 mb-3 block">
+                    Add Alternative Email
+                  </label>
+                  <div className="flex flex-col md:flex-row gap-3">
+                    <input
+                      type="email"
+                      value={altEmail}
+                      onChange={(e) => setAltEmail(e.target.value)}
+                      className="flex-1 bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 dark:text-white focus:ring-2 focus:ring-primary outline-none"
+                      placeholder="devhub@gmail.com"
+                    />
+                    <button
+                      onClick={handleSendOtp}
+                      disabled={!altEmail || isSendingOtp}
+                      className="bg-primary text-white px-6 py-3 rounded-xl font-bold text-sm hover:opacity-90 disabled:opacity-50 transition-all"
+                    >
+                      {isSendingOtp ? "Sending..." : "Add Email"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* 3. حالة إدخال الـ OTP */
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+                  <form onSubmit={handleVerifyOtp} className="space-y-4">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                      <p className="text-sm text-text-light dark:text-text-dark">
+                        Code sent to <b>{altEmail}</b>
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleResendOtp}
+                        className="text-xs font-bold text-primary hover:underline"
+                      >
+                        Resend Code
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-6 py-4">
+                      <OtpInput
+                        value={otp}
+                        onChange={setOtp}
+                        numInputs={6}
+                        renderInput={(props) => (
+                          <input
+                            {...props}
+                            className="w-10! h-12 md:w-12! md:h-14 mx-1 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-primary dark:focus:border-primary/50 rounded-xl text-xl font-black outline-none transition-all dark:text-white shadow-sm text-center"
+                          />
+                        )}
+                      />
+
+                      <div className="flex w-full gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setStep("input")}
+                          className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 py-3 rounded-xl font-bold text-sm hover:bg-slate-200 transition-all"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={isVerifying || otp.length < 6}
+                          className="flex-2 bg-primary text-white py-3 rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/30 transition-all disabled:opacity-50"
+                        >
+                          {isVerifying ? "Verifying..." : "Verify & Save"}
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+            {/* Danger Zone */}
+            <div className="pt-10 mt-10 border-t border-red-100 dark:border-red-900/20">
+              <div className="flex items-center gap-2 mb-6">
+                <div>
+                  <h4 className="text-2xl font-black text-red-600 dark:text-red-400">
+                    Danger Zone
+                  </h4>
+                  <p className="text-xs text-slate-500 font-medium font-inter">
+                    Irreversible and destructive actions
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-[2rem] p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="max-w-md">
+                  <h5 className="font-bold text-red-700 dark:text-red-400 mb-1">
+                    Delete Account
+                  </h5>
+                  <p className="text-sm text-red-600/70 dark:text-red-400/60 leading-relaxed">
+                    Once you delete your account, there is no going back. All
+                    your posts, data, and interactions on DevHub will be
+                    permanently removed.
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={isDeletingAccount}
+                  className="whitespace-nowrap px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-red-200 dark:shadow-none hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isDeletingAccount ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    "DELETE ACCOUNT"
+                  )}
+                </button>
               </div>
             </div>
           </div>
