@@ -170,7 +170,7 @@ function Settings() {
 
     try {
       const token = localStorage.getItem("userToken");
-      await axiosInstance.post("/settings/force/delete-account", {}, {
+      await axiosInstance.delete("/settings/force/delete-account", {}, {
       headers: { Authorization: `Bearer ${token}` }
     });
       alert("Your account has been deleted permanently. We're sorry to see you go.");
