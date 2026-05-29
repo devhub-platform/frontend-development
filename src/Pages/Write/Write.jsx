@@ -166,26 +166,26 @@ export default function Write() {
     try {
       setIsPublishing(true);
 
+      // بنبعت الـ object بالأسماء اللي الـ Service مستنياها
       const payload = {
         title: title.trim(),
         content: editorContent,
         status: "published",
         read_time: undefined,
         tags: selectedTags,
-        coverImageFile,
-        imageFiles: postImageFiles, // Array من الصور
+        coverImageFile: coverImageFile, // ملف الكفر الحقيقي
+        imageFiles: postImageFiles, // مصفوفة صور البوست بالكامل
       };
 
       const res = await createPost(payload);
 
       toast.success(res?.message || "Post published successfully!");
-
       resetForm();
     } catch (err) {
       console.error(err);
+      // بنستخدم الـ friendlyMessage اللي إنتِ مجهزاها في الـ service
       const msg =
-        err?.response?.data?.message ||
-        "Failed to publish post. Please try again.";
+        err?.friendlyMessage || "Failed to publish post. Please try again.";
       toast.error(msg);
     } finally {
       setIsPublishing(false);
@@ -204,19 +204,17 @@ export default function Write() {
         status: "draft",
         read_time: undefined,
         tags: selectedTags,
-        coverImageFile,
+        coverImageFile: coverImageFile,
         imageFiles: postImageFiles,
       };
 
       const res = await createPost(payload);
       toast.success(res?.message || "Draft saved successfully!");
-
       resetForm();
     } catch (err) {
       console.error(err);
       const msg =
-        err?.response?.data?.message ||
-        "Failed to save draft. Please try again.";
+        err?.friendlyMessage || "Failed to save draft. Please try again.";
       toast.error(msg);
     } finally {
       setIsSaving(false);
