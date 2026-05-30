@@ -1,5 +1,14 @@
 import React from "react";
-import { MessageCircle, Heart, AtSign, Trash2, Clock } from "lucide-react";
+import {
+  MessageCircle,
+  Heart,
+  AtSign,
+  Trash2,
+  Clock,
+  FileText,
+  HelpCircle,
+  CheckCircle2,
+} from "lucide-react";
 
 export function NotificationCard({ notification, onMarkAsRead, onDelete }) {
   const getIconConfig = () => {
@@ -26,6 +35,12 @@ export function NotificationCard({ notification, onMarkAsRead, onDelete }) {
           icon: <AtSign size={14} />, // تقدرِ تغيّري لـ أيقونة تانية لو حابة
           color: "bg-emerald-500",
         };
+      case "post-created":
+        return { icon: <FileText size={14} />, color: "bg-blue-500" };
+      case "question":
+        return { icon: <HelpCircle size={14} />, color: "bg-amber-500" };
+      case "answer":
+        return { icon: <CheckCircle2 size={14} />, color: "bg-indigo-500" };
       default:
         return { icon: null, color: "bg-slate-500" };
     }

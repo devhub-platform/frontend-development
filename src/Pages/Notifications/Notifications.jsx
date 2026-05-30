@@ -42,10 +42,27 @@ const mapApiNotificationToUi = (item) => {
     simpleType = "follow";
     badgeLabel = "FOLLOW";
   }
+  // 👇 إضافة الأنواع الثلاثة الجديدة هنا
+  else if (type === "App\\Notifications\\PostCreatedNotification") {
+    simpleType = "post-created";
+    badgeLabel = "NEW POST";
+  } else if (
+    type === "App\\Notifications\\QuestionNotification" ||
+    type === "App\\Notifications\\NewQuestionNotification"
+  ) {
+    simpleType = "question";
+    badgeLabel = "QUESTION";
+  } else if (
+    type === "App\\Notifications\\AnswerNotification" ||
+    type === "App\\Notifications\\NewAnswerNotification"
+  ) {
+    simpleType = "answer";
+    badgeLabel = "ANSWER";
+  }
 
   return {
     id: item.id,
-    type, // النوع الكامل من Laravel
+    type,
     simpleType,
     badgeLabel,
     username:
@@ -60,7 +77,14 @@ const mapApiNotificationToUi = (item) => {
           ? "mentioned you in a discussion"
           : simpleType === "follow"
             ? "started following you"
-            : "left a new comment"),
+            : // نصوص افتراضية للأنواع الجديدة لو الـ message مش جاية من الباكيند
+              simpleType === "post-created"
+              ? "published a new post"
+              : simpleType === "question"
+                ? "asked a new question"
+                : simpleType === "answer"
+                  ? "answered your question"
+                  : "left a new comment"),
     content: data.content || data.body || "",
     timestamp: item.created_at,
     avatar:
@@ -82,7 +106,7 @@ const Notifications = () => {
     try {
       setLoading(true);
       setError("");
-      const list = await notificationsApi.getAllNotifications();
+      const { list } = await notificationsApi.getAllNotifications();
       const mapped = list.map(mapApiNotificationToUi);
       setNotifications(mapped);
     } catch (err) {
@@ -146,20 +170,22 @@ const Notifications = () => {
   const filteredNotifications = useMemo(() => {
     if (activeFilter === "all") return notifications;
 
-    const key = activeFilter; // all, comments, reactions, mentions, follows
+    const key = activeFilter;
 
-    if (key === "comments") {
+    if (key === "comments")
       return notifications.filter((n) => n.simpleType === "comment");
-    }
-    if (key === "reactions") {
+    if (key === "reactions")
       return notifications.filter((n) => n.simpleType === "reaction");
-    }
-    if (key === "mentions") {
+    if (key === "mentions")
       return notifications.filter((n) => n.simpleType === "mention");
-    }
-    if (key === "follows") {
+    if (key === "follows")
       return notifications.filter((n) => n.simpleType === "follow");
-    }
+    if (key === "posts")
+      return notifications.filter((n) => n.simpleType === "post-created");
+    if (key === "questions")
+      return notifications.filter((n) => n.simpleType === "question");
+    if (key === "answers")
+      return notifications.filter((n) => n.simpleType === "answer");
 
     return notifications;
   }, [notifications, activeFilter]);
@@ -186,6 +212,24 @@ const Notifications = () => {
         key: "follows",
         label: "Follows",
         count: notifications.filter((n) => n.simpleType === "follow").length,
+      },
+
+      // 👇 أزرار الفلاتر الجديدة اللي هتظهر في الـ UI فوق
+      {
+        key: "posts",
+        label: "Posts",
+        count: notifications.filter((n) => n.simpleType === "post-created")
+          .length,
+      },
+      {
+        key: "questions",
+        label: "Questions",
+        count: notifications.filter((n) => n.simpleType === "question").length,
+      },
+      {
+        key: "answers",
+        label: "Answers",
+        count: notifications.filter((n) => n.simpleType === "answer").length,
       },
     ],
     [notifications],
