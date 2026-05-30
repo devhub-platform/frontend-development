@@ -57,9 +57,13 @@ const EditProfile = ({
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
+        // نترك المتصفح يحدد الـ boundary تلقائياً مع الـ FormData
+        "Content-Type": "multipart/form-data",
       },
     });
-    return response.data.data;
+
+    // نرجع response.data بالكامل لنتمكن من قراءة الحقول من الـ Root مباشرة
+    return response.data;
   };
 
   // 2. دالة حفظ الحسابات الاجتماعية (API المنفصل)
@@ -85,25 +89,33 @@ const EditProfile = ({
       // رفع الأفاتار إذا تم اختياره
       if (selectedAvatar) {
         const result = await uploadImage(selectedAvatar, "avatar");
-        setProfileImage(result.avatar_url || result);
+        // قراءة الرابط من الـ root مباشرة كما يظهر في الـ JSON المرفق
+        const avatarUrl = result.avatar_url || result.data?.avatar_url;
+        if (avatarUrl) {
+          setProfileImage(avatarUrl);
+        }
       }
 
       // رفع الغلاف إذا تم اختياره
       if (selectedCover) {
         const result = await uploadImage(selectedCover, "cover");
-        setCoverImage(result.cover_image || result);
+        // قراءة رابط الغلاف من الـ root مباشرة
+        const coverUrl = result.cover_image || result.data?.cover_image;
+        if (coverUrl) {
+          setCoverImage(coverUrl);
+        }
       }
 
-      // حفظ الحسابات الاجتماعية
       await saveSocialAccounts();
 
-      // حفظ بيانات البروفايل الأساسية (الاسم، البايو، الخ)
       await handleSaveProfile();
-
-      // alert("Profile and Social Accounts updated successfully! 🎉");
     } catch (error) {
       console.error("Error saving data:", error);
-      alert("Failed to save changes. Please check your connection.");
+      // طباعة تفاصيل خطأ الـ validation القادم من السيرفر في الكونسول لمعاينته
+      if (error.response?.data) {
+        console.log("Validation Server Error:", error.response.data);
+      }
+      alert("Failed to save changes. Please check fields constraints.");
     } finally {
       setIsSubmitting(false);
     }

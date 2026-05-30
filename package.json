@@ -27,6 +27,7 @@
     "helmet": "^8.1.0",
     "lucide-react": "^0.555.0",
     "motion": "^12.23.26",
+    "pusher-js": "^8.5.0",
     "react": "^19.2.3",
     "react-awesome-reveal": "^4.3.1",
     "react-dom": "^19.2.3",
