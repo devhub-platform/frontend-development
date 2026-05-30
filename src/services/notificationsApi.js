@@ -1,170 +1,115 @@
-import axios from "axios";
+// src/services/notificationsApi.js
+import axiosInstance from "../config/api";
 
-const BASE_URL = "http://127.0.0.1:8000/api/v1";
-const USE_MOCK_DATA = true;
-
-const mockNotifications = [
-  {
-    id: "1",
-    type: "App\\Notifications\\NewCommentNotification",
-    data: {
-      username: "Ahmed Ali",
-      message: "commented on your post",
-      content: "Great work! 🔥",
-      avatar: "https://i.pravatar.cc/150?img=3",
-    },
-    created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    read_at: null,
-  },
-  {
-    id: "2",
-    type: "App\\Notifications\\ReactNotification",
-    data: {
-      username: "Sara Mohamed",
-      message: "liked your comment",
-      avatar: "https://i.pravatar.cc/150?img=5",
-    },
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    read_at: null,
-  },
-  {
-    id: "3",
-    type: "App\\Notifications\\NewCommentNotification",
-    data: {
-      username: "Omar Hassan",
-      message: "replied to your comment",
-      content: "I totally agree with you 👍",
-      avatar: "https://i.pravatar.cc/150?img=8",
-    },
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    read_at: new Date().toISOString(),
-  },
-  {
-    id: "4",
-    type: "App\\Notifications\\MentionNotification",
-    data: {
-      username: "Mona Adel",
-      message: "mentioned you in a post",
-      content: "@you check this discussion!",
-      avatar: "https://i.pravatar.cc/150?img=9",
-    },
-    created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    read_at: null,
-  },
-  {
-    id: "5",
-    type: "App\\Notifications\\FollowNotification",
-    data: {
-      username: "New Follower",
-      message: "started following you",
-      avatar: "https://i.pravatar.cc/150?img=11",
-    },
-    created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-    read_at: null,
-  },
-];
-
-const AUTH_TOKEN =
-  "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDAvYXBpL3YxL3JlZ2lzdGVyIiwiaWF0IjoxNzY5NTkyOTc3LCJleHAiOjE3Njk1OTY1NzcsIm5iZiI6MTc2OTU5Mjk3NywianRpIjoiVUU3ZE5Qcmhzc2JRTmluQSIsInN1YiI6IjQiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.7ib7RbytO7SXc8HwfNWRJp0ya35fxdTgOZ02wMHhHM4";
-
-// axios instance
-const api = axios.create({
-  baseURL: BASE_URL,
-});
-
-// interceptor للـ token
-api.interceptors.request.use((config) => {
-  config.headers = {
-    ...(config.headers || {}),
-    Accept: "application/json",
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${AUTH_TOKEN}`,
-  };
+axiosInstance.interceptors.request.use((config) => {
+  const token = localStorage.getItem("userToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  config.headers.Accept = "application/json";
+  if (!config.headers["Content-Type"]) {
+    config.headers["Content-Type"] = "application/json";
+  }
   return config;
 });
 
-// wrapper موحّد
-async function request(config) {
-  try {
-    const res = await api(config);
-    return res.data;
-  } catch (error) {
-    console.error("Notification API error:", error);
-    throw error;
-  }
+/**
+ * helper عام لجلب notifications من أي endpoint
+ */
+async function fetchNotificationList(url) {
+  // axiosInstance تلقائياً بيحط الـ baseURL اللي هو فيه /api/v1
+  const res = await axiosInstance.get(url);
+  const payload = res.data || {};
+  const data = Array.isArray(payload.data) ? payload.data : [];
+  const meta = payload.meta || { total: data.length, unread_count: 0 };
+
+  return { data, meta };
 }
 
-export async function getAllNotifications() {
-  if (USE_MOCK_DATA) {
-    return mockNotifications;
-  }
+/**
+ * 1) كل أنواع النوتيفيكيشن (من كذا endpoint)
+ */
+async function getAllNotifications() {
+  const endpoints = [
+    "/notifications/comments",
+    "/notifications/new-followers",
+    "/notifications/post-created",
+    "/notifications/mention",
+    "/notifications/questions",
+    "/notifications/answers",
+  ];
 
-  const data = await request({
-    url: "/notifications/all",
-    method: "GET",
-  });
+  // نستخدم Promise.all عشان يبقوا parallel
+  const responses = await Promise.all(
+    endpoints.map((url) =>
+      fetchNotificationList(url).catch((err) => {
+        console.error(`Error loading ${url}:`, err);
+        return { data: [], meta: { total: 0, unread_count: 0 } };
+      }),
+    ),
+  );
 
-  return data.all_notifications || [];
+  // نجمع كل الـ data في array واحدة
+  const mergedData = responses.flatMap((res) => res.data || []);
+
+  const total = mergedData.length;
+  const unread_count = mergedData.filter((n) => !n.read_at).length;
+
+  return {
+    list: mergedData,
+    meta: {
+      total,
+      unread_count,
+    },
+  };
 }
 
-export async function getNewCommentNotifications() {
-  const data = await request({
-    url: "/notifications",
-    method: "GET",
-  });
-
-  return data.new_comment_notifications || [];
+/**
+ * 2) notifications للـ followers بس
+ */
+async function getFollowerNotifications() {
+  return fetchNotificationList("/notifications/new-followers");
 }
 
-export async function getReactNotifications() {
-  const data = await request({
-    url: "/notifications/reacts",
-    method: "GET",
-  });
-
-  return data.new_react_notifications || [];
+/**
+ * 3) mark single notification as read
+ */
+async function markNotificationAsRead(id) {
+  const res = await axiosInstance.post(`/notifications/${id}/mark-as-read`);
+  return res.data;
 }
 
-export async function markAllNotificationsAsRead() {
-  if (USE_MOCK_DATA) {
-    return { success: true };
-  }
-
-  return await request({
-    url: "/notifications/mark-as-read",
-    method: "POST",
-  });
+/**
+ * 4) mark all notifications as read
+ */
+async function markAllNotificationsAsRead() {
+  const res = await axiosInstance.post("/notifications/mark-as-read");
+  return res.data;
 }
 
-export async function clearAllNotifications() {
-  if (USE_MOCK_DATA) {
-    return { success: true };
-  }
-
-  return await request({
-    url: "/notifications/clear",
-    method: "DELETE",
-  });
+/**
+ * 5) clear all notifications
+ */
+async function clearAllNotifications() {
+  const res = await axiosInstance.delete("/notifications/clear");
+  return res.data;
 }
 
-export async function markNotificationAsRead(id) {
-  if (USE_MOCK_DATA) {
-    return { success: true };
-  }
-
-  return await request({
-    url: `/notifications/${id}/mark-as-read`,
-    method: "POST",
-  });
+/**
+ * 6) clear follower notifications فقط
+ */
+async function clearFollowerNotifications() {
+  const res = await axiosInstance.delete("/notifications/followers/clear");
+  return res.data;
 }
 
 const notificationsApi = {
   getAllNotifications,
-  getNewCommentNotifications,
-  getReactNotifications,
+  getFollowerNotifications,
+  markNotificationAsRead,
   markAllNotificationsAsRead,
   clearAllNotifications,
-  markNotificationAsRead,
+  clearFollowerNotifications,
 };
 
 export default notificationsApi;
