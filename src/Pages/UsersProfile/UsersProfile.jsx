@@ -20,8 +20,8 @@ import Helmet from "react-helmet";
 import axiosInstance from "../../config/api";
 
 const UsersProfile = () => {
-  const { id } = useParams(); // جلب المعرف من الرابط /users/4
-  const { userData } = useContext(UserContext);
+  const { id } = useParams();
+  const { userData, setSelectedConversationId } = useContext(UserContext);
   const navigate = useNavigate();
   const token = localStorage.getItem("userToken");
 
@@ -61,12 +61,12 @@ const UsersProfile = () => {
 
   const [isFollowing, setIsFollowing] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [messageLoading, setMessageLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         setIsLoading(true);
-        // نستخدم الـ id الديناميكي من الـ useParams
         const response = await axiosInstance.get(`/users/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -146,7 +146,6 @@ const UsersProfile = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const following = response.data.following || [];
-        // هل الـ ID بتاع البروفايل ده موجود في قائمة الناس اللي أنا متابعهم؟
         const status = following.some((u) => u.id === parseInt(id));
         setIsFollowing(status);
       } catch (error) {
@@ -159,7 +158,6 @@ const UsersProfile = () => {
 
   const handleFollowToggle = async () => {
     if (actionLoading) return;
-
     setActionLoading(true);
     const url = isFollowing ? `/users/${id}/unfollow` : `/users/${id}/follow`;
 
@@ -172,16 +170,51 @@ const UsersProfile = () => {
         },
       );
       setIsFollowing(!isFollowing);
-      // تحديث رقم المتابعين محلياً لو حبيتي
       setFollowersList((prev) =>
         isFollowing
           ? prev.filter((user) => user.id !== parseInt(id))
-          : [...prev, { id: parseInt(id), name: profileData.name }]
+          : [...prev, { id: parseInt(id), name: profileData.name }],
       );
     } catch (error) {
       console.error("Follow action failed:", error);
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  // ✅ فتح الشات مع اليوزر مباشرة عند الضغط على Message
+  const handleMessageClick = async () => {
+    if (messageLoading) return;
+    setMessageLoading(true);
+
+    try {
+      // إنشاء أو جلب المحادثة الموجودة مع اليوزر ده
+      const response = await axiosInstance.post(
+        "/chat/conversations",
+        { user_id: id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        },
+      );
+
+      if (response.status === 201 || response.status === 200) {
+        // conversation.id هو الـ ID الداخلي للمحادثة
+        const conversationId =
+          response.data?.conversation?.id ||
+          response.data?.data?.conversation?.id;
+
+        if (conversationId && typeof setSelectedConversationId === "function") {
+          // بيبعت الـ ID للـ Messages component عبر Context فيفتح الشات فوراً
+          setSelectedConversationId(conversationId);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to open conversation:", error);
+    } finally {
+      setMessageLoading(false);
     }
   };
 
@@ -230,7 +263,7 @@ const UsersProfile = () => {
                       />
                     </div>
 
-                    <div className="flex gap-2 ml-auto items-center">   
+                    <div className="flex gap-2 ml-auto items-center">
                       {parseInt(id) && (
                         <button
                           onClick={handleFollowToggle}
@@ -250,9 +283,23 @@ const UsersProfile = () => {
                           )}
                         </button>
                       )}
-                      <button className="rounded-full bg-primary text-white py-2 px-3 cursor-pointer md:mt-25 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-                        Message
+
+                      {/* ✅ زرار Message - يفتح الشات مباشرة */}
+                      <button
+                        onClick={handleMessageClick}
+                        disabled={messageLoading}
+                        className="rounded-full bg-primary text-white py-2 px-6 cursor-pointer md:mt-25 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex items-center gap-2"
+                      >
+                        {messageLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Connecting...</span>
+                          </>
+                        ) : (
+                          "Message"
+                        )}
                       </button>
+
                       <button className="rounded-full border-border mt-25 cursor-pointer hover:text-red-600 transition-colors duration-200">
                         <Ban className="w-5 h-5" />
                       </button>
@@ -288,7 +335,6 @@ const UsersProfile = () => {
                         const socialInfo =
                           profileData.social_links[platform.name];
                         if (!socialInfo?.url) return null;
-
                         return (
                           <a
                             key={platform.name}

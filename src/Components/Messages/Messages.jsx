@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import {
   MessageCircle,
   X,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Pusher from "pusher-js";
 import axiosInstance from "../../config/api";
+import { UserContext } from "../../context/UserContext";
 
 // ==========================================
 // الدوال المساعدة لتنسيق الوقت والتاريخ
@@ -72,20 +73,49 @@ export function Messages() {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // استقبال طلب فتح محادثة من UserContext (زر Message في البروفايل)
+  const { selectedConversationId, setSelectedConversationId } =
+    useContext(UserContext);
+
+  const fetchConversations = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get("/chat/conversations");
+      setConversations(response.data.data || []);
+      return response.data.data || [];
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchConversations = async () => {
-      setLoading(true);
-      try {
-        const response = await axiosInstance.get("/chat/conversations");
-        setConversations(response.data.data || []);
-      } catch (error) {
-        console.error("Error fetching conversations:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchConversations();
   }, []);
+
+  // لما يضغط Message من البروفايل - افتح الشات فوراً
+  useEffect(() => {
+    if (!selectedConversationId) return;
+
+    const openChat = async () => {
+      setOpen(true);
+      // جيب أحدث قائمة المحادثات علشان تلاقي الـ chat بالـ conversation id
+      const freshConversations = await fetchConversations();
+      // دور على الـ chat اللي conversation.id بتاعه = selectedConversationId
+      const target = freshConversations.find(
+        (c) => c.conversation?.id === selectedConversationId,
+      );
+      if (target) {
+        setSelectedChat(target.id);
+      }
+      // reset الـ context
+      setSelectedConversationId(null);
+    };
+
+    openChat();
+  }, [selectedConversationId]);
 
   const unreadTotal = conversations.reduce(
     (acc, c) => acc + (c.unread_count || 0),
@@ -158,7 +188,7 @@ function MessagesPopup({
   selectedChat,
   setSelectedChat,
   onClose,
-  conversations,
+  conversations: conversationsProp,
   loading: conversationsLoading,
 }) {
   const [message, setMessage] = useState("");
@@ -171,6 +201,31 @@ function MessagesPopup({
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [isDeletingId, setIsDeletingId] = useState(null);
   const [isEditingSubmit, setIsEditingSubmit] = useState(false);
+
+  // حالة المحادثات المحلية (علشان نقدر نحذف محلياً بدون reload)
+  const [conversations, setConversations] = useState(conversationsProp);
+  const [deletingConvId, setDeletingConvId] = useState(null);
+
+  useEffect(() => {
+    setConversations(conversationsProp);
+  }, [conversationsProp]);
+
+  // حذف محادثة بالكامل
+  const handleDeleteConversation = async (e, chat) => {
+    e.stopPropagation();
+    const convId = chat.conversation?.id;
+    if (!convId) return;
+    setDeletingConvId(chat.id);
+    try {
+      await axiosInstance.delete(`/chat/conversations/clear/${convId}`);
+      setConversations((prev) => prev.filter((c) => c.id !== chat.id));
+      if (selectedChat === chat.id) setSelectedChat(null);
+    } catch (err) {
+      console.error("Failed to delete conversation:", err);
+    } finally {
+      setDeletingConvId(null);
+    }
+  };
 
   // مجموعة IDs الأعضاء الأونلاين حالياً (من presence channel)
   const onlineMemberIds = useRef(new Set());
@@ -650,41 +705,126 @@ function MessagesPopup({
               No conversations found.
             </div>
           ) : (
-            conversations.map((chat) => {
-              const u = getOtherParticipant(chat);
-              return (
-                <button
-                  key={chat.id}
-                  onClick={() => setSelectedChat(chat.id)}
-                  className="w-full flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left"
-                >
-                  <img
-                    src={
-                      u?.avatar_url ||
-                      `https://ui-avatars.com/api/?name=${u?.name || "User"}&background=random`
-                    }
-                    className="w-11 h-11 rounded-full object-cover shrink-0"
-                    alt=""
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                        {u?.name}
-                      </p>
+            [...conversations]
+              .sort((a, b) => {
+                // ترتيب تنازلي حسب وقت آخر رسالة
+                const timeA =
+                  a.conversation?.last_message?.created_at ||
+                  a.conversation?.last_message?.updated_at ||
+                  "";
+                const timeB =
+                  b.conversation?.last_message?.created_at ||
+                  b.conversation?.last_message?.updated_at ||
+                  "";
+                if (!timeA && !timeB) return 0;
+                if (!timeA) return 1;
+                if (!timeB) return -1;
+                return (
+                  new Date(timeB.replace(" ", "T")) -
+                  new Date(timeA.replace(" ", "T"))
+                );
+              })
+              .map((chat) => {
+                const u = getOtherParticipant(chat);
+                const lastMsg = chat.conversation?.last_message;
+                // اسم المرسل - لو "أنا" يظهر "You"
+                const currentUserName = "Mai Waleed";
+                const senderName = lastMsg?.sender?.name
+                  ? lastMsg.sender.name === currentUserName
+                    ? "You"
+                    : lastMsg.sender.name.split(" ")[0]
+                  : null;
+                // تنسيق الوقت
+                const lastMsgTime = (() => {
+                  const raw = lastMsg?.created_at || lastMsg?.updated_at || "";
+                  if (!raw) return "";
+                  const date = new Date(raw.replace(" ", "T"));
+                  if (isNaN(date.getTime())) return "";
+                  const now = new Date();
+                  const isToday = date.toDateString() === now.toDateString();
+                  if (isToday) {
+                    return date.toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    });
+                  }
+                  const yesterday = new Date(now);
+                  yesterday.setDate(now.getDate() - 1);
+                  if (date.toDateString() === yesterday.toDateString())
+                    return "Yesterday";
+                  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
+                })();
+
+                return (
+                  <div
+                    key={chat.id}
+                    className="group relative w-full flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    {/* زرار شفاف يملأ المساحة لفتح المحادثة */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedChat(chat.id)}
+                      className="absolute inset-0 rounded-xl z-0"
+                      aria-label="Open chat"
+                    />
+                    <div className="relative shrink-0 z-10">
+                      <img
+                        src={
+                          u?.avatar_url ||
+                          `https://ui-avatars.com/api/?name=${u?.name || "User"}&background=random`
+                        }
+                        className="w-11 h-11 rounded-full object-cover"
+                        alt=""
+                      />
                       {chat.unread_count > 0 && (
-                        <span className="bg-primary text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                        <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                           {chat.unread_count}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 truncate">
-                      {chat.conversation?.last_message?.body ||
-                        "No messages yet"}
-                    </p>
+                    <div className="flex-1 min-w-0 z-10">
+                      <div className="flex items-center justify-between gap-1">
+                        <p
+                          className={`text-sm truncate ${chat.unread_count > 0 ? "font-bold text-gray-900 dark:text-white" : "font-semibold text-gray-900 dark:text-white"}`}
+                        >
+                          {u?.name}
+                        </p>
+                        {lastMsgTime && (
+                          <span
+                            className={`text-[10px] shrink-0 ${chat.unread_count > 0 ? "text-primary font-semibold" : "text-gray-400"}`}
+                          >
+                            {lastMsgTime}
+                          </span>
+                        )}
+                      </div>
+                      <p
+                        className={`text-xs truncate ${chat.unread_count > 0 ? "text-gray-800 dark:text-gray-200 font-medium" : "text-gray-500"}`}
+                      >
+                        {lastMsg
+                          ? senderName
+                            ? `${senderName}: ${lastMsg.body || "📎 Attachment"}`
+                            : lastMsg.body || "📎 Attachment"
+                          : "No messages yet"}
+                      </p>
+                    </div>
+                    {/* زرار حذف المحادثة - يظهر عند hover */}
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteConversation(e, chat)}
+                      disabled={deletingConvId === chat.id}
+                      title="Delete conversation"
+                      className="relative z-10 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 shrink-0"
+                    >
+                      {deletingConvId === chat.id ? (
+                        <div className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 size={14} />
+                      )}
+                    </button>
                   </div>
-                </button>
-              );
-            })
+                );
+              })
           )}
         </div>
       )}
