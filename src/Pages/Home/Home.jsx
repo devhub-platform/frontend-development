@@ -14,6 +14,10 @@ const Home = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
+  // Reading lists — مرة واحدة للصفحة كلها
+  const [readingLists, setReadingLists] = useState([]);
+  const [bookmarkedPostIds, setBookmarkedPostIds] = useState(new Set());
+
   const navigate = useNavigate();
   const { userData, setUserData } = useContext(UserContext);
   const [searchParams] = useSearchParams();
@@ -46,9 +50,7 @@ const Home = () => {
         }
       } catch (error) {
         if (error.response?.status === 401) {
-          console.log(
-            "Unauthorized - Token invalid. Staying on page for debug.",
-          );
+          console.log("Unauthorized - Token invalid.");
         }
       }
     }
@@ -56,7 +58,33 @@ const Home = () => {
     return () => clearTimeout(timeoutId);
   }, [userData, navigate]);
 
-  // 3. جلب البوستات من الـ API
+  // 3. جلب الـ Reading Lists مرة واحدة
+  useEffect(() => {
+    const fetchReadingLists = async () => {
+      const token = localStorage.getItem("userToken");
+      if (!token) return;
+      try {
+        const { data } = await axiosInstance.get("/reading-lists/lists/posts", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+        const allLists = data.data || [];
+        setReadingLists(allLists);
+        const ids = new Set();
+        allLists.forEach((list) =>
+          (list.posts || []).forEach((p) => ids.add(p.id)),
+        );
+        setBookmarkedPostIds(ids);
+      } catch (error) {
+        console.error("Error fetching reading lists:", error);
+      }
+    };
+    fetchReadingLists();
+  }, []);
+
+  // 4. جلب البوستات
   useEffect(() => {
     const fetchPosts = async () => {
       setPostsLoading(true);
@@ -70,8 +98,6 @@ const Home = () => {
         });
 
         const raw = data.data || [];
-
-        // تحويل شكل البيانات القادمة من الـ API لشكل يتوافق مع الـ Post component
         const mapped = raw.map((p) => ({
           id: p.id,
           title: p.title,
@@ -80,10 +106,7 @@ const Home = () => {
           avatar: p.user?.avatar_image || null,
           date: p.created_at || "",
           readingTime: p.read_time || "",
-          image:
-            p.image_url?.[0] ||
-            p.cover_image ||
-            "https://picsum.photos/640/480?random=" + p.id,
+          image: p.cover_image || p.image_url?.[0] || "",
           tags: p.tags?.map((t) => t.name) || [],
           reactionsCount: Object.values(
             p.reaction?.reaction_with_count || {},
@@ -93,7 +116,6 @@ const Home = () => {
         }));
 
         setPostsList((prev) => (page === 1 ? mapped : [...prev, ...mapped]));
-        // لو مفيش next page نوقف التحميل
         setHasMore(Boolean(data.links?.next));
       } catch (error) {
         console.error("Error fetching posts:", error);
@@ -118,7 +140,6 @@ const Home = () => {
         <div className="lg:w-[70%] lg:ml-15 my-5">
           <div className="flex flex-col items-center bg-white dark:bg-bg-secondary-dark rounded-lg shadow-md">
             {postsLoading && page === 1 ? (
-              // Skeleton loading للبوستات
               Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={i}
@@ -149,11 +170,20 @@ const Home = () => {
                   post={post}
                   isReactionOpen={openReactionId === post.id}
                   setOpenReactionId={setOpenReactionId}
+                  readingLists={readingLists}
+                  setReadingLists={setReadingLists}
+                  initialIsBookmarked={bookmarkedPostIds.has(post.id)}
+                  onBookmarkChange={(postId, added) => {
+                    setBookmarkedPostIds((prev) => {
+                      const next = new Set(prev);
+                      added ? next.add(postId) : next.delete(postId);
+                      return next;
+                    });
+                  }}
                 />
               ))
             )}
 
-            {/* زرار تحميل المزيد */}
             {!postsLoading && hasMore && (
               <button
                 onClick={() => setPage((p) => p + 1)}

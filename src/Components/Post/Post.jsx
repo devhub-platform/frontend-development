@@ -16,8 +16,8 @@ import axiosInstance from "../../config/api";
 const reactionEmojis = [
   { emoji: "👍", label: "like" },
   { emoji: "❤️", label: "love" },
-  { emoji: "🤯", label: "exploding_head" },
-  { emoji: "🙌", label: "raised_hands" },
+  { emoji: "🤯", label: "explodingHead" },
+  { emoji: "🙌", label: "raisedHands" },
   { emoji: "😮", label: "wow" },
   { emoji: "👎", label: "dislike" },
 ];
@@ -356,13 +356,16 @@ const Post = ({
           </div>
         </div>
 
-        <Link to={`/post/${post.id}`} className="w-30 h-32 shrink-0">
+        {post.image.length > 0 ?
+          <Link to={`/post/${post.id}`} className="w-30 h-32 shrink-0">
           <img
             src={post.image}
             alt="Post"
             className="w-full h-full object-cover rounded-xl"
           />
-        </Link>
+        </Link> :
+        ""
+      }
       </div>
     </article>
   );

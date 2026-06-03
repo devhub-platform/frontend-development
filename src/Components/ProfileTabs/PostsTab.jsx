@@ -64,9 +64,8 @@ const PostsTab = ({ openReactionId, setOpenReactionId }) => {
           readingTime: post.read_time || "",
           tags: post.tags.map((t) => t.name),
           image:
-            post.image_url?.[0] ||
-            post.cover_image ||
-            "https://placehold.co/600x400?text=No+Image",
+          post.cover_image ||
+            post.image_url?.[0] || "",
           // ✅ مجموع الـ values مش عدد الـ keys
           reactionsCount: Object.values(
             post.reaction?.reaction_with_count || {},

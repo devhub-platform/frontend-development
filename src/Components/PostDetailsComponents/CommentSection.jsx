@@ -1,17 +1,33 @@
-import { Send, Heart, MessageCircle } from "lucide-react";
+import { Send, Heart, MessageCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import axiosInstance from "../../config/api";
 
-export function CommentSection({ initialComments, currentUserAvatar, commentsCount }) {
+export function CommentSection({
+  postId,
+  initialComments,
+  currentUserAvatar,
+  commentsCount,
+}) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [likedComments, setLikedComments] = useState(new Set());
   const [likedReplies, setLikedReplies] = useState(new Set());
+  const [submitting, setSubmitting] = useState(false);
+  const [replySubmitting, setReplySubmitting] = useState(false);
 
   const defaultUserAvatar =
     currentUserAvatar ||
     "https://api.dicebear.com/7.x/bottts/svg?seed=DevHubUser";
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("userToken");
+    return {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    };
+  };
 
   useEffect(() => {
     if (initialComments) {
@@ -19,72 +35,136 @@ export function CommentSection({ initialComments, currentUserAvatar, commentsCou
     }
   }, [initialComments]);
 
-  const handleSubmitComment = () => {
-    if (newComment.trim()) {
-      const comment = {
-        id: Date.now(),
-        author: {
-          name: "You",
-          avatar: defaultUserAvatar,
+  // POST /posts/{postId}/comments
+  const handleSubmitComment = async () => {
+    if (!newComment.trim() || submitting) return;
+    setSubmitting(true);
+    const text = newComment;
+    setNewComment("");
+
+    try {
+      const { data } = await axiosInstance.post(
+        `/posts/${postId}/comments`,
+        { content: text },
+        { headers: getAuthHeaders() },
+      );
+
+      const c = data.comment || data.data || data;
+      setComments((prev) => [
+        {
+          id: c.id || Date.now(),
+          author: {
+            name: c.user?.name || "You",
+            avatar:
+              c.user?.avatar_url || c.user?.avatar_image || defaultUserAvatar,
+          },
+          text: c.content || text,
+          time: c.created_at || "Just now",
+          likes: 0,
+          replies: [],
         },
-        text: newComment,
-        time: "Just now",
-        likes: 0,
-        replies: [],
-      };
-      setComments([comment, ...comments]);
-      setNewComment("");
+        ...prev,
+      ]);
+    } catch (err) {
+      console.error("Comment failed:", err);
+      // optimistic fallback
+      setComments((prev) => [
+        {
+          id: Date.now(),
+          author: { name: "You", avatar: defaultUserAvatar },
+          text,
+          time: "Just now",
+          likes: 0,
+          replies: [],
+        },
+        ...prev,
+      ]);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleSubmitReply = (commentId) => {
-    if (replyText.trim()) {
+  // POST /posts/{postId}/comments/{commentId}/reply
+  const handleSubmitReply = async (commentId) => {
+    if (!replyText.trim() || replySubmitting) return;
+    setReplySubmitting(true);
+    const text = replyText;
+    setReplyText("");
+    setReplyingTo(null);
+
+    try {
+      const { data } = await axiosInstance.post(
+        `/posts/${postId}/comments/${commentId}/reply`,
+        { content: text },
+        { headers: getAuthHeaders() },
+      );
+
+      const r = data.comment || data.data || data;
       const reply = {
-        id: Date.now(),
+        id: r.id || Date.now(),
         author: {
-          name: "You",
-          avatar: defaultUserAvatar,
+          name: r.user?.name || "You",
+          avatar:
+            r.user?.avatar_url || r.user?.avatar_image || defaultUserAvatar,
         },
-        text: replyText,
-        time: "Just now",
+        text: r.content || text,
+        time: r.created_at || "Just now",
         likes: 0,
       };
-      setComments(
-        comments.map((c) =>
+
+      setComments((prev) =>
+        prev.map((c) =>
           c.id === commentId
             ? { ...c, replies: [...(c.replies || []), reply] }
             : c,
         ),
       );
-      setReplyText("");
-      setReplyingTo(null);
+    } catch (err) {
+      console.error("Reply failed:", err);
+      // optimistic fallback
+      const reply = {
+        id: Date.now(),
+        author: { name: "You", avatar: defaultUserAvatar },
+        text,
+        time: "Just now",
+        likes: 0,
+      };
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === commentId
+            ? { ...c, replies: [...(c.replies || []), reply] }
+            : c,
+        ),
+      );
+    } finally {
+      setReplySubmitting(false);
     }
   };
 
   const toggleLikeComment = (commentId) => {
-    const newLikedComments = new Set(likedComments);
-    if (newLikedComments.has(commentId)) {
-      newLikedComments.delete(commentId);
+    const next = new Set(likedComments);
+    if (next.has(commentId)) {
+      next.delete(commentId);
       setComments(
         comments.map((c) =>
           c.id === commentId ? { ...c, likes: c.likes - 1 } : c,
         ),
       );
     } else {
-      newLikedComments.add(commentId);
+      next.add(commentId);
       setComments(
         comments.map((c) =>
           c.id === commentId ? { ...c, likes: c.likes + 1 } : c,
         ),
       );
     }
-    setLikedComments(newLikedComments);
+    setLikedComments(next);
   };
 
   const toggleLikeReply = (commentId, replyId) => {
-    const newLikedReplies = new Set(likedReplies);
-    if (newLikedReplies.has(replyId)) {
-      newLikedReplies.delete(replyId);
+    const next = new Set(likedReplies);
+    if (next.has(replyId)) {
+      next.delete(replyId);
       setComments(
         comments.map((c) =>
           c.id === commentId
@@ -98,7 +178,7 @@ export function CommentSection({ initialComments, currentUserAvatar, commentsCou
         ),
       );
     } else {
-      newLikedReplies.add(replyId);
+      next.add(replyId);
       setComments(
         comments.map((c) =>
           c.id === commentId
@@ -112,7 +192,7 @@ export function CommentSection({ initialComments, currentUserAvatar, commentsCou
         ),
       );
     }
-    setLikedReplies(newLikedReplies);
+    setLikedReplies(next);
   };
 
   return (
@@ -139,14 +219,19 @@ export function CommentSection({ initialComments, currentUserAvatar, commentsCou
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmitComment()}
             placeholder="Add a comment..."
-            className="flex-1 px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-bg-primary-dark text-gray-900 dark:text-gray-100"
+            disabled={submitting}
+            className="flex-1 px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-bg-primary-dark text-gray-900 dark:text-gray-100 disabled:opacity-60"
           />
           <button
             onClick={handleSubmitComment}
+            disabled={!newComment.trim() || submitting}
             className="px-4 py-3 bg-primary text-white rounded-lg hover:bg-text-light dark:hover:bg-text-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!newComment.trim()}
           >
-            <Send className="w-5 h-5" />
+            {submitting ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
           </button>
         </div>
       </div>
@@ -155,7 +240,6 @@ export function CommentSection({ initialComments, currentUserAvatar, commentsCou
       <div className="space-y-6">
         {comments.map((comment) => (
           <div key={comment.id}>
-            {/* Main Comment */}
             <div className="flex gap-3">
               <img
                 src={
@@ -181,7 +265,6 @@ export function CommentSection({ initialComments, currentUserAvatar, commentsCou
                 </div>
 
                 <div className="flex items-center gap-4 mt-2 ml-2">
-                  {/* تم تعديل الفئة هنا لتصبح باللون الأزرق عند التفعيل */}
                   <button
                     onClick={() => toggleLikeComment(comment.id)}
                     className={`cursor-pointer flex items-center gap-1 text-sm transition-colors ${
@@ -225,15 +308,20 @@ export function CommentSection({ initialComments, currentUserAvatar, commentsCou
                           e.key === "Enter" && handleSubmitReply(comment.id)
                         }
                         placeholder="Write a reply..."
-                        className="flex-1 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-bg-primary-dark text-gray-900 dark:text-gray-100"
+                        disabled={replySubmitting}
+                        className="flex-1 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-bg-primary-dark text-gray-900 dark:text-gray-100 disabled:opacity-60"
                         autoFocus
                       />
                       <button
                         onClick={() => handleSubmitReply(comment.id)}
+                        disabled={!replyText.trim() || replySubmitting}
                         className="px-3 py-2 bg-primary text-white rounded-lg hover:bg-text-light dark:hover:bg-text-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={!replyText.trim()}
                       >
-                        <Send className="w-4 h-4" />
+                        {replySubmitting ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -267,9 +355,7 @@ export function CommentSection({ initialComments, currentUserAvatar, commentsCou
                               {reply.text}
                             </p>
                           </div>
-
                           <div className="flex items-center gap-4 mt-1 ml-2">
-                            {/* تم تعديل الفئة هنا أيضاً لتصبح باللون الأزرق للردود */}
                             <button
                               onClick={() =>
                                 toggleLikeReply(comment.id, reply.id)
