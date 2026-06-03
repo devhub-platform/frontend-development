@@ -1,12 +1,11 @@
-import { X, Sparkles, Send } from "lucide-react"; // غيرت MessageCircle لـ Send كشكل أفضل
+import { X, Sparkles, Send } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useContext } from "react";
 import { UserContext } from "../../context/UserContext";
-
 import axiosInstance from "../../config/api";
 
-export function ChatPanel({ isOpen, onClose }) {
-  const postId = 101;
+// 1. استقبلنا الـ postId كـ Prop هنا
+export function ChatPanel({ isOpen, onClose, postId }) {
   const { userData } = useContext(UserContext);
   const token = localStorage.getItem("userToken");
 
@@ -31,7 +30,7 @@ export function ChatPanel({ isOpen, onClose }) {
       sender: "user",
     };
 
-    // 1. أضف رسالة اليوزر للشاشة فوراً
+    // أضف رسالة اليوزر للشاشة فوراً
     setMessages((prev) => [...prev, userMsg]);
     const messageToSend = inputValue;
     setInputValue(""); // فضي الـ input
@@ -42,12 +41,14 @@ export function ChatPanel({ isOpen, onClose }) {
         message: messageToSend,
         ...(sessionId && { session_id: sessionId }),
       };
+
+      // الـ postId هنا أصبح ديناميكي وبياخد القيمة الممررة من صفحة تفاصيل البوست
       const response = await axiosInstance.post(
         `/posts/${postId}/ai-chat`,
-          requestData,
+        requestData,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // تأكد أن التوكن مبعوت صح
+            Authorization: `Bearer ${token}`,
             Accept: "application/json",
             "Content-Type": "application/json",
           },
@@ -61,7 +62,7 @@ export function ChatPanel({ isOpen, onClose }) {
 
         const aiMsg = {
           id: response.data.session_id || Date.now() + 1,
-          text: response.data.content, // الـ content اللي راجع من الـ API
+          text: response.data.content,
           sender: "assistant",
         };
         setMessages((prev) => [...prev, aiMsg]);
@@ -153,7 +154,7 @@ export function ChatPanel({ isOpen, onClose }) {
                 : "bg-primary hover:bg-text-light dark:hover:bg-blue-800 text-white shadow-md"
             }`}
           >
-            <Send className="w-5 h-5"/>
+            <Send className="w-5 h-5" />
           </button>
         </div>
       </motion.div>
