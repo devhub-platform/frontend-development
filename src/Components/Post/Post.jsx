@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   MessageCircle,
@@ -14,7 +14,7 @@ import {
 import axiosInstance from "../../config/api";
 
 const reactionEmojis = [
-  { emoji: "👍", label: "like" }, // تم تعديل الـ labels لتطابق الباكيند (lowercase)
+  { emoji: "👍", label: "like" },
   { emoji: "❤️", label: "love" },
   { emoji: "🤯", label: "exploding_head" },
   { emoji: "🙌", label: "raised_hands" },
@@ -22,22 +22,30 @@ const reactionEmojis = [
   { emoji: "👎", label: "dislike" },
 ];
 
-const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
+const Post = ({
+  post,
+  isReactionOpen,
+  setOpenReactionId,
+  menuOptions,
+  // *** Props جديدة جاية من الـ Home ***
+  readingLists = [],
+  setReadingLists,
+  initialIsBookmarked = false,
+  onBookmarkChange,
+}) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // --- الـ States الخاصة بالـ Reactions من برة ---
-  const [selectedReaction, setSelectedReaction] = useState(() => {
-    return localStorage.getItem(`post_react_${post.id}`) || null;
-  });
+  const [selectedReaction, setSelectedReaction] = useState(
+    () => localStorage.getItem(`post_react_${post.id}`) || null,
+  );
   const [reactionsCount, setReactionsCount] = useState(
     post.reactionsCount || 0,
   );
   const [reactionLoading, setReactionLoading] = useState(false);
 
-  // States للـ Reading List
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  // *** الـ bookmark state بيجي من برة — مش محتاجين fetch ***
+  const [isBookmarked, setIsBookmarked] = useState(initialIsBookmarked);
   const [isListOpen, setIsListOpen] = useState(false);
-  const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newListTitle, setNewListTitle] = useState("");
@@ -50,56 +58,16 @@ const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
     };
   };
 
-  // تشيك هل البوست محفوظ وجلب إجمالي الرياكشنز عند تحميل الصفحة
-  useEffect(() => {
-    const checkPostStatus = async () => {
-      try {
-        const headers = getAuthHeaders();
-
-        // 1. تشيك الـ Bookmark
-        const { data: listData } = await axiosInstance.get(
-          "/reading-lists/lists/posts",
-          { headers },
-        );
-        const allLists = listData.data || [];
-        const exists = allLists.some(
-          (list) => list.posts && list.posts.some((p) => p.id === post.id),
-        );
-        setIsBookmarked(exists);
-        setLists(allLists);
-
-        // 2. تحديث إجمالي عدد الرياكشنز الحقيقي من الـ API
-        const { data: reactData } = await axiosInstance.get(
-          `/posts/${post.id}/reactions-count`,
-          { headers },
-        );
-        const reactionsObj = reactData?.["all reactions count"] || {};
-        const count = Object.values(reactionsObj).reduce((a, b) => a + b, 0);
-        setReactionsCount(count);
-      } catch (error) {
-        console.error("Error checking post status", error);
-      }
-    };
-
-    if (post.id) {
-      checkPostStatus();
-      // تحديث حالة الرياكشن الحالي لو الـ id اتغير
-      setSelectedReaction(localStorage.getItem(`post_react_${post.id}`));
-    }
-  }, [post.id]);
-
-  // --- دالة التعامل مع الـ Reactions (إضافة / حذف) ---
   const handleReactionClick = async (emoji, label) => {
     if (reactionLoading) return;
     setReactionLoading(true);
-    setOpenReactionId(null); // اقفل قائمة الرياكشنز بعد الضغط
+    setOpenReactionId(null);
 
     const isCurrentReaction = selectedReaction === label;
     const headers = getAuthHeaders();
 
     try {
       if (isCurrentReaction) {
-        // حذف الرياكشن الحالي
         await axiosInstance.delete(`/posts/${post.id}/remove-react`, {
           headers,
         });
@@ -107,17 +75,12 @@ const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
         setSelectedReaction(null);
         localStorage.removeItem(`post_react_${post.id}`);
       } else {
-        // إضافة أو تعديل الرياكشن
         await axiosInstance.post(
           `/posts/${post.id}/react`,
           { type: label },
           { headers },
         );
-
-        // لو مكنش عامل رياكشن خالص قبل كده زود العداد 1
-        if (!selectedReaction) {
-          setReactionsCount((p) => p + 1);
-        }
+        if (!selectedReaction) setReactionsCount((p) => p + 1);
         setSelectedReaction(label);
         localStorage.setItem(`post_react_${post.id}`, label);
       }
@@ -128,30 +91,16 @@ const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
     }
   };
 
-  const fetchLists = async () => {
-    if (isListOpen) {
-      setIsListOpen(false);
-      return;
-    }
-    setIsListOpen(true);
-    setLoading(true);
-    try {
-      const { data } = await axiosInstance.get("/reading-lists/lists/posts", {
-        headers: getAuthHeaders(),
-      });
-      setLists(data.data || []);
-    } catch (error) {
-      console.error("Error fetching lists", error);
-    } finally {
-      setLoading(false);
-    }
+  // *** فتح الـ dropdown بس — الـ lists جاهزة من الـ Home ***
+  const toggleListDropdown = () => {
+    setIsListOpen((prev) => !prev);
   };
 
   const handleCreateList = async (e) => {
     e.preventDefault();
     if (!newListTitle.trim()) return;
+    setLoading(true);
     try {
-      setLoading(true);
       await axiosInstance.post(
         "/reading-lists",
         { title: newListTitle, description: "" },
@@ -159,10 +108,11 @@ const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
       );
       setNewListTitle("");
       setIsCreating(false);
+      // تحديث الـ lists في الـ Home
       const { data } = await axiosInstance.get("/reading-lists/lists/posts", {
         headers: getAuthHeaders(),
       });
-      setLists(data.data || []);
+      setReadingLists?.(data.data || []);
     } catch (error) {
       console.error("Error creating list", error);
     } finally {
@@ -180,7 +130,7 @@ const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
       );
       setIsListOpen(false);
       setIsBookmarked(true);
-      alert("Post added to list successfully!");
+      onBookmarkChange?.(post.id, true);
     } catch (error) {
       console.error("Error adding post to list", error);
       alert("Post already exists in the list.");
@@ -189,7 +139,6 @@ const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
     }
   };
 
-  // دالة مساعدة لعرض الإيموجي المختار حالياً من برة
   const getCurrentEmoji = () => {
     const found = reactionEmojis.find((r) => r.label === selectedReaction);
     return found ? found.emoji : null;
@@ -197,7 +146,6 @@ const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
 
   return (
     <article className="w-full bg-white border-b border-gray-300 hover:bg-gray-50 p-5 dark:bg-bg-secondary-dark relative dark:border-gray-700 dark:hover:bg-gray-800/50">
-      {/* زرار الثلاث نقاط */}
       {menuOptions && (
         <div className="absolute top-5 right-5 z-30">
           <button
@@ -235,7 +183,6 @@ const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
 
       <div className="flex gap-6 mx-4 mr-8">
         <div className="flex-1 flex flex-col gap-3">
-          {/* Author info */}
           <div className="flex items-center gap-2 text-sm">
             <div className="min-w-9 min-h-9 w-9 h-9 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700">
               <img
@@ -276,10 +223,8 @@ const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
             ))}
           </div>
 
-          {/* Actions */}
           <div className="flex justify-between items-center text-gray-500 mt-2 dark:text-gray-300">
             <div className="flex gap-4 relative">
-              {/* سيكشن الـ Reaction المحدث بالـ APIs */}
               <div className="relative">
                 <button
                   onClick={() =>
@@ -310,7 +255,6 @@ const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
                 )}
               </div>
 
-              {/* زرار الكومنت المطور للتوجه مباشرة للكومنتات */}
               <Link
                 to={`/post/${post.id}#comments`}
                 className="flex items-center gap-1 hover:text-text-light dark:hover:text-text-dark transition-colors"
@@ -326,9 +270,8 @@ const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
             </div>
 
             <div className="flex gap-3 items-center relative">
-              {/* Reading List Button */}
               <button
-                onClick={fetchLists}
+                onClick={toggleListDropdown}
                 className="cursor-pointer transition hover:scale-110 text-text-light dark:text-text-dark"
               >
                 <Bookmark
@@ -346,13 +289,13 @@ const Post = ({ post, isReactionOpen, setOpenReactionId, menuOptions }) => {
                     {loading && (
                       <Loader2 className="w-5 h-5 animate-spin mx-auto my-2 text-primary" />
                     )}
-                    {!loading && lists.length === 0 && !isCreating && (
+                    {!loading && readingLists.length === 0 && !isCreating && (
                       <p className="text-xs text-gray-500 text-center py-2 dark:text-gray-400">
                         No lists found.
                       </p>
                     )}
                     {!loading &&
-                      lists.map((list) => (
+                      readingLists.map((list) => (
                         <button
                           key={list.id}
                           onClick={() => addPostToList(list.id)}

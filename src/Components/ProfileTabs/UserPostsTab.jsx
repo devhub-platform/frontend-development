@@ -1,45 +1,61 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Post from "../Post/Post"
+import Post from "../Post/Post";
 import axiosInstance from "../../config/api";
-import { Edit3, Archive, Trash2 } from "lucide-react";
 
 const UserPostsTab = ({ openReactionId, setOpenReactionId, author }) => {
   const { id } = useParams();
   const [myPosts, setMyPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [readingLists, setReadingLists] = useState([]);
+  const [bookmarkedPostIds, setBookmarkedPostIds] = useState(new Set());
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("userToken");
+    return { Authorization: `Bearer ${token}`, Accept: "application/json" };
+  };
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      const token = localStorage.getItem("userToken");
+    const fetchData = async () => {
       try {
-        const { data } = await axiosInstance.get(
-          `/users/${id}/posts`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        const [postsRes, listsRes] = await Promise.all([
+          axiosInstance.get(`/users/${id}/posts`, {
+            headers: getAuthHeaders(),
+          }),
+          axiosInstance.get("/reading-lists/lists/posts", {
+            headers: getAuthHeaders(),
+          }),
+        ]);
 
-        // تحويل شكل البيانات (Mapping) لتتوافق مع الـ Post Component
-        const formattedPosts = data.data.map((post) => ({
+        const formattedPosts = postsRes.data.data.map((post) => ({
           id: post.id,
           title: post.title,
           excerpt: post.content,
           author: post.user.name,
           avatar: post.user.avatar_image,
           date: post.created_at,
-          readingTime: post.read_time || "", 
-          tags: post.tags.map((t) => t.name),
+          readingTime: post.read_time || "",
+          tags: post.tags ? post.tags.map((t) => t.name) : [],
           image:
-            post.image_url ||
+            post.image_url?.[0] ||
             post.cover_image ||
             "https://placehold.co/600x400?text=No+Image",
-          reactionsCount: post.reaction ? post.reaction.reaction_with_count.length : 0, // أو حسب مجموع الـ reactions عندك
-          commentsCount: post.reaction ? post.reaction.comments_count : 0,
-          views: post.views,
+          reactionsCount: Object.values(
+            post.reaction?.reaction_with_count || {},
+          ).reduce((a, b) => a + b, 0),
+          commentsCount: post.reaction?.comments_count || 0,
+          views: post.views || 0,
         }));
 
+        const allLists = listsRes.data.data || [];
+        const ids = new Set();
+        allLists.forEach((list) =>
+          (list.posts || []).forEach((p) => ids.add(p.id)),
+        );
+
         setMyPosts(formattedPosts);
+        setReadingLists(allLists);
+        setBookmarkedPostIds(ids);
       } catch (error) {
         console.error("Error fetching user posts:", error);
       } finally {
@@ -47,7 +63,7 @@ const UserPostsTab = ({ openReactionId, setOpenReactionId, author }) => {
       }
     };
 
-    fetchPosts();
+    fetchData();
   }, [id]);
 
   if (loading) {
@@ -64,7 +80,6 @@ const UserPostsTab = ({ openReactionId, setOpenReactionId, author }) => {
       <h3 className="mb-4 font-semibold text-2xl dark:text-white pb-4 dark:border-gray-700">
         {author}'s Published Posts
       </h3>
-
       {myPosts.length > 0 ? (
         <div className="flex flex-col">
           {myPosts.map((post) => (
@@ -73,6 +88,16 @@ const UserPostsTab = ({ openReactionId, setOpenReactionId, author }) => {
               post={post}
               isReactionOpen={openReactionId === post.id}
               setOpenReactionId={setOpenReactionId}
+              readingLists={readingLists}
+              setReadingLists={setReadingLists}
+              initialIsBookmarked={bookmarkedPostIds.has(post.id)}
+              onBookmarkChange={(postId, added) => {
+                setBookmarkedPostIds((prev) => {
+                  const next = new Set(prev);
+                  added ? next.add(postId) : next.delete(postId);
+                  return next;
+                });
+              }}
             />
           ))}
         </div>
