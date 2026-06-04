@@ -114,16 +114,16 @@ export default function PostDetails() {
   return (
     <>
       <div className="flex justify-center dark:bg-bg-primary-dark">
-        <div className="min-h-screen bg-white lg:mx-2 dark:bg-bg-primary-dark">
+        <div className="lg:min-w-[70%] min-h-screen bg-white lg:mx-2 dark:bg-bg-primary-dark">
           <div className="flex items-start justify-center dark:bg-bg-secondary-dark my-5 rounded-2xl">
-            <div className="max-w-5xl w-full px-4 sm:px-6 lg:px-8 py-8 mx-2">
+            <div className="min-w-[85%] max-w-5xl w-full px-4 sm:px-6 lg:px-8 py-8 mx-2">
               {/* Cover Image */}
               {postData.image && (
                 <div className="mb-6">
                   <img
                     src={postData.image}
                     alt="Post cover"
-                    className="w-full h-[400px] object-cover rounded-2xl shadow-sm"
+                    className="w-full h-100 object-cover rounded-2xl shadow-sm"
                   />
                 </div>
               )}

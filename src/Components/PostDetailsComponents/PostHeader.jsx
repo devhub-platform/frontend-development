@@ -1,5 +1,13 @@
-import { Calendar, Clock, Check, Loader2 } from "lucide-react";
-import { useState, useContext } from "react";
+import {
+  Calendar,
+  Clock,
+  Check,
+  Loader2,
+  UserCheck,
+  UserPlus,
+  MessageCircle,
+} from "lucide-react";
+import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../config/api";
 import { UserContext } from "../../context/UserContext";
@@ -15,16 +23,49 @@ export function PostHeader({
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [messageLoading, setMessageLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
   const navigate = useNavigate();
   const { setSelectedConversationId } = useContext(UserContext);
 
+  // ── استخراج الـ myId من الـ token ──────────────────────────────────────
   const token = localStorage.getItem("userToken");
   const headers = {
     Authorization: `Bearer ${token}`,
     Accept: "application/json",
   };
 
-  // Follow / Unfollow
+  const payload = JSON.parse(atob(token.split(".")[1]));
+  const myId = Number(payload.sub);
+
+  const isOwnProfile = myId ;
+
+  // ── جلب حالة الـ follow الحقيقية من الـ API ────────────────────────────
+  useEffect(() => {
+    console.log(author, date, userId);
+    if (!userId || isOwnProfile) {
+      setInitialLoading(false);
+      return;
+    }
+
+    const fetchFollowState = async () => {
+      try {
+        const { data } = await axiosInstance.get("/followers/my-following", {
+          headers,
+        });
+        const followingIds = new Set(data.following?.map((u) => u.id));
+        setIsFollowing(followingIds.has(Number(userId)));
+      } catch (err) {
+        console.error("Failed to fetch follow state:", err);
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    fetchFollowState();
+  }, [userId]);
+
+  // ── Follow / Unfollow ──────────────────────────────────────────────────
   const handleFollowToggle = async () => {
     if (followLoading || !userId) return;
     setFollowLoading(true);
@@ -33,7 +74,7 @@ export function PostHeader({
       : `/users/${userId}/follow`;
     try {
       await axiosInstance.post(url, {}, { headers });
-      setIsFollowing(!isFollowing);
+      setIsFollowing((prev) => !prev);
     } catch (err) {
       console.error("Follow failed:", err);
     } finally {
@@ -41,7 +82,7 @@ export function PostHeader({
     }
   };
 
-  // Message - فتح الشات مباشرة زي ما بيحصل في UsersProfile
+  // ── Message ────────────────────────────────────────────────────────────
   const handleMessage = async () => {
     if (messageLoading || !userId) return;
     setMessageLoading(true);
@@ -57,6 +98,7 @@ export function PostHeader({
         if (conversationId && typeof setSelectedConversationId === "function") {
           setSelectedConversationId(conversationId);
         }
+        navigate("/chat");
       }
     } catch (err) {
       console.error("Message failed:", err);
@@ -67,10 +109,10 @@ export function PostHeader({
 
   return (
     <div className="flex items-center justify-between gap-4 py-6 border-b border-gray-200 dark:border-gray-700">
-      {/* Avatar + info */}
+      {/* ── Avatar + Info ─────────────────────────────────────────────── */}
       <div className="flex items-center gap-4">
         <button
-          onClick={() => userId && navigate(`/users/${userId}`)}
+          onClick={() => navigate(`/users/${userId}`)}
           className="shrink-0"
         >
           <img
@@ -79,21 +121,27 @@ export function PostHeader({
               `https://ui-avatars.com/api/?name=${author}&background=random`
             }
             alt={author}
+            onError={(e) => {
+              e.target.src = `https://ui-avatars.com/api/?name=${author}&background=random`;
+            }}
             className="w-12 h-12 rounded-full object-cover hover:opacity-90 transition-opacity"
           />
         </button>
+
         <div>
           <button
-            onClick={() => userId && navigate(`/users/${userId}`)}
+            onClick={() => navigate(`/users/${userId}`)}
             className="font-semibold text-bg-secondary-dark dark:text-gray-100 hover:underline text-left"
           >
             {author}
           </button>
+
           {authorUsername && (
             <p className="text-xs text-gray-400 dark:text-gray-500">
               @{authorUsername}
             </p>
           )}
+
           <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-300">
             <div className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
@@ -108,40 +156,51 @@ export function PostHeader({
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-2 shrink-0">
-        <button
-          onClick={handleFollowToggle}
-          disabled={followLoading || !userId}
-          className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-200 flex items-center gap-2 disabled:opacity-60 ${
-            isFollowing
-              ? "text-text-light dark:text-text-dark bg-blue-50 border border-blue-200 hover:bg-blue-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
-              : "text-white bg-primary hover:bg-text-light"
-          }`}
-        >
-          {followLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : isFollowing ? (
-            <>
-              <Check className="w-4 h-4" /> Following
-            </>
-          ) : (
-            "Follow"
-          )}
-        </button>
+      {/* ── Actions (مخفية لو أنت صاحب البوست) ───────────────────────── */}
+      {!isOwnProfile && (
+        <div className="flex items-center gap-2 shrink-0">
+          {/* زرار Follow */}
+          <button
+            onClick={handleFollowToggle}
+            disabled={followLoading || initialLoading || !userId}
+            className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-200 flex items-center gap-2 disabled:opacity-60 ${
+              isFollowing
+                ? "text-text-light dark:text-text-dark bg-blue-50 border border-blue-200 hover:bg-red-50 hover:text-red-500 hover:border-red-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
+                : "text-white bg-primary hover:bg-text-light"
+            }`}
+          >
+            {followLoading || initialLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : isFollowing ? (
+              <>
+                <UserCheck className="w-4 h-4" />
+                Following
+              </>
+            ) : (
+              <>
+                <UserPlus className="w-4 h-4" />
+                Follow
+              </>
+            )}
+          </button>
 
-        <button
-          onClick={handleMessage}
-          disabled={messageLoading || !userId}
-          className="px-5 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 flex items-center gap-2 disabled:opacity-60"
-        >
-          {messageLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            "Message"
-          )}
-        </button>
-      </div>
+          {/* زرار Message */}
+          <button
+            onClick={handleMessage}
+            disabled={messageLoading || !userId}
+            className="px-5 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 flex items-center gap-2 disabled:opacity-60"
+          >
+            {messageLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <MessageCircle className="w-4 h-4" />
+                Message
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

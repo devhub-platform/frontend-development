@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   MessageCircle,
   Share2,
@@ -27,14 +27,15 @@ const Post = ({
   isReactionOpen,
   setOpenReactionId,
   menuOptions,
-  // *** Props جديدة جاية من الـ Home ***
   readingLists = [],
   setReadingLists,
   initialIsBookmarked = false,
   onBookmarkChange,
 }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const isLoggedIn = Boolean(localStorage.getItem("userToken"));
 
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedReaction, setSelectedReaction] = useState(
     () => localStorage.getItem(`post_react_${post.id}`) || null,
   );
@@ -42,8 +43,6 @@ const Post = ({
     post.reactionsCount || 0,
   );
   const [reactionLoading, setReactionLoading] = useState(false);
-
-  // *** الـ bookmark state بيجي من برة — مش محتاجين fetch ***
   const [isBookmarked, setIsBookmarked] = useState(initialIsBookmarked);
   const [isListOpen, setIsListOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,13 +51,20 @@ const Post = ({
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("userToken");
-    return {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    };
+    return { Authorization: `Bearer ${token}`, Accept: "application/json" };
+  };
+
+  // لو مش لوجين بيوديه على اللوجين
+  const requireAuth = (action) => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      return false;
+    }
+    return true;
   };
 
   const handleReactionClick = async (emoji, label) => {
+    if (!requireAuth()) return;
     if (reactionLoading) return;
     setReactionLoading(true);
     setOpenReactionId(null);
@@ -91,8 +97,8 @@ const Post = ({
     }
   };
 
-  // *** فتح الـ dropdown بس — الـ lists جاهزة من الـ Home ***
   const toggleListDropdown = () => {
+    if (!requireAuth()) return;
     setIsListOpen((prev) => !prev);
   };
 
@@ -108,7 +114,6 @@ const Post = ({
       );
       setNewListTitle("");
       setIsCreating(false);
-      // تحديث الـ lists في الـ Home
       const { data } = await axiosInstance.get("/reading-lists/lists/posts", {
         headers: getAuthHeaders(),
       });
@@ -154,13 +159,12 @@ const Post = ({
           >
             <MoreVertical size={20} className="text-gray-500" />
           </button>
-
           {isMenuOpen && (
             <>
               <div
                 className="fixed inset-0 z-10"
                 onClick={() => setIsMenuOpen(false)}
-              ></div>
+              />
               <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-20 overflow-hidden">
                 {menuOptions.map((option, index) => (
                   <button
@@ -227,9 +231,13 @@ const Post = ({
             <div className="flex gap-4 relative">
               <div className="relative">
                 <button
-                  onClick={() =>
-                    setOpenReactionId(isReactionOpen ? null : post.id)
-                  }
+                  onClick={() => {
+                    if (!isLoggedIn) {
+                      navigate("/login");
+                      return;
+                    }
+                    setOpenReactionId(isReactionOpen ? null : post.id);
+                  }}
                   className="flex items-center gap-1 cursor-pointer hover:text-text-light dark:hover:text-text-dark transition-colors"
                 >
                   {reactionLoading ? (
@@ -316,7 +324,6 @@ const Post = ({
                         </button>
                       ))}
                   </div>
-
                   {isCreating ? (
                     <form
                       onSubmit={handleCreateList}
@@ -356,16 +363,15 @@ const Post = ({
           </div>
         </div>
 
-        {post.image.length > 0 ?
+        {post.image && post.image.length > 0 && (
           <Link to={`/post/${post.id}`} className="w-30 h-32 shrink-0">
-          <img
-            src={post.image}
-            alt="Post"
-            className="w-full h-full object-cover rounded-xl"
-          />
-        </Link> :
-        ""
-      }
+            <img
+              src={post.image}
+              alt="Post"
+              className="w-full h-full object-cover rounded-xl"
+            />
+          </Link>
+        )}
       </div>
     </article>
   );
