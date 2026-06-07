@@ -12,7 +12,7 @@ import {
   MoreVertical,
   Circle,
 } from "lucide-react";
-import Pusher from "pusher-js";
+// import Pusher from "pusher-js";
 import axiosInstance from "../../config/api";
 import { UserContext } from "../../context/UserContext";
 

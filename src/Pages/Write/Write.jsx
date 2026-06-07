@@ -490,11 +490,20 @@ export default function Write() {
         />
 
         {/* AI Assistant Modal */}
+        {/* AI Assistant Modal */}
         {showAIModal && (
           <AIAssistantModal
             onClose={() => setShowAIModal(false)}
-            onInsert={(text) => {
-              setEditorContent((prev) => prev + "\n" + text);
+            onInsert={({ content, title: aiTitle }) => {
+              // 1. لو الـ AI طلع عنوان والمستخدم اختاره، بنحدث الـ Title بتاع البوست
+              if (aiTitle) {
+                setTitle(aiTitle);
+              }
+
+              // 2. بنضيف الكونتنت الجديد على المحتوى الحالي في الـ Editor
+              setEditorContent((prev) => prev + "\n" + content);
+
+              // 3. بنقفل المودال
               setShowAIModal(false);
             }}
           />

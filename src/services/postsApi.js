@@ -17,7 +17,7 @@ export async function createPost({
   read_time,
   tags = [],
   coverImageFile = null,
-  imageFiles = [], // الـ Array كاملة اللي جاية من الـ components
+  imageFiles = [],
   generated_image_id = null,
   imageUrl = null,
 }) {
@@ -32,26 +32,19 @@ export async function createPost({
     formData.append("generated_image_id", String(generated_image_id));
   }
 
-  // إرسال الـ tags زي ما هي متجربة في الـ API doc عندك tags[0]
   if (tags && tags.length > 0) {
     formData.append("tags[0]", JSON.stringify(tags));
   }
 
-  // الـ Cover Image كـ File منفرد
   if (coverImageFile) {
     formData.append("cover_image", coverImageFile);
   }
 
-  /* 🔴 حل المشكلة الأساسية:
-    الباك إند مستني image_url تكون Array. 
-    هنلف على الـ imageFiles ونضيفهم كلهم بـ Key اسمه image_url[]
-  */
   if (imageFiles && imageFiles.length > 0) {
     imageFiles.forEach((file) => {
       formData.append("image_url[]", file);
     });
   } else if (imageUrl) {
-    // لو مبعوت string URL عادي، بنحطه برضه جوه الـ Array عشان الـ validation
     formData.append("image_url[]", imageUrl);
   }
 
@@ -72,6 +65,28 @@ export async function createPost({
       data.error ||
       `Failed to create post (status ${status || "unknown"})`;
     console.error("createPost error:", err);
+    throw { ...err, friendlyMessage: message };
+  }
+}
+
+// 🔴 الـ End Point الجديدة بتاعة الـ AI Content Generation
+export async function generateAIContent({
+  prompt,
+  length = "short",
+  generate_title = true,
+}) {
+  try {
+    const res = await axiosInstance.post("/posts/ai/generate-content", {
+      prompt,
+      length,
+      generate_title,
+    });
+    return res.data; // بيرجع الـ object اللي فيه success, content, titles
+  } catch (err) {
+    const data = err.response?.data || {};
+    const message =
+      data.message || data.error || "Failed to generate AI content.";
+    console.error("generateAIContent error:", err);
     throw { ...err, friendlyMessage: message };
   }
 }
