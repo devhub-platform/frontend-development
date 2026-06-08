@@ -28,11 +28,9 @@ export default function Write() {
   const [visibility] = useLocalStorageState(
     "devhub_write_visibility",
     "public",
-  ); // لحد ما تستخدمها في الـ API
+  );
 
   const [coverImageFile, setCoverImageFile] = useState(null);
-
-  // 🔴 الستيت الجديدة لحفظ الـ ID الخاص بالصورة المولدة عبر الـ AI
   const [generatedImageId, setGeneratedImageId] = useState(null);
 
   const [editorMode, setEditorMode] = useState("edit"); // 'edit' | 'preview'
@@ -43,10 +41,13 @@ export default function Write() {
   // Mobile drawer
   const [showMobileSettings, setShowMobileSettings] = useState(false);
 
-  // NEW: عدة صور جوه البوست (غير الـ cover)
+  // عدة صور جوه البوست (غير الـ cover)
   const [postImagePreviews, setPostImagePreviews] = useState([]); // array of dataURLs
   const [postImageFiles, setPostImageFiles] = useState([]); // array of File
   const dropZoneRef = useRef(null);
+
+  // 🔴 الستيتس الخاصة بتكبير أي صورة في الصفحة
+  const [activeLightboxImage, setActiveLightboxImage] = useState(null);
 
   const handlePostImagesSelect = (filesList) => {
     const files = Array.from(filesList || []);
@@ -120,7 +121,6 @@ export default function Write() {
     }
   };
 
-  // نحط paste listener على مستوى الصفحة
   useEffect(() => {
     window.addEventListener("paste", handlePasteImages);
     return () => {
@@ -159,7 +159,7 @@ export default function Write() {
     setEditorContent("");
     setCoverImagePreview(null);
     setCoverImageFile(null);
-    setGeneratedImageId(null); // ريست للـ ID برضه بعد النشر
+    setGeneratedImageId(null);
     setPostImageFiles([]);
     setPostImagePreviews([]);
   };
@@ -178,11 +178,10 @@ export default function Write() {
         tags: selectedTags,
         coverImageFile: coverImageFile,
         imageFiles: postImageFiles,
-        generated_image_id: generatedImageId, // 🔴 تمرير الـ ID هنا للسيرفر
+        generated_image_id: generatedImageId,
       };
 
       const res = await createPost(payload);
-
       toast.success(res?.message || "Post published successfully!");
       resetForm();
     } catch (err) {
@@ -209,7 +208,7 @@ export default function Write() {
         tags: selectedTags,
         coverImageFile: coverImageFile,
         imageFiles: postImageFiles,
-        generated_image_id: generatedImageId, // 🔴 تمرير الـ ID هنا برضه في الدرفت
+        generated_image_id: generatedImageId,
       };
 
       const res = await createPost(payload);
@@ -255,7 +254,7 @@ export default function Write() {
             {/* Left/Center - Editor Area */}
             <div className="flex-1">
               <div className="max-w-225 mx-auto py-6 lg:py-8">
-                {/* Title Input (textarea auto-resize) */}
+                {/* Title Input */}
                 <div className="mb-6">
                   <textarea
                     ref={titleRef}
@@ -295,7 +294,6 @@ export default function Write() {
                     AI Assistant
                   </button>
 
-                  {/* يظهر في الموبايل فقط */}
                   <button
                     type="button"
                     onClick={() => setShowMobileSettings(true)}
@@ -311,7 +309,7 @@ export default function Write() {
                   </button>
                 </div>
 
-                {/* Post inner images (غير الـ cover) بنفس المكان اللي عاجبك */}
+                {/* Images inside the post */}
                 <div className="mb-6">
                   <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#475569] dark:text-gray-300">
                     <ImageIcon className="w-4 h-4" />
@@ -354,7 +352,7 @@ export default function Write() {
                     />
                   </div>
 
-                  {/* Thumbnails */}
+                  {/* Thumbnails (🔴 تم إضافة onClick هنا لتكبير صور البوست عند الضغط عليها) */}
                   {postImagePreviews.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-3">
                       {postImagePreviews.map((src, idx) => (
@@ -365,7 +363,8 @@ export default function Write() {
                           <img
                             src={src}
                             alt={`Post ${idx + 1}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover cursor-zoom-in"
+                            onClick={() => setActiveLightboxImage(src)} // تفتح الكبيرة
                           />
                           <button
                             type="button"
@@ -375,9 +374,9 @@ export default function Write() {
                             }}
                             className="
                               absolute top-1 right-1 p-1 rounded-md
-                              bg-black/60 text-white
+                              bg-black/60 text-white cursor-pointer
                               opacity-0 group-hover:opacity-100
-                              transition-opacity
+                              transition-opacity z-10
                             "
                             title="Remove image"
                           >
@@ -389,7 +388,7 @@ export default function Write() {
                   )}
                 </div>
 
-                {/* Editor Tabs (زي ما هي) */}
+                {/* Editor Tabs */}
                 <div className="mb-4 border-b border-gray-200 dark:border-gray-700">
                   <div className="flex gap-4">
                     <button
@@ -425,16 +424,17 @@ export default function Write() {
               </div>
             </div>
 
-            {/* Right Sidebar (Desktop فقط) */}
+            {/* Right Sidebar (Desktop) */}
             <div className="hidden lg:block">
               <RightSidebar
                 coverImagePreview={coverImagePreview}
                 onCoverImagePreviewChange={setCoverImagePreview}
                 onCoverFileChange={setCoverImageFile}
                 variant="desktop"
-                generatedImageId={generatedImageId} // 🔴 ممرر للربط
-                onGeneratedImageIdChange={setGeneratedImageId} // 🔴 ممرر للربط
-                currentTitle={title} // 🔴 لتوليد prompt تلقائي
+                generatedImageId={generatedImageId}
+                onGeneratedImageIdChange={setGeneratedImageId}
+                currentTitle={title}
+                onPreviewLargeImage={setActiveLightboxImage} // 🔴 مررنا الـ handler لتكبير الكفر
               />
             </div>
           </div>
@@ -465,12 +465,7 @@ export default function Write() {
                 <button
                   type="button"
                   onClick={() => setShowMobileSettings(false)}
-                  className="
-                    p-2 rounded-lg
-                    hover:bg-gray-100 dark:hover:bg-bg-primary-dark
-                    transition-colors
-                  "
-                  title="Close"
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-bg-primary-dark transition-colors"
                 >
                   <X className="w-6 h-6 text-[#475569] dark:text-gray-200" />
                 </button>
@@ -482,16 +477,17 @@ export default function Write() {
                   onCoverImagePreviewChange={setCoverImagePreview}
                   onCoverFileChange={setCoverImageFile}
                   variant="drawer"
-                  generatedImageId={generatedImageId} // 🔴 ممرر في الموبايل برضه
-                  onGeneratedImageIdChange={setGeneratedImageId} // 🔴 ممرر في الموبايل برضه
+                  generatedImageId={generatedImageId}
+                  onGeneratedImageIdChange={setGeneratedImageId}
                   currentTitle={title}
+                  onPreviewLargeImage={setActiveLightboxImage} // 🔴 مررنا الـ handler للموبايل برضه
                 />
               </div>
             </div>
           </div>
         )}
 
-        {/* Action Buttons - Sticky Bottom */}
+        {/* Action Buttons */}
         <ActionButtons
           onPublish={handlePublish}
           onSaveDraft={handleSaveDraft}
@@ -504,13 +500,33 @@ export default function Write() {
           <AIAssistantModal
             onClose={() => setShowAIModal(false)}
             onInsert={({ content, title: aiTitle }) => {
-              if (aiTitle) {
-                setTitle(aiTitle);
-              }
+              if (aiTitle) setTitle(aiTitle);
               setEditorContent((prev) => prev + "\n" + content);
               setShowAIModal(false);
             }}
           />
+        )}
+
+        {/* 🔴 شاشة التكبير المنبثقة الـ Lightbox (المشتركة لكل صور الصفحة) */}
+        {activeLightboxImage && (
+          <div
+            className="fixed inset-0 z-200 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+            onClick={() => setActiveLightboxImage(null)}
+          >
+            <button
+              type="button"
+              className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors cursor-pointer"
+              onClick={() => setActiveLightboxImage(null)}
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <img
+              src={activeLightboxImage}
+              alt="Large Preview"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 scale-100"
+              onClick={(e) => e.stopPropagation()} // عشان ما يقفلش لما نضغط ع الصورة نفسها
+            />
+          </div>
         )}
       </div>
     </>

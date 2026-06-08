@@ -1,5 +1,12 @@
 // src/Components/WriteComponents/RightSidebar.jsx
-import { Upload, Wand2, EyeOff, Lightbulb, Loader2 } from "lucide-react";
+import {
+  Upload,
+  Wand2,
+  EyeOff,
+  Lightbulb,
+  Loader2,
+  Maximize2,
+} from "lucide-react";
 import { useCallback, useState } from "react";
 import { generateAIImage, deleteAIImage } from "../../services/postsApi";
 import toast from "react-hot-toast";
@@ -9,9 +16,10 @@ export function RightSidebar({
   onCoverImagePreviewChange,
   onCoverFileChange,
   variant = "desktop",
-  generatedImageId, // 🔴 ممرر من صفحة Write
-  onGeneratedImageIdChange, // 🔴 ممرر من صفحة Write
-  currentTitle = "", // عشان نستخدمه كـ prompt افتراضي لو حبت
+  generatedImageId,
+  onGeneratedImageIdChange,
+  currentTitle = "",
+  onPreviewLargeImage, // 🔴 بروب جديد استلمناه لتشغيل شاشة التكبير عند الضغط على الكفر
 }) {
   const [isGeneratingImg, setIsGeneratingImg] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
@@ -22,7 +30,6 @@ export function RightSidebar({
       const file = e.target.files && e.target.files[0];
       if (!file) return;
 
-      // لو كان في صورة AI قديمة بنمسح الـ ID بتاعها عشان اليوزر رفع مانيوال
       if (generatedImageId) {
         onGeneratedImageIdChange(null);
       }
@@ -44,7 +51,6 @@ export function RightSidebar({
     ],
   );
 
-  // 🔴 دالة التوليد بالـ AI الحقيقية
   const handleGenerateImageSubmit = async () => {
     const finalPrompt =
       aiPrompt.trim() ||
@@ -58,7 +64,7 @@ export function RightSidebar({
       if (res?.success) {
         onCoverImagePreviewChange(res.secure_url);
         onGeneratedImageIdChange(res.generated_image_id);
-        onCoverFileChange(null); // بنلغي الفايل العادي لأننا هنرفع الـ ID
+        onCoverFileChange(null);
         setShowPromptInput(false);
         toast.success(res.message || "AI Image generated successfully! 🎨");
       }
@@ -70,8 +76,8 @@ export function RightSidebar({
     }
   };
 
-  // 🔴 دالة الـ Remove والـ Discard من السيرفر
-  const handleRemoveImage = async () => {
+  const handleRemoveImage = async (e) => {
+    e.stopPropagation(); // يمنع فتح الـ Preview لما نضغط حذف
     if (generatedImageId) {
       const loadingToast = toast.loading("Discarding AI Image from server...");
       try {
@@ -88,7 +94,6 @@ export function RightSidebar({
       }
     }
 
-    // ريست لكل الستيتس الخاصة بالكفر في الفرونت
     onCoverImagePreviewChange(null);
     onCoverFileChange(null);
     onGeneratedImageIdChange(null);
@@ -119,17 +124,25 @@ export function RightSidebar({
           </h3>
 
           {coverImagePreview ? (
-            <div className="relative group">
+            /* 🔴 جعلنا الحاوية قابلة للضغط لتفتح نافذة التكبير الكبيرة مع تغيير الماوس لـ zoom-in */
+            <div
+              className="relative group cursor-zoom-in"
+              onClick={() => onPreviewLargeImage(coverImagePreview)}
+            >
               <img
                 src={coverImagePreview}
                 alt="Cover"
                 className="w-full h-32 object-cover rounded-lg"
               />
+              {/* أيقونة تلميح للتكبير تظهر عند الـ Hover */}
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                <Maximize2 className="w-6 h-6 text-white bg-black/40 p-1.5 rounded-full" />
+              </div>
               <button
                 type="button"
                 onClick={handleRemoveImage}
                 className="
-                  absolute top-2 right-2 p-1 rounded
+                  absolute top-2 right-2 p-1 rounded z-10
                   bg-red-600 text-white cursor-pointer
                   opacity-0 group-hover:opacity-100 transition-opacity
                 "
@@ -158,7 +171,6 @@ export function RightSidebar({
                 />
               </label>
 
-              {/* تحسين شكل الـ Prompt input عشان اليوزر يتحكم في شكل الصوره */}
               {showPromptInput ? (
                 <div className="space-y-2 mt-2 border-t pt-2 dark:border-gray-700">
                   <textarea
