@@ -46,7 +46,7 @@ export default function Write() {
   const [postImageFiles, setPostImageFiles] = useState([]); // array of File
   const dropZoneRef = useRef(null);
 
-  // 🔴 الستيتس الخاصة بتكبير أي صورة في الصفحة
+  // شاشة تكبير أي صورة في الصفحة
   const [activeLightboxImage, setActiveLightboxImage] = useState(null);
 
   const handlePostImagesSelect = (filesList) => {
@@ -226,6 +226,7 @@ export default function Write() {
 
   return (
     <>
+      {/* 🔴 تم تحديث خصائص الـ Toaster لمنع خروج الكلام الطويل */}
       <Toaster
         position="top-center"
         toastOptions={{
@@ -236,6 +237,11 @@ export default function Write() {
             borderRadius: "12px",
             padding: "12px 14px",
             boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+            // 🔴 الخصائص الجديدة لالتفاف الكلمات الطويلة والتحكم بالـ Layout
+            wordBreak: "break-word",
+            whiteSpace: "pre-wrap",
+            maxWidth: "420px",
+            width: "100%",
           },
           success: {
             iconTheme: { primary: "var(--color-primary)", secondary: "white" },
@@ -352,7 +358,7 @@ export default function Write() {
                     />
                   </div>
 
-                  {/* Thumbnails (🔴 تم إضافة onClick هنا لتكبير صور البوست عند الضغط عليها) */}
+                  {/* Thumbnails */}
                   {postImagePreviews.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-3">
                       {postImagePreviews.map((src, idx) => (
@@ -364,7 +370,7 @@ export default function Write() {
                             src={src}
                             alt={`Post ${idx + 1}`}
                             className="w-full h-full object-cover cursor-zoom-in"
-                            onClick={() => setActiveLightboxImage(src)} // تفتح الكبيرة
+                            onClick={() => setActiveLightboxImage(src)}
                           />
                           <button
                             type="button"
@@ -434,7 +440,7 @@ export default function Write() {
                 generatedImageId={generatedImageId}
                 onGeneratedImageIdChange={setGeneratedImageId}
                 currentTitle={title}
-                onPreviewLargeImage={setActiveLightboxImage} // 🔴 مررنا الـ handler لتكبير الكفر
+                onPreviewLargeImage={setActiveLightboxImage}
               />
             </div>
           </div>
@@ -480,7 +486,7 @@ export default function Write() {
                   generatedImageId={generatedImageId}
                   onGeneratedImageIdChange={setGeneratedImageId}
                   currentTitle={title}
-                  onPreviewLargeImage={setActiveLightboxImage} // 🔴 مررنا الـ handler للموبايل برضه
+                  onPreviewLargeImage={setActiveLightboxImage}
                 />
               </div>
             </div>
@@ -507,7 +513,7 @@ export default function Write() {
           />
         )}
 
-        {/* 🔴 شاشة التكبير المنبثقة الـ Lightbox (المشتركة لكل صور الصفحة) */}
+        {/* شاشة التكبير المنبثقة الـ Lightbox */}
         {activeLightboxImage && (
           <div
             className="fixed inset-0 z-200 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
@@ -524,7 +530,7 @@ export default function Write() {
               src={activeLightboxImage}
               alt="Large Preview"
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 scale-100"
-              onClick={(e) => e.stopPropagation()} // عشان ما يقفلش لما نضغط ع الصورة نفسها
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
         )}
