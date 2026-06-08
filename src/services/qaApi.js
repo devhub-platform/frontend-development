@@ -1,3 +1,4 @@
+// src/services/qaApi.js
 import axiosInstance from "../config/api";
 
 // interceptor للهيدرز والتوكن
@@ -10,7 +11,7 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-export async function fetchQuestions({ tab, page = 1, per_page = 15 }) {
+export async function fetchQuestions({ tab, page = 1, per_page = 5 }) {
   let sortParam = "";
 
   // mapping الـ Tabs لـ query parameters بتاعة الباك إند
@@ -49,23 +50,18 @@ export async function fetchHotQuestions() {
 // 3) سؤال واحد بالتفاصيل
 export async function fetchQuestionById(id) {
   const res = await axiosInstance.get(`/questions/${id}`);
-  // الـ API بيرجع { success, data: {...} }
   return res.data.data;
 }
 
 // تصويت على سؤال
-// vote_type = "upvote" | "downvote"
 export async function voteQuestion(id, vote_type) {
   const res = await axiosInstance.post(`/questions/${id}/vote`, {
-    vote_type, // "upvote" | "downvote"
+    vote_type,
   });
-  // API sample:
-  // { success: true, message: "Vote recorded", data: { question_id, vote_score, current_user_vote } }
   return res.data.data;
 }
 
 // إنشاء سؤال جديد (multipart/form-data)
-// payload: { title, content, tags: string[], images: File[] }
 export async function createQuestion(payload) {
   const formData = new FormData();
   formData.append("title", payload.title);
@@ -81,12 +77,9 @@ export async function createQuestion(payload) {
 
   const res = await axiosInstance.post("/questions/create", formData, {
     headers: {
-      // خلي axios يسيب الـ boundary
       "Content-Type": "multipart/form-data",
     },
   });
 
-  // response sample اللي بعتِيه
-  // { success: true, message: "...", data: { id, title, content, slug, ... } }
   return res.data;
 }

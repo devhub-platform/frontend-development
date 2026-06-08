@@ -22,19 +22,16 @@ export function QuestionCard({ question }) {
           )}
         </div>
 
-        {/* Preview للـ content كـ Markdown، مش نص خام */}
         <div className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2 overflow-hidden">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              // علشان الكارد صغير: نخلي الهيدنج باراجراف عادي
               h1: "p",
               h2: "p",
               h3: "p",
               h4: "p",
               h5: "p",
               h6: "p",
-              // الكود inline يبقى واضح، البلوك نخليه بسيط جوه الكارد
               code: ({ node, inline, className, children, ...props }) =>
                 inline ? (
                   <code
@@ -48,7 +45,6 @@ export function QuestionCard({ question }) {
                     {children}
                   </code>
                 ),
-              // الكوت كـ باراجراف ببوردر خفيف
               blockquote: ({ node, children, ...props }) => (
                 <blockquote
                   className="border-l-2 border-gray-200 dark:border-gray-700 pl-2 italic text-gray-500 dark:text-gray-400"
@@ -81,16 +77,13 @@ export function QuestionCard({ question }) {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-gray-50 dark:border-gray-800">
-          {/* Stats Bar */}
           <div className="flex items-center gap-2">
-            {/* Votes Pill */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-[13px] border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300">
               <ArrowBigUp className="w-4 h-4 text-orange-500" />
               <span className="font-medium">{question.vote_score}</span>
               <span className="hidden sm:inline">votes</span>
             </div>
 
-            {/* Answers Pill */}
             <div
               className={`
         inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-[13px] border transition-colors
@@ -108,7 +101,6 @@ export function QuestionCard({ question }) {
               </span>
             </div>
 
-            {/* Views Pill */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-[13px] border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300">
               <Eye className="w-4 h-4 text-gray-400" />
               <span className="font-medium">{question.views}</span>
@@ -116,7 +108,6 @@ export function QuestionCard({ question }) {
             </div>
           </div>
 
-          {/* Author & Time */}
           <div className="flex items-center gap-2">
             <img
               src={

@@ -1,4 +1,3 @@
-// src/Components/QAComponents/QAHeader.jsx
 import React from "react";
 import { MessageSquarePlus } from "lucide-react";
 import { Link } from "react-router-dom";

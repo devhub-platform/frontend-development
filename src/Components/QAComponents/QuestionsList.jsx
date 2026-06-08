@@ -1,4 +1,3 @@
-// src/Components/QAComponents/QuestionsList.jsx
 import React from "react";
 import { QuestionCard } from "./QuestionCard";
 

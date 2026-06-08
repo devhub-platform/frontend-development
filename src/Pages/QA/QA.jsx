@@ -1,10 +1,12 @@
 /* eslint-disable no-unused-vars */
+// src/pages/QA/QA.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { QAHeader } from "../../Components/QAComponents/QAHeader";
 import { QAToolbar } from "../../Components/QAComponents/QAToolbar";
 import { QuestionsList } from "../../Components/QAComponents/QuestionsList";
 import { Sidebar } from "../../Components/QAComponents/Sidebar";
 import { Messages } from "../../Components/Messages/Messages";
+import { ChevronLeft, ChevronRight } from "lucide-react"; // أيقونات شكلها أشيك للأزرار
 import * as qaApi from "../../services/qaApi";
 
 export default function QA() {
@@ -16,6 +18,8 @@ export default function QA() {
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState(null);
 
+  const PER_PAGE = 5; // تثبيت العرض الافتراضي بناءً على الـ API عندك
+
   // دالة تحميل الأسئلة
   const loadQuestions = useCallback(async () => {
     try {
@@ -24,6 +28,7 @@ export default function QA() {
       const data = await qaApi.fetchQuestions({
         tab: activeTab,
         page: currentPage,
+        per_page: PER_PAGE, // ممرر بشكل ديناميكي هنا
       });
       setQuestions(data.data || []);
       setMeta(data.meta || { total: 0, current_page: 1, last_page: 1 });
@@ -52,11 +57,38 @@ export default function QA() {
     loadHotQuestions();
   }, [loadHotQuestions]);
 
+  // دالة الانتقال بين الصفحات مع الـ Smooth Scroll لفوق
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   // دالة الانتقال لتاب الهوت من الـ Sidebar
   const handleViewMoreHot = () => {
-    setActiveTab("Trending"); // دي اللي مرتبطة بـ sort_by=hot في الـ API
+    setActiveTab("Trending");
     setCurrentPage(1);
-    window.scrollTo({ top: 0, behavior: "smooth" }); // حركة شيك تطلع المستخدم لأول النتائج
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // 🔴 تابع إنشاء مصفوفة أرقام الصفحات بناءً على الـ last_page الراجع من السيرفر
+  const renderPageNumbers = () => {
+    const pages = [];
+    for (let i = 1; i <= meta.last_page; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`w-9 h-9 rounded-full text-sm font-semibold transition-all ${
+            meta.current_page === i
+              ? "bg-primary text-white shadow-md shadow-primary/20"
+              : "border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+          }`}
+        >
+          {i}
+        </button>,
+      );
+    }
+    return pages;
   };
 
   return (
@@ -64,12 +96,10 @@ export default function QA() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:pt-3 pb-16">
         {/* Floating Messages */}
         <div className="fixed bottom-4 right-4 z-50 lg:hidden">
-          {" "}
-          <Messages />{" "}
+          <Messages />
         </div>
         <div className="fixed bottom-0 left-2 z-50 w-[18%] mt-10 ml-2 hidden lg:block">
-          {" "}
-          <Messages />{" "}
+          <Messages />
         </div>
 
         <QAHeader total={meta.total} />
@@ -78,7 +108,7 @@ export default function QA() {
           activeTab={activeTab}
           setActiveTab={(tab) => {
             setActiveTab(tab);
-            setCurrentPage(1);
+            setCurrentPage(1); // تصفير الصفحة لأول صفحة عند تغيير الـ Tab
           }}
         />
 
@@ -99,26 +129,38 @@ export default function QA() {
               <>
                 <QuestionsList questions={questions} />
 
-                {/* Pagination */}
+                {/* 🔴 جزء الـ Pagination المطور والمربوط بالكامل بالسيرفر */}
                 {meta.last_page > 1 && (
-                  <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-sm text-gray-500">
-                      Page {meta.current_page} of {meta.last_page}
+                  <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100 dark:border-gray-800 pt-6">
+                    <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                      Showing {questions.length} of {meta.total} questions (Page{" "}
+                      {meta.current_page} of {meta.last_page})
                     </div>
-                    <div className="flex gap-2">
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* زر البريفيس */}
                       <button
                         disabled={meta.current_page === 1}
-                        onClick={() => setCurrentPage((prev) => prev - 1)}
-                        className="px-5 py-2 rounded-full border border-gray-300 dark:border-gray-600 disabled:opacity-30 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        onClick={() => handlePageChange(meta.current_page - 1)}
+                        className="p-2 rounded-full border border-gray-300 dark:border-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors flex items-center justify-center"
+                        title="Previous Page"
                       >
-                        Previous
+                        <ChevronLeft className="w-5 h-5" />
                       </button>
+
+                      {/* عرض أرقام الصفحات ديناميكياً */}
+                      <div className="flex items-center gap-1.5">
+                        {renderPageNumbers()}
+                      </div>
+
+                      {/* زر النيكست */}
                       <button
                         disabled={meta.current_page === meta.last_page}
-                        onClick={() => setCurrentPage((prev) => prev + 1)}
-                        className="px-5 py-2 rounded-full bg-primary text-white disabled:opacity-30 hover:bg-opacity-90 transition-all"
+                        onClick={() => handlePageChange(meta.current_page + 1)}
+                        className="p-2 rounded-full border border-gray-300 dark:border-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors flex items-center justify-center"
+                        title="Next Page"
                       >
-                        Next
+                        <ChevronRight className="w-5 h-5" />
                       </button>
                     </div>
                   </div>
