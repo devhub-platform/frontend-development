@@ -33,22 +33,13 @@ export default function Login() {
   // --- Functions for Social Login ---
   const handleGoogleLogin = async () => {
     try {
-      setSocialLoading(true);
-      const { data } = await axiosInstance.post(
-        `/front/auth/google/login`,
-        {},
-        { headers },
-      );
+      const { data } = await axiosInstance.get("/auth");
+
       if (data.url) {
         window.location.href = data.url;
-      } else {
-        toast.error("Google login URL not received");
       }
     } catch (error) {
       console.error(error);
-      toast.error("Google login failed");
-    } finally {
-      setSocialLoading(false);
     }
   };
 

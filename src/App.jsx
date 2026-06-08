@@ -26,10 +26,11 @@ import AuthCallback from "./Pages/AuthCallback";
 import ReadingListDetails from "./Components/ReadingListDetails/ReadingListDetails";
 import MyFollowing from "./Pages/MyFollowing/MyFollowing";
 import MyFollowers from "./Pages/MyFollowers/MyFollowers";
-import UserFollowing from "./Pages/UsersFollowing/UsersFollowing"
+import UserFollowing from "./Pages/UsersFollowing/UsersFollowing";
 import UserFollowers from "./Pages/UsersFollowers/UsersFollowers";
 import Settings from "./Pages/Settings/Settings";
 import QuestionsByTag from "./Pages/QuestionsByTag/QuestionsByTag";
+import GoogleCallback from "./Pages/Auth/GoogleCallback";
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/interests" element={<Interests />} />
         <Route path="/recommendations" element={<Recommendations />} />
+        <Route path="/auth/google" element={<GoogleCallback />} />
         <Route path="/" element={<Layout />}>
           <Route path="home" element={<Home />} />
           <Route path="trending" element={<Trending />} />
