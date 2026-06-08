@@ -115,22 +115,13 @@ export default function Register() {
 
   const handleGithubLogin = async () => {
     try {
-      setSocialLoading(true);
-      const { data } = await axiosInstance.post(
-        `/front/auth/github/login`,
-        {},
-        { headers },
-      );
+      const { data } = await axiosInstance.get("/auth/github");
+
       if (data.url) {
         window.location.href = data.url;
-      } else {
-        toast.error("GitHub login URL not received");
       }
     } catch (error) {
       console.error(error);
-      toast.error("GitHub login failed");
-    } finally {
-      setSocialLoading(false);
     }
   };
 

@@ -31,6 +31,7 @@ import UserFollowers from "./Pages/UsersFollowers/UsersFollowers";
 import Settings from "./Pages/Settings/Settings";
 import QuestionsByTag from "./Pages/QuestionsByTag/QuestionsByTag";
 import GoogleCallback from "./Pages/Auth/GoogleCallback";
+import GithubCallback from "./Pages/Auth/GithubCallback";
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
         <Route path="/interests" element={<Interests />} />
         <Route path="/recommendations" element={<Recommendations />} />
         <Route path="/auth/google" element={<GoogleCallback />} />
+        <Route path="/auth/github/callback" element={<GithubCallback />} />
         <Route path="/" element={<Layout />}>
           <Route path="home" element={<Home />} />
           <Route path="trending" element={<Trending />} />

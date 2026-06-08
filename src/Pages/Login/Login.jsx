@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Mail, Lock, Eye, EyeOff, LoaderPinwheel } from "lucide-react";
 import { useContext, useState } from "react";
 import Helmet from "react-helmet";
@@ -45,22 +46,13 @@ export default function Login() {
 
   const handleGithubLogin = async () => {
     try {
-      setSocialLoading(true);
-      const { data } = await axiosInstance.post(
-        `/front/auth/github/login`,
-        {},
-        { headers },
-      );
+      const { data } = await axiosInstance.get("/auth/github");
+
       if (data.url) {
         window.location.href = data.url;
-      } else {
-        toast.error("GitHub login URL not received");
       }
     } catch (error) {
       console.error(error);
-      toast.error("GitHub login failed");
-    } finally {
-      setSocialLoading(false);
     }
   };
 
