@@ -84,7 +84,7 @@ export function TagInput({ value, onChange }) {
             placeholder={
               tags.length === 0 ? "e.g. css php laravel api" : ""
             }
-            className="flex-1 min-w-[180px] bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400"
+            className="flex-1 min-w-45 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400"
           />
         )}
       </div>
