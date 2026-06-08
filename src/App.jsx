@@ -29,6 +29,7 @@ import MyFollowers from "./Pages/MyFollowers/MyFollowers";
 import UserFollowing from "./Pages/UsersFollowing/UsersFollowing"
 import UserFollowers from "./Pages/UsersFollowers/UsersFollowers";
 import Settings from "./Pages/Settings/Settings";
+import QuestionsByTag from "./Pages/QuestionsByTag/QuestionsByTag";
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
           <Route path="qa" element={<QA />} />
           <Route path="ask" element={<AskQuestionPage />} />
           <Route path="/questions/:id" element={<QuestionPage />} />
+          <Route path="/questions/tag/:tagName" element={<QuestionsByTag />} />
           <Route path="aichat" element={<AIChat />} />
           <Route path="/playground" element={<CodePlaygroundPage />} />
           <Route path="notification" element={<Notifications />} />

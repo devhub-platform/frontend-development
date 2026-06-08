@@ -2,6 +2,7 @@
 import React from "react";
 import MDEditor from "@uiw/react-md-editor";
 import remarkGfm from "remark-gfm";
+import { Link } from "react-router-dom"; // 🔴 استيراد الـ Link للـ Navigation
 
 export function QuestionBody({ question }) {
   const bodyText = question.content || "";
@@ -11,7 +12,7 @@ export function QuestionBody({ question }) {
 
   return (
     <div className="w-full" data-color-mode="light">
-      {/* Markdown Body (نفس رندر الـ preview بالظبط) */}
+      {/* Markdown Body */}
       <div className="prose prose-sm sm:prose-base max-w-none dark:prose-invert text-[#475569] dark:text-gray-300 mb-6 leading-relaxed">
         {bodyText?.trim() ? (
           <MDEditor.Markdown
@@ -63,13 +64,15 @@ export function QuestionBody({ question }) {
       {/* Tags & Meta Row */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-50 dark:border-gray-700 pt-6">
         <div className="flex flex-wrap gap-2">
+          {/* 🔴 تحويل التاج إلى Link تفاعلي يوجه لصفحة الأسئلة المفلترة */}
           {tags.map((tag, index) => (
-            <span
+            <Link
               key={index}
-              className="px-3 py-1 rounded-lg bg-gray-100 dark:bg-bg-secondary-dark border border-gray-200 dark:border-gray-600 text-[10px] font-bold uppercase tracking-wider text-primary dark:text-text-dark hover:bg-primary/5 dark:hover:bg-bg-primary-dark transition-colors cursor-pointer"
+              to={`/questions/tag/${tag.name}`}
+              className="px-3 py-1 rounded-lg bg-gray-100 dark:bg-bg-secondary-dark border border-gray-200 dark:border-gray-600 text-[10px] font-bold uppercase tracking-wider text-primary dark:text-text-dark hover:bg-primary/10 dark:hover:bg-bg-primary-dark transition-all inline-block"
             >
               #{tag.name}
-            </span>
+            </Link>
           ))}
           {tags.length === 0 && (
             <span className="text-xs text-gray-400 dark:text-gray-500">

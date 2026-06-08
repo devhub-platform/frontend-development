@@ -83,3 +83,9 @@ export async function createQuestion(payload) {
 
   return res.data;
 }
+
+// 🔴 الـ End Point الجديدة للـ Filtering بالـ Tag
+export async function fetchQuestionsByTag(tagName) {
+  const res = await axiosInstance.get(`/questions/by-tag/${tagName}`);
+  return res.data; // بيرجع الـ object اللي فيه success, tag, data
+}
