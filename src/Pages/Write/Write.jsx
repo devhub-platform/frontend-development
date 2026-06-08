@@ -32,6 +32,9 @@ export default function Write() {
 
   const [coverImageFile, setCoverImageFile] = useState(null);
 
+  // 🔴 الستيت الجديدة لحفظ الـ ID الخاص بالصورة المولدة عبر الـ AI
+  const [generatedImageId, setGeneratedImageId] = useState(null);
+
   const [editorMode, setEditorMode] = useState("edit"); // 'edit' | 'preview'
   const [showAIModal, setShowAIModal] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -156,6 +159,7 @@ export default function Write() {
     setEditorContent("");
     setCoverImagePreview(null);
     setCoverImageFile(null);
+    setGeneratedImageId(null); // ريست للـ ID برضه بعد النشر
     setPostImageFiles([]);
     setPostImagePreviews([]);
   };
@@ -166,15 +170,15 @@ export default function Write() {
     try {
       setIsPublishing(true);
 
-      // بنبعت الـ object بالأسماء اللي الـ Service مستنياها
       const payload = {
         title: title.trim(),
         content: editorContent,
         status: "published",
         read_time: undefined,
         tags: selectedTags,
-        coverImageFile: coverImageFile, // ملف الكفر الحقيقي
-        imageFiles: postImageFiles, // مصفوفة صور البوست بالكامل
+        coverImageFile: coverImageFile,
+        imageFiles: postImageFiles,
+        generated_image_id: generatedImageId, // 🔴 تمرير الـ ID هنا للسيرفر
       };
 
       const res = await createPost(payload);
@@ -183,7 +187,6 @@ export default function Write() {
       resetForm();
     } catch (err) {
       console.error(err);
-      // بنستخدم الـ friendlyMessage اللي إنتِ مجهزاها في الـ service
       const msg =
         err?.friendlyMessage || "Failed to publish post. Please try again.";
       toast.error(msg);
@@ -206,6 +209,7 @@ export default function Write() {
         tags: selectedTags,
         coverImageFile: coverImageFile,
         imageFiles: postImageFiles,
+        generated_image_id: generatedImageId, // 🔴 تمرير الـ ID هنا برضه في الدرفت
       };
 
       const res = await createPost(payload);
@@ -428,6 +432,9 @@ export default function Write() {
                 onCoverImagePreviewChange={setCoverImagePreview}
                 onCoverFileChange={setCoverImageFile}
                 variant="desktop"
+                generatedImageId={generatedImageId} // 🔴 ممرر للربط
+                onGeneratedImageIdChange={setGeneratedImageId} // 🔴 ممرر للربط
+                currentTitle={title} // 🔴 لتوليد prompt تلقائي
               />
             </div>
           </div>
@@ -475,6 +482,9 @@ export default function Write() {
                   onCoverImagePreviewChange={setCoverImagePreview}
                   onCoverFileChange={setCoverImageFile}
                   variant="drawer"
+                  generatedImageId={generatedImageId} // 🔴 ممرر في الموبايل برضه
+                  onGeneratedImageIdChange={setGeneratedImageId} // 🔴 ممرر في الموبايل برضه
+                  currentTitle={title}
                 />
               </div>
             </div>
@@ -490,20 +500,14 @@ export default function Write() {
         />
 
         {/* AI Assistant Modal */}
-        {/* AI Assistant Modal */}
         {showAIModal && (
           <AIAssistantModal
             onClose={() => setShowAIModal(false)}
             onInsert={({ content, title: aiTitle }) => {
-              // 1. لو الـ AI طلع عنوان والمستخدم اختاره، بنحدث الـ Title بتاع البوست
               if (aiTitle) {
                 setTitle(aiTitle);
               }
-
-              // 2. بنضيف الكونتنت الجديد على المحتوى الحالي في الـ Editor
               setEditorContent((prev) => prev + "\n" + content);
-
-              // 3. بنقفل المودال
               setShowAIModal(false);
             }}
           />

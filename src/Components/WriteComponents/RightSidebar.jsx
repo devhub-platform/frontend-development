@@ -1,22 +1,34 @@
 // src/Components/WriteComponents/RightSidebar.jsx
-import { Upload, Wand2, EyeOff, Lightbulb } from "lucide-react";
-import { useCallback } from "react";
+import { Upload, Wand2, EyeOff, Lightbulb, Loader2 } from "lucide-react";
+import { useCallback, useState } from "react";
+import { generateAIImage, deleteAIImage } from "../../services/postsApi";
+import toast from "react-hot-toast";
 
 export function RightSidebar({
   coverImagePreview,
   onCoverImagePreviewChange,
   onCoverFileChange,
   variant = "desktop",
+  generatedImageId, // 🔴 ممرر من صفحة Write
+  onGeneratedImageIdChange, // 🔴 ممرر من صفحة Write
+  currentTitle = "", // عشان نستخدمه كـ prompt افتراضي لو حبت
 }) {
+  const [isGeneratingImg, setIsGeneratingImg] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [showPromptInput, setShowPromptInput] = useState(false);
+
   const handleImageUpload = useCallback(
     (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
 
-      // نحفظ الـ file الحقيقي في الستيت بتاعة الصفحة
+      // لو كان في صورة AI قديمة بنمسح الـ ID بتاعها عشان اليوزر رفع مانيوال
+      if (generatedImageId) {
+        onGeneratedImageIdChange(null);
+      }
+
       onCoverFileChange(file);
 
-      // نقرأه كـ DataURL بس عشان الـ preview
       const reader = new FileReader();
       reader.onload = (event) => {
         const result = event?.target?.result;
@@ -24,18 +36,62 @@ export function RightSidebar({
       };
       reader.readAsDataURL(file);
     },
-    [onCoverFileChange, onCoverImagePreviewChange],
+    [
+      onCoverFileChange,
+      onCoverImagePreviewChange,
+      generatedImageId,
+      onGeneratedImageIdChange,
+    ],
   );
 
-  const handleGenerateImage = async () => {
-    // لحد ماتربط الـ AI تول اللي هتولد صورة cover، هنسيبها Placeholder
-    alert(
-      "AI Cover Image generation would happen here. For now, using a placeholder.",
-    );
-    onCoverImagePreviewChange(
-      "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=800&h=400&fit=crop",
-    );
-    onCoverFileChange(null); // مفيش file حقيقي
+  // 🔴 دالة التوليد بالـ AI الحقيقية
+  const handleGenerateImageSubmit = async () => {
+    const finalPrompt =
+      aiPrompt.trim() ||
+      currentTitle.trim() ||
+      "A futuristic developer workspace with code on screens";
+
+    try {
+      setIsGeneratingImg(true);
+      const res = await generateAIImage(finalPrompt);
+
+      if (res?.success) {
+        onCoverImagePreviewChange(res.secure_url);
+        onGeneratedImageIdChange(res.generated_image_id);
+        onCoverFileChange(null); // بنلغي الفايل العادي لأننا هنرفع الـ ID
+        setShowPromptInput(false);
+        toast.success(res.message || "AI Image generated successfully! 🎨");
+      }
+    } catch (err) {
+      const msg = err?.friendlyMessage || "Failed to generate AI Image.";
+      toast.error(msg);
+    } finally {
+      setIsGeneratingImg(false);
+    }
+  };
+
+  // 🔴 دالة الـ Remove والـ Discard من السيرفر
+  const handleRemoveImage = async () => {
+    if (generatedImageId) {
+      const loadingToast = toast.loading("Discarding AI Image from server...");
+      try {
+        const res = await deleteAIImage(generatedImageId);
+        if (res?.success) {
+          toast.success(res.message || "Generated image discarded.", {
+            id: loadingToast,
+          });
+        }
+      } catch (err) {
+        toast.error(err?.friendlyMessage || "Failed to delete from server.", {
+          id: loadingToast,
+        });
+      }
+    }
+
+    // ريست لكل الستيتس الخاصة بالكفر في الفرونت
+    onCoverImagePreviewChange(null);
+    onCoverFileChange(null);
+    onGeneratedImageIdChange(null);
   };
 
   return (
@@ -71,13 +127,10 @@ export function RightSidebar({
               />
               <button
                 type="button"
-                onClick={() => {
-                  onCoverImagePreviewChange(null);
-                  onCoverFileChange(null);
-                }}
+                onClick={handleRemoveImage}
                 className="
                   absolute top-2 right-2 p-1 rounded
-                  bg-red-600 text-white
+                  bg-red-600 text-white cursor-pointer
                   opacity-0 group-hover:opacity-100 transition-opacity
                 "
                 title="Remove image"
@@ -105,18 +158,53 @@ export function RightSidebar({
                 />
               </label>
 
-              <button
-                type="button"
-                onClick={handleGenerateImage}
-                className="
-                  w-full px-4 py-2 rounded-lg transition-all duration-300
-                  bg-primary text-white hover:shadow-xl hover:-translate-y-0.5
-                  flex items-center justify-center gap-2 cursor-pointer font-semibold
-                "
-              >
-                <Wand2 className="w-5 h-5" />
-                Generate with AI
-              </button>
+              {/* تحسين شكل الـ Prompt input عشان اليوزر يتحكم في شكل الصوره */}
+              {showPromptInput ? (
+                <div className="space-y-2 mt-2 border-t pt-2 dark:border-gray-700">
+                  <textarea
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    placeholder="Enter image description (or leave empty to use title)..."
+                    className="w-full text-xs p-2 border rounded dark:bg-bg-secondary-dark dark:text-white dark:border-gray-700 outline-none resize-none"
+                    rows={2}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={isGeneratingImg}
+                      onClick={handleGenerateImageSubmit}
+                      className="flex-1 text-xs bg-primary text-white py-1.5 rounded font-semibold flex items-center justify-center gap-1 disabled:opacity-50"
+                    >
+                      {isGeneratingImg ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        "Generate"
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPromptInput(false)}
+                      className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white px-2 py-1.5 rounded font-semibold"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowPromptInput(true)}
+                  disabled={isGeneratingImg}
+                  className="
+                    w-full px-4 py-2 rounded-lg transition-all duration-300
+                    bg-primary text-white hover:shadow-xl hover:-translate-y-0.5
+                    flex items-center justify-center gap-2 cursor-pointer font-semibold
+                  "
+                >
+                  <Wand2 className="w-5 h-5" />
+                  Generate with AI
+                </button>
+              )}
             </div>
           )}
         </div>
