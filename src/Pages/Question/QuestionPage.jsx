@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
@@ -10,8 +11,18 @@ import {
   ArrowBigUp,
   ArrowBigDown,
   User as UserIcon,
+  X,
+  Copy,
+  Check,
+  Twitter,
+  Linkedin,
+  Facebook,
 } from "lucide-react";
-import { fetchQuestionById, voteQuestion } from "../../services/qaApi";
+import {
+  fetchQuestionById,
+  voteQuestion,
+  fetchQuestionShareData,
+} from "../../services/qaApi";
 import { QuestionBody } from "../../Components/Question/QuestionBody";
 import { AnswerEditor } from "../../Components/Question/AnswerEditor";
 import { AnswersList } from "../../Components/Question/AnswersList";
@@ -21,11 +32,17 @@ export default function QuestionPage() {
   const { id } = useParams();
   const [question, setQuestion] = useState(null);
   const [questionScore, setQuestionScore] = useState(0);
-  const [currentUserVote, setCurrentUserVote] = useState(null); // "upvote" | "downvote" | null
+  const [currentUserVote, setCurrentUserVote] = useState(null);
   const [bookmarked, setBookmarked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [voteLoading, setVoteLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // 🔴 ستيتس مضافة لمودال الشير وبيانات اللينك
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareData, setShareData] = useState(null);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   // تحميل السؤال من الـ API
   useEffect(() => {
@@ -38,7 +55,7 @@ export default function QuestionPage() {
         if (!isMounted) return;
         setQuestion(data);
         setQuestionScore(data.vote_score ?? 0);
-        setCurrentUserVote(data.current_user_vote); // راجعالك من الباك
+        setCurrentUserVote(data.current_user_vote);
       } catch (err) {
         if (!isMounted) return;
         setError(
@@ -60,65 +77,79 @@ export default function QuestionPage() {
     return [...question.answers];
   }, [question]);
 
-  // هندلة التصويت على السؤال 
+  // هندلة فتح مودال الشير وسحب الداتا من الـ API
+  const handleShareClick = async () => {
+    setShowShareModal(true);
+    if (shareData) return; // لو الداتا مسحوبة قبل كدا ما يسحبهاش تاني
+
+    try {
+      setShareLoading(true);
+      const res = await fetchQuestionShareData(id);
+      if (res?.success) {
+        setShareData(res.data);
+      }
+    } catch (err) {
+      toast.error("Failed to fetch share link. Please try again.");
+      setShowShareModal(false);
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  // نسخ الرابط للـ clipboard
+  const handleCopyLink = async () => {
+    const linkToCopy =
+      shareData?.url || shareData?.slug_url || window.location.href;
+    await navigator.clipboard.writeText(linkToCopy);
+    setIsCopied(true);
+    toast.success("Link copied to clipboard! 📋");
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  // هندلة التصويت على السؤال
   const handleVote = async (direction) => {
     if (!question || voteLoading) return;
 
     const isUp = direction === "up";
-
-    // نوع الفوت الجديد اللي هنرسله
     const newType = isUp ? "upvote" : "downvote";
-
-    // optimistic UI: نحسب السكور المتوقع حسب الحالة القديمة
-    const prevVote = currentUserVote; // "upvote" | "downvote" | null
+    const prevVote = currentUserVote;
     const prevScore = questionScore;
-
     let optimisticScore = questionScore;
 
     if (newType === "upvote") {
       if (prevVote === "upvote") {
-        // احتمال إن الباك يستخدم نفس النوع كتوجّل (يلغي الفوت)
-        // مبدئياً ننقص 1 كتوقّع
         optimisticScore -= 1;
       } else if (prevVote === "downvote") {
-        optimisticScore += 2; // -1 → +1
+        optimisticScore += 2;
       } else if (prevVote === null) {
         optimisticScore += 1;
       }
     } else if (newType === "downvote") {
       if (prevVote === "downvote") {
-        // نفس الفكرة - ممكن يكون توجل لإلغاء الفوت
         optimisticScore += 1;
       } else if (prevVote === "upvote") {
-        optimisticScore -= 2; // +1 → -1
+        optimisticScore -= 2;
       } else if (prevVote === null) {
         optimisticScore -= 1;
       }
     }
 
-    // نحدّث الواجهة بشكل متوقَّع
     setQuestionScore(optimisticScore);
     setCurrentUserVote(newType);
     setVoteLoading(true);
 
     try {
       const data = await voteQuestion(id, newType);
-
-      // sync مع القيم اللي رجعت من الباك
-      // لو الباك عمل toggle وألغى الفوت، هيبعت current_user_vote = null
       setQuestionScore(
         typeof data.vote_score === "number" ? data.vote_score : optimisticScore,
       );
-      setCurrentUserVote(data.current_user_vote); // "upvote" | "downvote" | null
+      setCurrentUserVote(data.current_user_vote);
     } catch (err) {
-      // rollback
       setQuestionScore(prevScore);
       setCurrentUserVote(prevVote);
 
       if (err.response?.status === 401) {
         toast.error("You must be logged in to vote.");
-      } else if (err.response?.data?.errors?.vote_type) {
-        toast.error(err.response.data.errors.vote_type[0]);
       } else {
         toast.error(
           err.response?.data?.message || "Failed to record your vote.",
@@ -170,18 +201,18 @@ export default function QuestionPage() {
               {question.title}
             </h1>
             <div className="flex flex-wrap items-center gap-5 text-[12px] font-bold uppercase tracking-widest text-gray-400">
-              <span className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-bg-primary-dark rounded-full border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-[0_0_14px_rgba(15,23,42,0.7)]">
+              <span className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-bg-primary-dark rounded-full border border-gray-100 dark:border-gray-700 shadow-sm">
                 <Clock className="w-4 h-4 text-primary" /> {question.created_at}
               </span>
-              <span className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-bg-primary-dark rounded-full border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-[0_0_14px_rgba(15,23,42,0.7)]">
+              <span className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-bg-primary-dark rounded-full border border-gray-100 dark:border-gray-700 shadow-sm">
                 <EyeIcon className="w-4 h-4 text-amber-500" /> {question.views}{" "}
                 Views
               </span>
-              <span className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-bg-primary-dark rounded-full border border-gray-100 dark:border-gray-700 shadow-sm ">
+              <span className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-bg-primary-dark rounded-full border border-gray-100 dark:border-gray-700 shadow-sm">
                 <BarChart2 className="w-4 h-4 text-emerald-500" />{" "}
                 {questionScore} Votes
               </span>
-              <span className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-bg-primary-dark rounded-full border border-gray-100 dark:border-gray-700 shadow-sm ">
+              <span className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-bg-primary-dark rounded-full border border-gray-100 dark:border-gray-700 shadow-sm">
                 <UserIcon className="w-4 h-4 text-sky-500" />{" "}
                 {question.answers_count} Answers
               </span>
@@ -189,10 +220,10 @@ export default function QuestionPage() {
           </div>
           <button
             onClick={() => setBookmarked((b) => !b)}
-            className={`shrink-0 flex items-center justify-center w-14 h-14 rounded-3xl border transition-all ${
+            className={`shrink-0 flex items-center justify-center w-14 h-14 rounded-3xl border transition-all cursor-pointer ${
               bookmarked
                 ? "bg-amber-400 border-amber-400 text-white shadow-xl"
-                : "bg-white dark:bg-bg-primary-dark border-gray-200 dark:border-gray-700 text-gray-300 hover:text-amber-500 shadow-sm dark:shadow-[0_0_16px_rgba(15,23,42,0.8)]"
+                : "bg-white dark:bg-bg-primary-dark border-gray-200 dark:border-gray-700 text-gray-300 hover:text-amber-500 shadow-sm"
             }`}
           >
             <Bookmark
@@ -204,17 +235,17 @@ export default function QuestionPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12">
           <section className="min-w-0">
             {/* Question card */}
-            <article className="bg-white dark:bg-bg-primary-dark rounded-[2.5rem] border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-[0_0_30px_rgba(15,23,42,0.95)] overflow-hidden mb-12">
+            <article className="bg-white dark:bg-bg-primary-dark rounded-[2.5rem] border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden mb-12">
               <div className="p-8 sm:p-10">
                 <QuestionBody question={question} />
 
                 {/* Footer bar (Voting + Actions) */}
                 <div className="mt-10 pt-8 border-t border-gray-100 dark:border-gray-700 flex flex-wrap items-center justify-between gap-6">
-                  <div className="flex items-center bg-gray-50 dark:bg-bg-secondary-dark p-1.5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-[0_0_15px_rgba(15,23,42,0.85)]">
+                  <div className="flex items-center bg-gray-50 dark:bg-bg-secondary-dark p-1.5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
                     <button
                       onClick={() => handleVote("up")}
                       disabled={voteLoading}
-                      className={`w-11 h-11 flex items-center justify-center rounded-xl transition-all ${
+                      className={`w-11 h-11 flex items-center justify-center rounded-xl transition-all cursor-pointer ${
                         currentUserVote === "upvote"
                           ? "bg-primary text-white shadow-md"
                           : "hover:bg-primary hover:text-white text-gray-400"
@@ -228,7 +259,7 @@ export default function QuestionPage() {
                     <button
                       onClick={() => handleVote("down")}
                       disabled={voteLoading}
-                      className={`w-11 h-11 flex items-center justify-center rounded-xl transition-all ${
+                      className={`w-11 h-11 flex items-center justify-center rounded-xl transition-all cursor-pointer ${
                         currentUserVote === "downvote"
                           ? "bg-red-500 text-white shadow-md"
                           : "hover:bg-red-500 hover:text-white text-gray-400"
@@ -239,11 +270,12 @@ export default function QuestionPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:bg-gray-100 dark:hover:bg-bg-secondary-dark transition-all">
+                    {/* 🔴 زر الشير الحقيقي تم ربطه بـ الداله الجديدة */}
+                    <button
+                      onClick={handleShareClick}
+                      className="flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:bg-gray-100 dark:hover:bg-bg-secondary-dark transition-all cursor-pointer"
+                    >
                       <Share2 className="w-4 h-4" /> Share
-                    </button>
-                    <button className="flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:bg-gray-100 dark:hover:bg-bg-secondary-dark transition-all">
-                      <Edit3 className="w-4 h-4" /> Edit
                     </button>
                   </div>
                 </div>
@@ -270,7 +302,7 @@ export default function QuestionPage() {
 
           {/* Sidebar */}
           <aside className="space-y-8">
-            <div className="bg-white dark:bg-bg-primary-dark rounded-3xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm dark:shadow-[0_0_24px_rgba(15,23,42,0.9)]">
+            <div className="bg-white dark:bg-bg-primary-dark rounded-3xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
               <h3 className="font-black text-[10px] uppercase tracking-[0.2em] text-primary mb-6">
                 Question Owner
               </h3>
@@ -313,6 +345,112 @@ export default function QuestionPage() {
           </aside>
         </div>
       </main>
+
+      {/* 🔴 الـ Share Modal المنبثق والاحترافي بالكامل */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-200 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowShareModal(false)}
+          />
+          <div className="relative z-50 max-w-md w-full bg-white dark:bg-bg-secondary-dark rounded-3xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl animate-fadeIn text-gray-900 dark:text-white">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-black uppercase tracking-tight">
+                Share Question
+              </h3>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-bg-primary-dark text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {shareLoading ? (
+              <div className="flex flex-col items-center justify-center py-8 gap-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="text-xs text-gray-400">
+                  Generating short link...
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  Share this discussion with your network to get solutions
+                  faster:
+                </p>
+
+                {/* Copy Link Input Bar */}
+                <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700">
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      shareData?.url ||
+                      shareData?.slug_url ||
+                      window.location.href
+                    }
+                    className="flex-1 bg-transparent text-xs text-gray-600 dark:text-gray-300 outline-none overflow-x-auto whitespace-nowrap pl-1"
+                  />
+                  <button
+                    onClick={handleCopyLink}
+                    className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-bold flex items-center gap-1 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
+                  >
+                    {isCopied ? (
+                      <Check className="w-3.5 h-3.5" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                    {isCopied ? "Copied" : "Copy"}
+                  </button>
+                </div>
+
+                {/* Social Networks Quick Buttons */}
+                <div className="space-y-2">
+                  <span className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-2">
+                    Or share via social networks
+                  </span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {/* X / Twitter */}
+                    <a
+                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this question on DevHub: "${shareData?.title || ""}"`)}&url=${encodeURIComponent(shareData?.url || window.location.href)}&hashtags=${shareData?.tags?.join(",") || "devhub"}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
+                    >
+                      <Twitter className="w-5 h-5 text-sky-500 fill-current" />
+                      <span className="text-[11px] font-bold">Twitter</span>
+                    </a>
+
+                    {/* LinkedIn */}
+                    <a
+                      href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareData?.url || window.location.href)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
+                    >
+                      <Linkedin className="w-5 h-5 text-blue-600 fill-current" />
+                      <span className="text-[11px] font-bold">LinkedIn</span>
+                    </a>
+
+                    {/* Facebook */}
+                    <a
+                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareData?.url || window.location.href)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
+                    >
+                      <Facebook className="w-5 h-5 text-blue-800 fill-current" />
+                      <span className="text-[11px] font-bold">Facebook</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

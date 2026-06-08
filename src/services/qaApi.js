@@ -89,3 +89,9 @@ export async function fetchQuestionsByTag(tagName) {
   const res = await axiosInstance.get(`/questions/by-tag/${tagName}`);
   return res.data; // بيرجع الـ object اللي فيه success, tag, data
 }
+
+// 🔴 الـ End Point الجديدة لجلب بيانات مشاركة السؤال
+export async function fetchQuestionShareData(id) {
+  const res = await axiosInstance.get(`/questions/${id}/share`);
+  return res.data; // بيرجع success و داتا الـ url, slug_url, title, tags
+}
