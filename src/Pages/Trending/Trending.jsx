@@ -30,12 +30,17 @@ const TagChips = ({ tags, active, onChange }) => (
    Tech Trend Card
 ───────────────────────────────────────────── */
 const CARD_GRADIENTS = [
-  "from-violet-500 via-purple-500 to-indigo-600",
-  "from-blue-500 via-cyan-500 to-teal-500",
-  "from-rose-500 via-pink-500 to-fuchsia-600",
-  "from-amber-400 via-orange-500 to-red-500",
-  "from-emerald-400 via-green-500 to-teal-600",
-  "from-sky-500 via-blue-500 to-indigo-500",
+  // البنفسجي والنيلي العميق (بديل للأول)
+  "from-violet-700 via-indigo-700 to-purple-800",
+
+  // الأزرق البحري العميق مع السيان الداكن (بديل للثاني)
+  "from-blue-700 via-cyan-700 to-teal-800",
+
+  // الأخضر الزمردي الغامق (بديل للثالث)
+  "from-emerald-700 via-teal-700 to-cyan-800",
+
+  // أزرق السماء الداكن والنيلي (بديل للرابع)
+  "from-sky-700 via-blue-700 to-indigo-800",
 ];
 
 const SOURCE_LABEL = {
@@ -50,7 +55,7 @@ const TechTrendCard = ({ item, index, onClick }) => {
   return (
     <div
       onClick={() => onClick(item)}
-      className={`cursor-pointer w-88 h-55 shrink-0 rounded-2xl bg-gradient-to-br ${gradient} p-5 text-white shadow-md hover:shadow-xl transition-all duration-200 hover:-translate-y-1 select-none flex flex-col justify-between min-h-[180px]`}
+      className={`cursor-pointer w-88 h-58 shrink-0 rounded-2xl bg-gradient-to-br ${gradient} p-5 text-white shadow-md hover:shadow-xl transition-all duration-200 hover:-translate-y-1 select-none flex flex-col justify-between min-h-[180px]`}
     >
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -71,12 +76,12 @@ const TechTrendCard = ({ item, index, onClick }) => {
         )}
       </div>
       <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-2 text-[11px] text-white/80">
+        <div className="flex items-center gap-2 text-[12px] text-white/80">
           <span className="font-semibold">
             ⬆ {item.stats?.toLocaleString()}
           </span>
           {item.tags?.slice(0, 1).map((t) => (
-            <span key={t} className="bg-white/20 rounded-full px-2 py-0.5">
+            <span key={t} className="bg-white/20 rounded-full px-2 py-1">
               #{t}
             </span>
           ))}
@@ -86,7 +91,7 @@ const TechTrendCard = ({ item, index, onClick }) => {
           target="_blank"
           rel="noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="text-[11px] font-bold bg-white/95 text-gray-800 rounded-full px-3 py-1 hover:bg-white transition shrink-0"
+          className="text-[12px] font-bold bg-white/95 text-gray-800 rounded-full px-3 py-2 hover:bg-white transition shrink-0"
         >
           VIEW MORE
         </a>
@@ -201,12 +206,12 @@ const TechDetailModal = ({ techId, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-bg-secondary-dark rounded-2xl shadow-2xl w-full max-w-lg p-6 relative max-h-[85vh] overflow-y-auto"
+        className="bg-white dark:bg-bg-secondary-dark rounded-2xl shadow-2xl w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-sm"
+          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-sm"
         >
           ✕
         </button>
@@ -221,11 +226,11 @@ const TechDetailModal = ({ techId, onClose }) => {
           </div>
         ) : detail ? (
           <>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 rounded-full px-3 py-1 mb-4">
+            <span className="inline-flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-wider bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 rounded-full px-3 py-1 mb-4">
               {src.icon} {src.label}
               {detail.topic && <> · {detail.topic}</>}
             </span>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white leading-snug mb-3 pr-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-snug mb-3 pr-6">
               {detail.title}
             </h2>
             {detail.summary && (
@@ -235,20 +240,20 @@ const TechDetailModal = ({ techId, onClose }) => {
             )}
             {detail.why_trending && (
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl p-4 mb-3">
-                <p className="text-xs font-bold text-amber-600 dark:text-amber-400 mb-1">
+                <p className="text-sm font-bold text-amber-600 dark:text-amber-400 mb-1">
                   🔥 Why Trending
                 </p>
-                <p className="text-sm text-amber-800 dark:text-amber-300 leading-relaxed">
+                <p className="text-md text-amber-800 dark:text-amber-300 leading-relaxed">
                   {detail.why_trending}
                 </p>
               </div>
             )}
             {detail.impact && (
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-xl p-4 mb-5">
-                <p className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1">
+                <p className="text-sm font-bold text-blue-600 dark:text-blue-400 mb-1">
                   💡 Impact
                 </p>
-                <p className="text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
+                <p className="text-md text-blue-800 dark:text-blue-300 leading-relaxed">
                   {detail.impact}
                 </p>
               </div>
@@ -258,7 +263,7 @@ const TechDetailModal = ({ techId, onClose }) => {
                 {detail.tags?.map((t) => (
                   <span
                     key={t}
-                    className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full px-2.5 py-0.5"
+                    className="text-md bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full px-2.5 py-0.5"
                   >
                     #{t}
                   </span>
@@ -412,14 +417,14 @@ const Trending = () => {
         </div>
 
         {/* ══ TECH HERO STRIP ════════════════════ */}
-        <div className="bg-white dark:bg-bg-secondary-dark border-b border-gray-100 dark:border-gray-800 px-4 py-5 mx-10 rounded-md mt-4">
-          <div className="max-w-6xl mx-auto space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+        <div className="bg-white dark:bg-bg-secondary-dark border-b border-gray-100 dark:border-gray-800 px-2 py-5  mx-15 rounded-lg mt-4">
+          <div className="max-w-8xl mx-auto space-y-3">
+            <div className="flex items-center justify-between w-full">
+              <div className="space-y-1 w-full m-5">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   Trending 🔥
                 </h1>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                <p className="text-md text-gray-400 dark:text-gray-500 mt-0.5">
                   Top Posts In Development Today
                 </p>
               </div>
