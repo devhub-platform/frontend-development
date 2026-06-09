@@ -16,10 +16,9 @@ import axiosInstance from "../../config/api";
 const reactionEmojis = [
   { emoji: "👍", label: "like" },
   { emoji: "❤️", label: "love" },
-  { emoji: "🤯", label: "explodingHead" },
-  { emoji: "🙌", label: "raisedHands" },
   { emoji: "😮", label: "wow" },
-  { emoji: "👎", label: "dislike" },
+  { emoji: "😢", label: "sad" },
+  { emoji: "😡", label: "angry" },
 ];
 
 const Post = ({

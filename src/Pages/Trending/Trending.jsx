@@ -6,7 +6,7 @@ import { SuggestedToFollow } from "../../Components/SuggestedToFollow/SuggestedT
 import axiosInstance from "../../config/api";
 
 /* ─────────────────────────────────────────────
-   Tag Chips
+   Tag Chips Component (المستخدم للهيرو وللبوستات)
 ───────────────────────────────────────────── */
 const TagChips = ({ tags, active, onChange }) => (
   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -30,16 +30,9 @@ const TagChips = ({ tags, active, onChange }) => (
    Tech Trend Card
 ───────────────────────────────────────────── */
 const CARD_GRADIENTS = [
-  // البنفسجي والنيلي العميق (بديل للأول)
   "from-violet-700 via-indigo-700 to-purple-800",
-
-  // الأزرق البحري العميق مع السيان الداكن (بديل للثاني)
   "from-blue-700 via-cyan-700 to-teal-800",
-
-  // الأخضر الزمردي الغامق (بديل للثالث)
   "from-emerald-700 via-teal-700 to-cyan-800",
-
-  // أزرق السماء الداكن والنيلي (بديل للرابع)
   "from-sky-700 via-blue-700 to-indigo-800",
 ];
 
@@ -129,7 +122,6 @@ const ScrollRow = ({ children, loading }) => {
 
   return (
     <div className="relative">
-      {/* Left arrow */}
       {canLeft && (
         <button
           onClick={() => scroll(-2)}
@@ -149,7 +141,6 @@ const ScrollRow = ({ children, loading }) => {
         </button>
       )}
 
-      {/* Scroll container – no scrollbar */}
       <div
         ref={ref}
         className="flex gap-4 overflow-x-auto py-5"
@@ -305,8 +296,37 @@ const Trending = () => {
 
   const [techItems, setTechItems] = useState([]);
   const [techLoading, setTechLoading] = useState(true);
-  const [activeTag, setActiveTag] = useState("All");
+  const [activeTechTag, setActiveTechTag] = useState("All"); // تم تمييزه عن فلتر البوستات
   const [selectedTechId, setSelectedTechId] = useState(null);
+
+  // حقول فلترة البوستات الجديدة 🆕
+  const [activePostTag, setActivePostTag] = useState("All");
+  const [postTagsList, setPostTagsList] = useState(["All"]);
+
+  // مساعد لتنظيف التجات الغريبة القادمة من الـ API (مثل المصفوفات المدمجة كـ String أو نصوص بفاصلة)
+  const parseTags = (rawTags) => {
+    if (!rawTags) return [];
+    if (Array.isArray(rawTags)) {
+      return rawTags.flatMap((t) => parseTags(t));
+    }
+    if (typeof rawTags === "string") {
+      let trimmed = rawTags.trim();
+      // إذا كانت مصفوفة مكتوبة كـ string مثل: '["react","hook"]'
+      if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+        try {
+          return JSON.parse(trimmed).map((t) => t.trim().toLowerCase());
+        } catch (e) {
+          // في حال فشل التحليل
+        }
+      }
+      // إذا كانت مدموجة بفاصلة مثل: "flutter , pushnotifications"
+      if (trimmed.includes(",")) {
+        return trimmed.split(",").map((t) => t.trim().toLowerCase());
+      }
+      return [trimmed.toLowerCase()];
+    }
+    return [];
+  };
 
   useEffect(() => {
     (async () => {
@@ -357,13 +377,29 @@ const Trending = () => {
           date: p.created_at || "",
           readingTime: p.read_time || "",
           image: p.cover_image || p.image_url?.[0] || "",
-          tags: Array.isArray(p.tags) ? p.tags : [],
+          // تنظيف التجات وتوحيدها كمصفوفة عادية جاهزة للفلترة والعرض
+          tags: parseTags(p.tags),
           reactionsCount: p.reactions_count || 0,
           commentsCount: p.comments_count || 0,
           views: p.views || 0,
           trendingScore: p.trending_score || 0,
         }));
-        setPostsList((prev) => (page === 1 ? mapped : [...prev, ...mapped]));
+
+        setPostsList((prev) => {
+          const newList = page === 1 ? mapped : [...prev, ...mapped];
+
+          // استخراج كافة التجات المتاحة ديناميكياً لبناء أزرار الفلترة 🆕
+          const tagsSet = new Set(["All"]);
+          newList.forEach((post) => {
+            post.tags.forEach((tag) => {
+              if (tag) tagsSet.add(tag);
+            });
+          });
+          setPostTagsList(Array.from(tagsSet));
+
+          return newList;
+        });
+
         setHasMore(page < (data.meta?.last_page || 1));
       } catch (err) {
         console.error(err);
@@ -395,9 +431,15 @@ const Trending = () => {
   ];
 
   const filteredTech =
-    activeTag === "All"
+    activeTechTag === "All"
       ? techItems
-      : techItems.filter((i) => i.topic === activeTag);
+      : techItems.filter((i) => i.topic === activeTechTag);
+
+  // فلترة البوستات بناءً على التاج المختار 🆕
+  const filteredPosts =
+    activePostTag === "All"
+      ? postsList
+      : postsList.filter((post) => post.tags.includes(activePostTag));
 
   return (
     <>
@@ -436,8 +478,8 @@ const Trending = () => {
             {techTopics.length > 1 && (
               <TagChips
                 tags={techTopics}
-                active={activeTag}
-                onChange={setActiveTag}
+                active={activeTechTag}
+                onChange={setActiveTechTag}
               />
             )}
 
@@ -462,7 +504,18 @@ const Trending = () => {
 
         {/* ══ POSTS + SIDEBAR ════════════════════ */}
         <div className="mx-auto flex justify-center px-4 lg:px-6">
-          <div className="w-full lg:w-[70%] lg:ml-12 my-6">
+          <div className="w-full lg:w-[70%] lg:ml-12 my-6 space-y-4">
+            {/* قسم شيبس الفلترة الخاص بالبوستات (زي الصورة تماماً) 🆕 */}
+            {postTagsList.length > 1 && (
+              <div className="bg-transparent dark:bg-bg-secondary-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50">
+                <TagChips
+                  tags={postTagsList}
+                  active={activePostTag}
+                  onChange={setActivePostTag}
+                />
+              </div>
+            )}
+
             <div className="flex flex-col bg-white dark:bg-bg-secondary-dark rounded-2xl shadow-sm overflow-hidden">
               {postsLoading && page === 1 ? (
                 Array.from({ length: 5 }).map((_, i) => (
@@ -484,14 +537,17 @@ const Trending = () => {
                     </div>
                   </div>
                 ))
-              ) : postsList.length === 0 ? (
+              ) : filteredPosts.length === 0 ? (
                 <div className="py-20 text-center text-gray-400 dark:text-gray-500">
                   <p className="text-4xl mb-3">📭</p>
-                  <p className="font-medium">No trending posts yet.</p>
-                  <p className="text-sm mt-1">Check back soon!</p>
+                  <p className="font-medium">
+                    No trending posts under this topic.
+                  </p>
+                  <p className="text-sm mt-1">Try selecting another filter!</p>
                 </div>
               ) : (
-                postsList.map((post) => (
+                // استخدام المصفوفة المفلترة بدلاً من المصفوفة الأساسية
+                filteredPosts.map((post) => (
                   <Post
                     key={post.id}
                     post={post}
@@ -511,7 +567,8 @@ const Trending = () => {
                 ))
               )}
 
-              {!postsLoading && hasMore && (
+              {/* زر تحميل المزيد يظهر فقط لو مش بنفلتر على تاج معين أو لو لسه فيه داتا */}
+              {!postsLoading && hasMore && activePostTag === "All" && (
                 <button
                   onClick={() => setPage((p) => p + 1)}
                   className="mx-auto my-6 px-8 py-2 rounded-full bg-primary hover:opacity-90 text-white text-sm font-semibold transition"
