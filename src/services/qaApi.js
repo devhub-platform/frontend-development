@@ -95,3 +95,27 @@ export async function fetchQuestionShareData(id) {
   const res = await axiosInstance.get(`/questions/${id}/share`);
   return res.data; // بيرجع success و داتا الـ url, slug_url, title, tags
 }
+
+// 🔴 1. الـ End Point الجديدة لإنشاء إجابة على سؤال معين
+export async function createAnswer(questionId, content) {
+  const res = await axiosInstance.post(`/questions/${questionId}/answers/create`, {
+    content: content
+  }, {
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    }
+  });
+  return res.data; // بيرجع success, message, data (الأوبجكت الجديد للإجابة)
+}
+
+// 🔴 2. الـ End Point الجديدة لجلب تفاصيل إجابة محددة
+export async function fetchAnswerDetails(questionId, answerId) {
+  const res = await axiosInstance.get(`/questions/${questionId}/answers/${answerId}`, {
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    }
+  });
+  return res.data; // بيرجع success, data
+}

@@ -1,4 +1,3 @@
-// src/Components/Question/AnswersList.jsx
 import React from "react";
 import {
   ArrowBigUp,
@@ -7,13 +6,13 @@ import {
   Share2,
   Edit3,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import MDEditor from "@uiw/react-md-editor";
 import remarkGfm from "remark-gfm";
 
 export function AnswersList({ answers }) {
   if (!answers || answers.length === 0) {
     return (
-      <div className="text-center py-10 bg-gray-50 dark:bg-bg-primary-dark rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-[0_0_18px_rgba(15,23,42,0.7)]">
+      <div className="text-center py-10 bg-gray-50 dark:bg-bg-primary-dark rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 shadow-sm">
         <p className="text-gray-500 dark:text-gray-400">
           No answers yet. Share your knowledge!
         </p>
@@ -41,32 +40,43 @@ function AnswerCard({ answer }) {
 
   return (
     <article
-      className={`relative p-6 sm:p-8 rounded-4xl border transition-all 
+      className={`p-6 sm:p-8 rounded-4xl border transition-all 
       border-gray-200 dark:border-gray-700 
       bg-white dark:bg-bg-primary-dark 
-      shadow-sm dark:shadow-[0_0_20px_rgba(15,23,42,0.9)] ${acceptedClasses}`}
+      shadow-sm ${acceptedClasses}`}
     >
       {answer.is_accepted && (
-        <div className="absolute top-0 right-10 px-4 py-1.5 bg-emerald-500 text-white text-[10px] font-black uppercase rounded-b-2xl flex items-center gap-1.5 shadow-md">
+        <div className="absolute top-0 right-10 px-4 py-1.5 bg-emerald-500 text-white text-[10px] font-black uppercase rounded-b-2xl flex items-center gap-1.5 shadow-md z-10">
           <CheckCircle2 className="w-3.5 h-3.5" /> Solution Accepted
         </div>
       )}
 
       <div className="flex flex-col w-full">
-        <div className="prose prose-sm max-w-none dark:prose-invert text-[#475569] dark:text-gray-300 mb-8">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {answer.content || ""}
-          </ReactMarkdown>
+        {/* 🔴 تم تفعيل الـ MDEditor.Markdown هنا لعرض الإجابة كاملة مع دعم جميع التنسيقات */}
+        <div
+          className="prose prose-sm max-w-none dark:prose-invert text-[#475569] dark:text-gray-300 mb-8 leading-relaxed"
+          data-color-mode="light"
+        >
+          <MDEditor.Markdown
+            source={answer.content || ""}
+            previewOptions={{
+              remarkPlugins: [remarkGfm],
+            }}
+            style={{
+              backgroundColor: "transparent",
+              color: "inherit",
+            }}
+          />
         </div>
 
         {/* Action Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-4">
             {/* Vote group */}
-            <div className="flex items-center bg-gray-50 dark:bg-bg-secondary-dark p-1 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-[0_0_12px_rgba(15,23,42,0.7)]">
+            <div className="flex items-center bg-gray-50 dark:bg-bg-secondary-dark p-1 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
               <button
                 onClick={() => setScore((s) => s + 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-primary hover:text-white transition-all text-gray-400"
+                className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-primary hover:text-white transition-all text-gray-400 cursor-pointer"
               >
                 <ArrowBigUp className="w-6 h-6" />
               </button>
@@ -75,7 +85,7 @@ function AnswerCard({ answer }) {
               </span>
               <button
                 onClick={() => setScore((s) => s - 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-red-500 hover:text-white transition-all text-gray-400"
+                className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-red-500 hover:text-white transition-all text-gray-400 cursor-pointer"
               >
                 <ArrowBigDown className="w-6 h-6" />
               </button>
@@ -83,13 +93,13 @@ function AnswerCard({ answer }) {
 
             <div className="flex items-center gap-1">
               <button
-                className="p-2.5 text-gray-400 hover:text-primary transition-colors"
+                className="p-2.5 text-gray-400 hover:text-primary transition-colors cursor-pointer"
                 title="Share"
               >
                 <Share2 className="w-4 h-4" />
               </button>
               <button
-                className="p-2.5 text-gray-400 hover:text-primary transition-colors"
+                className="p-2.5 text-gray-400 hover:text-primary transition-colors cursor-pointer"
                 title="Edit"
               >
                 <Edit3 className="w-4 h-4" />
