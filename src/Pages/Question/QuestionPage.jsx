@@ -26,7 +26,7 @@ import {
 import { QuestionBody } from "../../Components/Question/QuestionBody";
 import { AnswerEditor } from "../../Components/Question/AnswerEditor";
 import { AnswersList } from "../../Components/Question/AnswersList";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function QuestionPage() {
   const { id } = useParams();
@@ -38,7 +38,8 @@ export default function QuestionPage() {
   const [voteLoading, setVoteLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 🔴 ستيتس مضافة لمودال الشير وبيانات اللينك
+  const [localAnswers, setLocalAnswers] = useState([]);
+
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareData, setShareData] = useState(null);
   const [shareLoading, setShareLoading] = useState(false);
@@ -56,6 +57,7 @@ export default function QuestionPage() {
         setQuestion(data);
         setQuestionScore(data.vote_score ?? 0);
         setCurrentUserVote(data.current_user_vote);
+        setLocalAnswers(data.answers || []);
       } catch (err) {
         if (!isMounted) return;
         setError(
@@ -72,15 +74,16 @@ export default function QuestionPage() {
     };
   }, [id]);
 
-  const answers = useMemo(() => {
-    if (!question || !question.answers) return [];
-    return [...question.answers];
-  }, [question]);
+  const handleNewAnswerAdded = (newAnswerObj) => {
+    setLocalAnswers((prev) => [...prev, newAnswerObj]);
+    setQuestion((prev) =>
+      prev ? { ...prev, answers_count: prev.answers_count + 1 } : null,
+    );
+  };
 
-  // هندلة فتح مودال الشير وسحب الداتا من الـ API
   const handleShareClick = async () => {
     setShowShareModal(true);
-    if (shareData) return; // لو الداتا مسحوبة قبل كدا ما يسحبهاش تاني
+    if (shareData) return;
 
     try {
       setShareLoading(true);
@@ -96,7 +99,6 @@ export default function QuestionPage() {
     }
   };
 
-  // نسخ الرابط للـ clipboard
   const handleCopyLink = async () => {
     const linkToCopy =
       shareData?.url || shareData?.slug_url || window.location.href;
@@ -106,7 +108,6 @@ export default function QuestionPage() {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  // هندلة التصويت على السؤال
   const handleVote = async (direction) => {
     if (!question || voteLoading) return;
 
@@ -117,21 +118,13 @@ export default function QuestionPage() {
     let optimisticScore = questionScore;
 
     if (newType === "upvote") {
-      if (prevVote === "upvote") {
-        optimisticScore -= 1;
-      } else if (prevVote === "downvote") {
-        optimisticScore += 2;
-      } else if (prevVote === null) {
-        optimisticScore += 1;
-      }
+      if (prevVote === "upvote") optimisticScore -= 1;
+      else if (prevVote === "downvote") optimisticScore += 2;
+      else if (prevVote === null) optimisticScore += 1;
     } else if (newType === "downvote") {
-      if (prevVote === "downvote") {
-        optimisticScore += 1;
-      } else if (prevVote === "upvote") {
-        optimisticScore -= 2;
-      } else if (prevVote === null) {
-        optimisticScore -= 1;
-      }
+      if (prevVote === "downvote") optimisticScore += 1;
+      else if (prevVote === "upvote") optimisticScore -= 2;
+      else if (prevVote === null) optimisticScore -= 1;
     }
 
     setQuestionScore(optimisticScore);
@@ -193,11 +186,36 @@ export default function QuestionPage() {
 
   return (
     <div className="min-h-screen bg-bg-light dark:bg-bg-secondary-dark transition-colors">
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "var(--toast-bg)",
+            color: "var(--toast-text)",
+            border: "1px solid var(--toast-border)",
+            borderRadius: "12px",
+            padding: "12px 14px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+            wordBreak: "break-word",
+            whiteSpace: "pre-wrap",
+            maxWidth: "420px",
+            width: "100%",
+          },
+          success: {
+            iconTheme: { primary: "var(--color-primary)", secondary: "white" },
+            style: { border: "1px solid rgba(0,56,144,0.25)" },
+          },
+          error: {
+            iconTheme: { primary: "#ef4444", secondary: "white" },
+          },
+        }}
+      />
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Header */}
         <header className="mb-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="max-w-4xl">
-            <h1 className="text-3xl sm:text-5xl font-black text-[#0F172A] dark:text-white leading-tight mb-6 tracking-tight">
+            <h1 className="text-3xl sm:text-5xl font-black text-[#0F172A] dark:text-white leading-tight mb-6 tracking-tight ">
               {question.title}
             </h1>
             <div className="flex flex-wrap items-center gap-5 text-[12px] font-bold uppercase tracking-widest text-gray-400">
@@ -239,7 +257,7 @@ export default function QuestionPage() {
               <div className="p-8 sm:p-10">
                 <QuestionBody question={question} />
 
-                {/* Footer bar (Voting + Actions) */}
+                {/* Footer bar */}
                 <div className="mt-10 pt-8 border-t border-gray-100 dark:border-gray-700 flex flex-wrap items-center justify-between gap-6">
                   <div className="flex items-center bg-gray-50 dark:bg-bg-secondary-dark p-1.5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
                     <button
@@ -270,7 +288,6 @@ export default function QuestionPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* 🔴 زر الشير الحقيقي تم ربطه بـ الداله الجديدة */}
                     <button
                       onClick={handleShareClick}
                       className="flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:bg-gray-100 dark:hover:bg-bg-secondary-dark transition-all cursor-pointer"
@@ -286,17 +303,21 @@ export default function QuestionPage() {
             <div className="mb-12">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
                 <h2 className="text-2xl font-black text-[#0F172A] dark:text-white uppercase tracking-tighter">
-                  Discussion ({answers.length})
+                  Discussion ({localAnswers.length})
                 </h2>
               </div>
-              <AnswersList answers={answers} />
+              <AnswersList answers={localAnswers} />
             </div>
 
+            {/* Contribute Solution Area */}
             <div className="mt-20">
               <h2 className="text-2xl font-black text-[#0F172A] dark:text-white mb-6">
                 Contribute Your Solution
               </h2>
-              <AnswerEditor />
+              <AnswerEditor
+                questionId={id}
+                onAnswerSuccess={handleNewAnswerAdded}
+              />
             </div>
           </section>
 
@@ -346,15 +367,14 @@ export default function QuestionPage() {
         </div>
       </main>
 
-      {/* 🔴 الـ Share Modal المنبثق والاحترافي بالكامل */}
+      {/* Share Modal */}
       {showShareModal && (
         <div className="fixed inset-0 z-200 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowShareModal(false)}
           />
-          <div className="relative z-50 max-w-md w-full bg-white dark:bg-bg-secondary-dark rounded-3xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl animate-fadeIn text-gray-900 dark:text-white">
-            {/* Header */}
+          <div className="relative z-50 max-w-md w-full bg-white dark:bg-bg-secondary-dark rounded-3xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl text-gray-900 dark:text-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-black uppercase tracking-tight">
                 Share Question
@@ -381,7 +401,6 @@ export default function QuestionPage() {
                   faster:
                 </p>
 
-                {/* Copy Link Input Bar */}
                 <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700">
                   <input
                     type="text"
@@ -406,13 +425,11 @@ export default function QuestionPage() {
                   </button>
                 </div>
 
-                {/* Social Networks Quick Buttons */}
                 <div className="space-y-2">
                   <span className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-2">
                     Or share via social networks
                   </span>
                   <div className="grid grid-cols-3 gap-2">
-                    {/* X / Twitter */}
                     <a
                       href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this question on DevHub: "${shareData?.title || ""}"`)}&url=${encodeURIComponent(shareData?.url || window.location.href)}&hashtags=${shareData?.tags?.join(",") || "devhub"}`}
                       target="_blank"
@@ -423,7 +440,6 @@ export default function QuestionPage() {
                       <span className="text-[11px] font-bold">Twitter</span>
                     </a>
 
-                    {/* LinkedIn */}
                     <a
                       href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareData?.url || window.location.href)}`}
                       target="_blank"
@@ -434,7 +450,6 @@ export default function QuestionPage() {
                       <span className="text-[11px] font-bold">LinkedIn</span>
                     </a>
 
-                    {/* Facebook */}
                     <a
                       href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareData?.url || window.location.href)}`}
                       target="_blank"
