@@ -207,10 +207,6 @@ export function CommentSection({
           src={defaultUserAvatar}
           alt="Your avatar"
           className="w-10 h-10 rounded-full object-cover shrink-0 bg-gray-100"
-          onError={(e) => {
-            e.target.src =
-              "https://api.dicebear.com/7.x/bottts/svg?seed=DevHubFallback";
-          }}
         />
         <div className="flex-1 flex gap-2">
           <input
@@ -248,6 +244,9 @@ export function CommentSection({
                 }
                 alt={comment.author?.name}
                 className="w-10 h-10 rounded-full object-cover shrink-0 bg-gray-100"
+                onError={(e) => {
+                  e.target.src = `https://ui-avatars.com/api/?name=${comment.author?.name || "User"}&background=random`;
+                }}
               />
               <div className="flex-1">
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg px-4 py-3">
@@ -340,6 +339,9 @@ export function CommentSection({
                           }
                           alt={reply.author?.name}
                           className="w-8 h-8 rounded-full object-cover bg-gray-100"
+                          onError={(e) => {
+                            e.target.src = `https://ui-avatars.com/api/?name=${reply.author?.name || "User"}&background=random`;
+                          }}
                         />
                         <div className="flex-1">
                           <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">

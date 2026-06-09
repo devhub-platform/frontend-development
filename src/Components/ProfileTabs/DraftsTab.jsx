@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Post from "../Post/Post";
 import axiosInstance from "../../config/api";
+import { Trash2 } from "lucide-react";
 
 const DraftsTab = ({ openReactionId, setOpenReactionId }) => {
   const [myPosts, setMyPosts] = useState([]);
@@ -11,6 +12,21 @@ const DraftsTab = ({ openReactionId, setOpenReactionId }) => {
   const getAuthHeaders = () => {
     const token = localStorage.getItem("userToken");
     return { Authorization: `Bearer ${token}`, Accept: "application/json" };
+  };
+
+  const handleDelete = async (postId) => {
+    if (!window.confirm("This will delete the post permanently. Are you sure?"))
+      return;
+    try {
+      await axiosInstance.delete(`/posts/${postId}/force`, {
+        headers: getAuthHeaders(),
+      });
+      setMyPosts((prev) => prev.filter((post) => post.id !== postId));
+      alert("Post deleted permanently!");
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      alert("Failed to delete post.");
+    }
   };
 
   useEffect(() => {
@@ -94,6 +110,14 @@ const DraftsTab = ({ openReactionId, setOpenReactionId }) => {
                   return next;
                 });
               }}
+              menuOptions={[
+                {
+                  label: "Delete",
+                  icon: <Trash2 size={16} />,
+                  variant: "danger",
+                  onClick: (id) => handleDelete(id),
+                }
+              ]}
             />
           ))}
         </div>

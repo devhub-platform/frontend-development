@@ -264,7 +264,7 @@ const ReadingListDetails = () => {
       <div className="grid gap-6 my-3">
         {listData.posts?.length > 0 ? (
           listData.posts.map((post) => (
-            <div key={post.id} className="w-full">
+            <div key={post.id} className="w-full cursor-pointer" onClick={() => navigate(`/post/${post.id}`)}>
               <div className="flex w-full items-center group">
                 <div className="border-l-3 h-10 ml-5 mb-2 border-text-light dark:border-text-dark"></div>
                 <div className="w-full flex h-10 mb-2">
