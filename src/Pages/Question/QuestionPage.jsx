@@ -81,6 +81,19 @@ export default function QuestionPage() {
     );
   };
 
+  // دالة تحديث الإجابات بشكل مشترك (للتعديل وللحذف)
+  // countChange = 0 في التعديل، و -1 في الحذف لتحديث العداد العلوي
+  const handleAnswersUpdate = (updatedAnswersList, countChange = 0) => {
+    setLocalAnswers(updatedAnswersList);
+    if (countChange !== 0) {
+      setQuestion((prev) =>
+        prev
+          ? { ...prev, answers_count: prev.answers_count + countChange }
+          : null,
+      );
+    }
+  };
+
   const handleShareClick = async () => {
     setShowShareModal(true);
     if (shareData) return;
@@ -306,7 +319,12 @@ export default function QuestionPage() {
                   Discussion ({localAnswers.length})
                 </h2>
               </div>
-              <AnswersList answers={localAnswers} />
+              {/* 🔴 ممررين الـ handler الجديد لإتاحة الحذف والتعديل وتحديث الصفحة لحظياً */}
+              <AnswersList
+                answers={localAnswers}
+                questionId={id}
+                onAnswersUpdate={handleAnswersUpdate}
+              />
             </div>
 
             {/* Contribute Solution Area */}

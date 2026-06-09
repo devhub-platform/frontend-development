@@ -52,6 +52,7 @@ export default function Register() {
         localStorage.setItem("userToken", data.token);
         setUserData(data.token);
         localStorage.setItem("userEmail", values.email);
+        localStorage.setItem("user", JSON.stringify(data.user));
 
         try {
           await axiosInstance.post(

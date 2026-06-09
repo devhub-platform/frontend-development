@@ -67,6 +67,7 @@ export default function Login() {
       if (data.token) {
         localStorage.setItem("userToken", data.token);
         localStorage.setItem("userEmail", data.user.email);
+        localStorage.setItem("user", JSON.stringify(data.user));
         setUserData(data.token);
 
         if (values.remember_me) {
