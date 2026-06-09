@@ -35,14 +35,16 @@ export function PostHeader({
     Accept: "application/json",
   };
 
-  const payload = JSON.parse(atob(token.split(".")[1]));
-  const myId = Number(payload.sub);
+  let myId = null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    myId = Number(payload.sub);
+  } catch (_) {}
 
-  const isOwnProfile = myId ;
+  const isOwnProfile = myId && userId && myId === Number(userId);
 
   // ── جلب حالة الـ follow الحقيقية من الـ API ────────────────────────────
   useEffect(() => {
-    console.log(author, date, userId);
     if (!userId || isOwnProfile) {
       setInitialLoading(false);
       return;
@@ -112,7 +114,7 @@ export function PostHeader({
       {/* ── Avatar + Info ─────────────────────────────────────────────── */}
       <div className="flex items-center gap-4">
         <button
-          onClick={() => navigate(`/users/${userId}`)}
+          onClick={() => userId && navigate(`/users/${userId}`)}
           className="shrink-0"
         >
           <img
@@ -130,7 +132,7 @@ export function PostHeader({
 
         <div>
           <button
-            onClick={() => navigate(`/users/${userId}`)}
+            onClick={() => userId && navigate(`/users/${userId}`)}
             className="font-semibold text-bg-secondary-dark dark:text-gray-100 hover:underline text-left"
           >
             {author}
