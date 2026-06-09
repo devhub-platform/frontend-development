@@ -44,7 +44,7 @@ export function PopularTags() {
                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-10" />
               </div>
             ))
-          : tags.map((tag) => (
+          : tags.slice(0, 6).map((tag) => (
               <a
                 key={tag.id}
                 href="#"
