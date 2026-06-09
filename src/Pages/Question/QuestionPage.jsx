@@ -26,6 +26,7 @@ import {
 import { QuestionBody } from "../../Components/Question/QuestionBody";
 import { AnswerEditor } from "../../Components/Question/AnswerEditor";
 import { AnswersList } from "../../Components/Question/AnswersList";
+import { QuestionAIChat } from "../../Components/Question/QuestionAIChat"; // الـ Chat العائم الجديد
 import toast, { Toaster } from "react-hot-toast";
 
 export default function QuestionPage() {
@@ -168,7 +169,7 @@ export default function QuestionPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-light dark:bg-bg-secondary-dark">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="rounded-full h-12 w-12 border-b-2 border-primary"></div>
           <p className="text-sm text-gray-600 dark:text-gray-300">
             Loading question...
           </p>
@@ -196,7 +197,7 @@ export default function QuestionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-light dark:bg-bg-secondary-dark transition-colors">
+    <div className="min-h-screen bg-bg-light dark:bg-bg-secondary-dark transition-colors relative">
       <Toaster
         position="top-center"
         toastOptions={{
@@ -247,24 +248,13 @@ export default function QuestionPage() {
               </span>
             </div>
           </div>
-          <button
-            onClick={() => setBookmarked((b) => !b)}
-            className={`shrink-0 flex items-center justify-center w-14 h-14 rounded-3xl border transition-all cursor-pointer ${
-              bookmarked
-                ? "bg-amber-400 border-amber-400 text-white shadow-xl"
-                : "bg-white dark:bg-bg-primary-dark border-gray-200 dark:border-gray-700 text-gray-300 hover:text-amber-500 shadow-sm"
-            }`}
-          >
-            <Bookmark
-              className={`w-7 h-7 ${bookmarked ? "fill-current" : ""}`}
-            />
-          </button>
         </header>
 
+        {/* الـ Grid Layout الموحد والأصلي */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12">
-          <section className="min-w-0">
+          <section className="min-w-0 space-y-12">
             {/* Question card */}
-            <article className="bg-white dark:bg-bg-primary-dark rounded-[2.5rem] border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden mb-12">
+            <article className="bg-white dark:bg-bg-primary-dark rounded-[2.5rem] border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
               <div className="p-8 sm:p-10">
                 <QuestionBody question={question} />
 
@@ -311,7 +301,7 @@ export default function QuestionPage() {
             </article>
 
             {/* Answers section */}
-            <div className="mb-12">
+            <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
                 <h2 className="text-2xl font-black text-[#0F172A] dark:text-white uppercase tracking-tighter">
                   Discussion ({localAnswers.length})
@@ -326,7 +316,7 @@ export default function QuestionPage() {
             </div>
 
             {/* Contribute Solution Area */}
-            <div className="mt-20">
+            <div>
               <h2 className="text-2xl font-black text-[#0F172A] dark:text-white mb-6">
                 Contribute Your Solution
               </h2>
@@ -337,7 +327,7 @@ export default function QuestionPage() {
             </div>
           </section>
 
-          {/* Sidebar */}
+          {/* 🔴 الـ Sidebar الأصلي لليوزر والسؤال */}
           <aside className="space-y-8">
             <div className="bg-white dark:bg-bg-primary-dark rounded-3xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
               <h3 className="font-black text-[10px] uppercase tracking-[0.2em] text-primary mb-6">
@@ -383,6 +373,9 @@ export default function QuestionPage() {
         </div>
       </main>
 
+      {/* 🔴 استدعاء الـ Floating AI Chat الجديد تحت في الصفحة بره الـ Grid عشان يكون حر وممتاز في الريندر */}
+      <QuestionAIChat questionId={id} />
+
       {/* Share Modal */}
       {showShareModal && (
         <div className="fixed inset-0 z-200 flex items-center justify-center p-4">
@@ -405,80 +398,81 @@ export default function QuestionPage() {
 
             {shareLoading ? (
               <div className="flex flex-col items-center justify-center py-8 gap-3">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <div className="rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 <p className="text-xs text-gray-400">
                   Generating short link...
                 </p>
               </div>
             ) : (
-              /* 🔴 تم إصلاح الحماية بالـ Optional Chaining لضمان عدم حدوث إيرور أبداً أثناء الـ Initial Render */
-              <div className="space-y-5">
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  Share this discussion with your network to get solutions
-                  faster:
-                </p>
+              shareData && (
+                <div className="space-y-5">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                    Share this discussion with your network to get solutions
+                    faster:
+                  </p>
 
-                <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700">
-                  <input
-                    type="text"
-                    readOnly
-                    value={
-                      shareData?.slug_url ||
-                      shareData?.url ||
-                      window.location.href
-                    }
-                    className="flex-1 bg-transparent text-xs text-gray-600 dark:text-gray-300 outline-none overflow-x-auto whitespace-nowrap pl-1"
-                  />
-                  <button
-                    onClick={handleCopyLink}
-                    className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-bold flex items-center gap-1 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
-                  >
-                    {isCopied ? (
-                      <Check className="w-3.5 h-3.5" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5" />
-                    )}
-                    {isCopied ? "Copied" : "Copy"}
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  <span className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-2">
-                    Or share via social networks
-                  </span>
-                  <div className="grid grid-cols-3 gap-2">
-                    <a
-                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this question on DevHub: "${shareData?.title || ""}"`)}&url=${encodeURIComponent(shareData?.url || window.location.href)}&hashtags=${shareData?.tags?.join(",") || "devhub"}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
+                  <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700">
+                    <input
+                      type="text"
+                      readOnly
+                      value={
+                        shareData.slug_url ||
+                        shareData.url ||
+                        window.location.href
+                      }
+                      className="flex-1 bg-transparent text-xs text-gray-600 dark:text-gray-300 outline-none overflow-x-auto whitespace-nowrap pl-1"
+                    />
+                    <button
+                      onClick={handleCopyLink}
+                      className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-bold flex items-center gap-1 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
                     >
-                      <Twitter className="w-5 h-5 text-sky-500 fill-current" />
-                      <span className="text-[11px] font-bold">Twitter</span>
-                    </a>
+                      {isCopied ? (
+                        <Check className="w-3.5 h-3.5" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                      {isCopied ? "Copied" : "Copy"}
+                    </button>
+                  </div>
 
-                    <a
-                      href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareData?.url || window.location.href)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
-                    >
-                      <Linkedin className="w-5 h-5 text-blue-600 fill-current" />
-                      <span className="text-[11px] font-bold">LinkedIn</span>
-                    </a>
+                  <div className="space-y-2">
+                    <span className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-2">
+                      Or share via social networks
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                      <a
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this question on DevHub: "${shareData.title || ""}"`)}&url=${encodeURIComponent(shareData.url || window.location.href)}&hashtags=${shareData.tags?.join(",") || "devhub"}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
+                      >
+                        <Twitter className="w-5 h-5 text-sky-500 fill-current" />
+                        <span className="text-[11px] font-bold">Twitter</span>
+                      </a>
 
-                    <a
-                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareData?.url || window.location.href)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
-                    >
-                      <Facebook className="w-5 h-5 text-blue-800 fill-current" />
-                      <span className="text-[11px] font-bold">Facebook</span>
-                    </a>
+                      <a
+                        href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareData.url || window.location.href)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
+                      >
+                        <Linkedin className="w-5 h-5 text-blue-600 fill-current" />
+                        <span className="text-[11px] font-bold">LinkedIn</span>
+                      </a>
+
+                      <a
+                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareData.url || window.location.href)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
+                      >
+                        <Facebook className="w-5 h-5 text-blue-800 fill-current" />
+                        <span className="text-[11px] font-bold">Facebook</span>
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )
             )}
           </div>
         </div>

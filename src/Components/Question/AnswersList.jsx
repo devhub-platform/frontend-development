@@ -421,12 +421,6 @@ function AnswerCard({
             </div>
 
             <div className="flex items-center gap-1">
-              <button
-                className="p-2.5 text-gray-400 hover:text-primary transition-colors cursor-pointer"
-                title="Share"
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
 
               {isOwner && !isEditing && (
                 <>
