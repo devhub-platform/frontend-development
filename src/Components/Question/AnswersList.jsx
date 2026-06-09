@@ -14,15 +14,21 @@ import {
 import MDEditor from "@uiw/react-md-editor";
 import remarkGfm from "remark-gfm";
 import { MarkdownWriteEditor } from "../WriteComponents/MarkdownWriteEditor";
-import { voteAnswer } from "../../services/qaApi"; // استدعاء دالة الفوت الجديدة
+import { voteAnswer, acceptAnswer, unacceptAnswer } from "../../services/qaApi";
 import axiosInstance from "../../config/api";
 import toast from "react-hot-toast";
 
-export function AnswersList({ answers, questionId, onAnswersUpdate }) {
+export function AnswersList({
+  answers,
+  questionId,
+  questionOwnerId,
+  onAnswersUpdate,
+}) {
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [acceptLoadingId, setAcceptLoadingId] = useState(null);
 
-  // جلب الـ ID بتاع اليوزر الحالي من الـ Local Storage وتحويله لـ Number فوراً
+  // 1. جلب الـ ID بتاع اليوزر الحالي اللي عامل لوجين في الموقع
   const storedUserRaw = localStorage.getItem("user");
   let currentUserId = null;
   let currentUserEmail = localStorage.getItem("userEmail");
@@ -37,6 +43,47 @@ export function AnswersList({ answers, questionId, onAnswersUpdate }) {
       console.error("Failed to parse stored user json", e);
     }
   }
+
+  // 🔴 2. المقارنة الذكية: بنقارن يوزر الموقع الحالي بـ صاحب السؤال اللي ممررينه من الـ question state
+  const isQuestionOwner =
+    currentUserId &&
+    questionOwnerId &&
+    Number(questionOwnerId) === currentUserId;
+
+  // 🔴 3. دالة الـ Toggle: بتسمح بقبول أكتر من إجابة عادي من غير ما تلغي القدام
+  const handleToggleAccept = async (answerId, isAlreadyAccepted) => {
+    if (!isQuestionOwner) return;
+
+    try {
+      setAcceptLoadingId(answerId);
+      let res;
+      if (isAlreadyAccepted) {
+        res = await unacceptAnswer(questionId, answerId);
+      } else {
+        res = await acceptAnswer(questionId, answerId);
+      }
+
+      if (res?.success) {
+        toast.success(res.message || "Status updated successfully!");
+
+        // 🔴 تعديل الـ State محلياً للإجابة دي بس، عشان يقبل كذا إجابة عادي سوا
+        const updatedAnswers = answers.map((a) => {
+          if (a.id === answerId) {
+            return { ...a, is_accepted: !isAlreadyAccepted };
+          }
+          return a; // بنسيب باقي الإجابات زي ما هي سواء كانت accepted أو لأ
+        });
+
+        if (onAnswersUpdate) {
+          onAnswersUpdate(updatedAnswers, 0);
+        }
+      }
+    } catch (err) {
+      toast.error("Failed to update status.");
+    } finally {
+      setAcceptLoadingId(null);
+    }
+  };
 
   const handleDeleteAnswer = async () => {
     if (!deleteTargetId) return;
@@ -81,6 +128,11 @@ export function AnswersList({ answers, questionId, onAnswersUpdate }) {
           questionId={questionId}
           currentUserId={currentUserId}
           currentUserEmail={currentUserEmail}
+          isQuestionOwner={isQuestionOwner}
+          isAcceptLoading={acceptLoadingId === answer.id}
+          onToggleAccept={() =>
+            handleToggleAccept(answer.id, answer.is_accepted)
+          }
           allAnswers={answers}
           onAnswersUpdate={onAnswersUpdate}
           onTriggerDelete={(id) => setDeleteTargetId(id)}
@@ -135,15 +187,17 @@ function AnswerCard({
   questionId,
   currentUserId,
   currentUserEmail,
+  isQuestionOwner,
+  isAcceptLoading,
+  onToggleAccept,
   allAnswers,
   onAnswersUpdate,
   onTriggerDelete,
 }) {
-  // 🔴 ربط الـ score و الـ user vote بـ الـ state الداخلية للكارد للتحديث الفوري التفاعلي
   const [score, setScore] = React.useState(answer.vote_score ?? 0);
   const [userVote, setUserVote] = React.useState(
     answer.current_user_vote || null,
-  ); // "upvote" | "downvote" | null
+  );
   const [voteLoading, setVoteLoading] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -152,7 +206,6 @@ function AnswerCard({
 
   const user = answer.user || {};
 
-  // المقارنة الرقمية الصريحة والديناميكية بين السيرفر والـ Local Storage لمعرفة المالك
   const isOwner =
     (currentUserId && user.id && Number(user.id) === currentUserId) ||
     (currentUserEmail && user.email === currentUserEmail);
@@ -161,31 +214,26 @@ function AnswerCard({
     ? "border-emerald-500/40 bg-emerald-500/5 dark:bg-emerald-500/10 shadow-lg shadow-emerald-500/20"
     : "";
 
-  // 🔴 دالة التحكم بالتصويت للأجابات مع منع الـ Owner ورفع الـ Optimistic UI
   const handleAnswerVote = async (type) => {
-    if (isOwner) return; // حماية إضافية في الـ JS
+    if (isOwner) return;
     if (voteLoading) return;
 
     const prevScore = score;
     const prevVote = userVote;
     let optimisticScore = score;
 
-    // حساب الـ Optimistic Score المتوقع
     if (type === "upvote") {
-      if (prevVote === "upvote")
-        optimisticScore -= 1; // Toggle off
+      if (prevVote === "upvote") optimisticScore -= 1;
       else if (prevVote === "downvote") optimisticScore += 2;
       else optimisticScore += 1;
     } else {
-      if (prevVote === "downvote")
-        optimisticScore += 1; // Toggle off
+      if (prevVote === "downvote") optimisticScore += 1;
       else if (prevVote === "upvote") optimisticScore -= 2;
       else optimisticScore -= 1;
     }
 
     const nextVote = prevVote === type ? null : type;
 
-    // تحديث الواجهة فوراً
     setScore(optimisticScore);
     setUserVote(nextVote);
     setVoteLoading(true);
@@ -193,7 +241,6 @@ function AnswerCard({
     try {
       const res = await voteAnswer(questionId, answer.id, type);
       if (res && res.data) {
-        // الـ Sync مع الـ data الحقيقية الراجعة من تفعيل السيرفر عندك
         setScore(
           typeof res.data.vote_score === "number"
             ? res.data.vote_score
@@ -202,7 +249,6 @@ function AnswerCard({
         setUserVote(res.data.current_user_vote);
       }
     } catch (err) {
-      // Rollback في حالة فشل ريكويست السيرفر لأي سبب
       setScore(prevScore);
       setUserVote(prevVote);
       if (err.response?.status === 401) {
@@ -245,10 +291,39 @@ function AnswerCard({
       border-gray-200 dark:border-gray-700 
       bg-white dark:bg-bg-primary-dark shadow-sm ${acceptedClasses}`}
     >
-      {answer.is_accepted && (
-        <div className="absolute top-0 right-10 px-4 py-1.5 bg-emerald-500 text-white text-[10px] font-black uppercase rounded-b-2xl flex items-center gap-1.5 shadow-md z-10">
-          <CheckCircle2 className="w-3.5 h-3.5" /> Solution Accepted
-        </div>
+      {/* الـ Accept/Unaccept Button مبرمج ديناميكياً بناء على يوزر السؤال الحالي */}
+      {answer.is_accepted ? (
+        <button
+          type="button"
+          disabled={!isQuestionOwner || isAcceptLoading}
+          onClick={onToggleAccept}
+          className={`absolute top-0 right-10 px-4 py-1.5 bg-emerald-500 text-white text-[10px] font-black uppercase rounded-b-2xl flex items-center gap-1.5 shadow-md z-10 ${
+            isQuestionOwner
+              ? "cursor-pointer hover:bg-emerald-600 transition-colors"
+              : "cursor-default"
+          }`}
+          title={
+            isQuestionOwner
+              ? "Click to unaccept this solution"
+              : "Accepted Solution"
+          }
+        >
+          <CheckCircle2 className="w-3.5 h-3.5" />{" "}
+          {isAcceptLoading ? "Updating..." : "Solution Accepted"}
+        </button>
+      ) : (
+        isQuestionOwner && (
+          <button
+            type="button"
+            disabled={isAcceptLoading}
+            onClick={onToggleAccept}
+            className="absolute top-0 right-10 px-4 py-1.5 border border-dashed border-gray-300 text-gray-400 hover:text-emerald-500 hover:border-emerald-500 text-[10px] font-bold uppercase rounded-b-2xl flex items-center gap-1.5 transition-all cursor-pointer bg-slate-50/50 dark:bg-gray-800/50"
+            title="Mark this answer as an accepted solution"
+          >
+            <Check className="w-3.5 h-3.5" />{" "}
+            {isAcceptLoading ? "Updating..." : "Accept Solution"}
+          </button>
+        )
       )}
 
       <div className="flex flex-col w-full">
@@ -281,7 +356,6 @@ function AnswerCard({
             </div>
           </div>
         ) : (
-          /* حالة العرض العادية بالـ Markdown */
           <div
             className="prose prose-sm max-w-none dark:prose-invert text-[#475569] dark:text-gray-300 mb-8 leading-relaxed"
             data-color-mode="light"
@@ -297,7 +371,7 @@ function AnswerCard({
         {/* Action Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-4">
-            {/* Vote group 🔴 (تم تفعيل الـ Disabled والتعديل التفاعلي لبينات اليوزر) */}
+            {/* Vote group */}
             <div className="flex items-center bg-gray-50 dark:bg-bg-secondary-dark p-1 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
               <button
                 disabled={isOwner || voteLoading}
@@ -347,8 +421,13 @@ function AnswerCard({
             </div>
 
             <div className="flex items-center gap-1">
+              <button
+                className="p-2.5 text-gray-400 hover:text-primary transition-colors cursor-pointer"
+                title="Share"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
 
-              {/* أزرار التحكم تظهر ديناميكياً لكل مستخدم على إجاباته الخاصة فقط */}
               {isOwner && !isEditing && (
                 <>
                   <button

@@ -132,3 +132,24 @@ export async function voteAnswer(questionId, answerId, vote_type) {
   });
   return res.data; // بيرجع الـ data اللي فيها الـ vote_score و الـ current_user_vote
 }
+// 🔴 1. اند بوينت اعتماد الإجابة كحل صحيح لسؤالك
+export async function acceptAnswer(questionId, answerId) {
+  const res = await axiosInstance.post(`/questions/${questionId}/answers/${answerId}/accept`, {}, {
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    }
+  });
+  return res.data; // بيرجع success, message, data
+}
+
+// 🔴 2. اند بوينت إلغاء اعتماد الإجابة كحل صحيح
+export async function unacceptAnswer(questionId, answerId) {
+  const res = await axiosInstance.post(`/questions/${questionId}/answers/${answerId}/unaccept`, {}, {
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    }
+  });
+  return res.data; // بيرجع success, message, data
+}
