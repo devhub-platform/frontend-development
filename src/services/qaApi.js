@@ -153,3 +153,19 @@ export async function unacceptAnswer(questionId, answerId) {
   });
   return res.data; // بيرجع success, message, data
 }
+
+// 🔴 دالة الـ AI Chat الجديدة المتوافقة تماماً مع الـ Payload والـ Session المقترحة
+export async function sendAIChatMessage(questionId, message, sessionId = null) {
+  const payload = { message };
+  if (sessionId) {
+    payload.session_id = Number(sessionId);
+  }
+
+  const res = await axiosInstance.post(`/questions/${questionId}/ai-chat`, payload, {
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    }
+  });
+  return res.data; // بيرجع success, session_id, content, model_used, processing_time_ms
+}
