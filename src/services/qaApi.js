@@ -119,3 +119,16 @@ export async function fetchAnswerDetails(questionId, answerId) {
   });
   return res.data; // بيرجع success, data
 }
+
+// 🔴 الـ End Point المضافة حديثاً للتصويت المباشر على إجابة معينة
+export async function voteAnswer(questionId, answerId, vote_type) {
+  const res = await axiosInstance.post(`/questions/${questionId}/answers/${answerId}/vote`, {
+    vote_type: vote_type // "upvote" | "downvote"
+  }, {
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    }
+  });
+  return res.data; // بيرجع الـ data اللي فيها الـ vote_score و الـ current_user_vote
+}

@@ -81,8 +81,6 @@ export default function QuestionPage() {
     );
   };
 
-  // دالة تحديث الإجابات بشكل مشترك (للتعديل وللحذف)
-  // countChange = 0 في التعديل، و -1 في الحذف لتحديث العداد العلوي
   const handleAnswersUpdate = (updatedAnswersList, countChange = 0) => {
     setLocalAnswers(updatedAnswersList);
     if (countChange !== 0) {
@@ -319,7 +317,6 @@ export default function QuestionPage() {
                   Discussion ({localAnswers.length})
                 </h2>
               </div>
-              {/* 🔴 ممررين الـ handler الجديد لإتاحة الحذف والتعديل وتحديث الصفحة لحظياً */}
               <AnswersList
                 answers={localAnswers}
                 questionId={id}
@@ -413,73 +410,76 @@ export default function QuestionPage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-5">
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  Share this discussion with your network to get solutions
-                  faster:
-                </p>
+              /* 🔴 تم إضافة حماية هنا: الأزرار والإنبوت مش هيظهروا إلا لو الـ shareData جاهز مش null */
+              shareData && (
+                <div className="space-y-5">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                    Share this discussion with your network to get solutions
+                    faster:
+                  </p>
 
-                <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700">
-                  <input
-                    type="text"
-                    readOnly
-                    value={
-                      shareData?.url ||
-                      shareData?.slug_url ||
-                      window.location.href
-                    }
-                    className="flex-1 bg-transparent text-xs text-gray-600 dark:text-gray-300 outline-none overflow-x-auto whitespace-nowrap pl-1"
-                  />
-                  <button
-                    onClick={handleCopyLink}
-                    className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-bold flex items-center gap-1 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
-                  >
-                    {isCopied ? (
-                      <Check className="w-3.5 h-3.5" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5" />
-                    )}
-                    {isCopied ? "Copied" : "Copy"}
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  <span className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-2">
-                    Or share via social networks
-                  </span>
-                  <div className="grid grid-cols-3 gap-2">
-                    <a
-                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this question on DevHub: "${shareData?.title || ""}"`)}&url=${encodeURIComponent(shareData?.url || window.location.href)}&hashtags=${shareData?.tags?.join(",") || "devhub"}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
+                  <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700">
+                    <input
+                      type="text"
+                      readOnly
+                      value={
+                        shareData.slug_url ||
+                        shareData.url ||
+                        window.location.href
+                      }
+                      className="flex-1 bg-transparent text-xs text-gray-600 dark:text-gray-300 outline-none overflow-x-auto whitespace-nowrap pl-1"
+                    />
+                    <button
+                      onClick={handleCopyLink}
+                      className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-bold flex items-center gap-1 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
                     >
-                      <Twitter className="w-5 h-5 text-sky-500 fill-current" />
-                      <span className="text-[11px] font-bold">Twitter</span>
-                    </a>
+                      {isCopied ? (
+                        <Check className="w-3.5 h-3.5" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                      {isCopied ? "Copied" : "Copy"}
+                    </button>
+                  </div>
 
-                    <a
-                      href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareData?.url || window.location.href)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
-                    >
-                      <Linkedin className="w-5 h-5 text-blue-600 fill-current" />
-                      <span className="text-[11px] font-bold">LinkedIn</span>
-                    </a>
+                  <div className="space-y-2">
+                    <span className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-2">
+                      Or share via social networks
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                      <a
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this question on DevHub: "${shareData.title || ""}"`)}&url=${encodeURIComponent(shareData.url || window.location.href)}&hashtags=${shareData.tags?.join(",") || "devhub"}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
+                      >
+                        <Twitter className="w-5 h-5 text-sky-500 fill-current" />
+                        <span className="text-[11px] font-bold">Twitter</span>
+                      </a>
 
-                    <a
-                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareData?.url || window.location.href)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
-                    >
-                      <Facebook className="w-5 h-5 text-blue-800 fill-current" />
-                      <span className="text-[11px] font-bold">Facebook</span>
-                    </a>
+                      <a
+                        href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareData.url || window.location.href)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
+                      >
+                        <Linkedin className="w-5 h-5 text-blue-600 fill-current" />
+                        <span className="text-[11px] font-bold">LinkedIn</span>
+                      </a>
+
+                      <a
+                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareData.url || window.location.href)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-bg-primary-dark rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors gap-1.5"
+                      >
+                        <Facebook className="w-5 h-5 text-blue-800 fill-current" />
+                        <span className="text-[11px] font-bold">Facebook</span>
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )
             )}
           </div>
         </div>

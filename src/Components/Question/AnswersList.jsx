@@ -14,6 +14,7 @@ import {
 import MDEditor from "@uiw/react-md-editor";
 import remarkGfm from "remark-gfm";
 import { MarkdownWriteEditor } from "../WriteComponents/MarkdownWriteEditor";
+import { voteAnswer } from "../../services/qaApi"; // استدعاء دالة الفوت الجديدة
 import axiosInstance from "../../config/api";
 import toast from "react-hot-toast";
 
@@ -21,15 +22,16 @@ export function AnswersList({ answers, questionId, onAnswersUpdate }) {
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 🔴 جلب الـ ID بتاع اليوزر الحالي من الـ Local Storage وتحويله لـ Number فوراً
+  // جلب الـ ID بتاع اليوزر الحالي من الـ Local Storage وتحويله لـ Number فوراً
   const storedUserRaw = localStorage.getItem("user");
   let currentUserId = null;
+  let currentUserEmail = localStorage.getItem("userEmail");
 
   if (storedUserRaw) {
     try {
       const parsedUser = JSON.parse(storedUserRaw);
       if (parsedUser && parsedUser.id) {
-        currentUserId = Number(parsedUser.id); // تحويل رقمي صريح لضمان دقة المقارنة
+        currentUserId = Number(parsedUser.id);
       }
     } catch (e) {
       console.error("Failed to parse stored user json", e);
@@ -78,6 +80,7 @@ export function AnswersList({ answers, questionId, onAnswersUpdate }) {
           answer={answer}
           questionId={questionId}
           currentUserId={currentUserId}
+          currentUserEmail={currentUserEmail}
           allAnswers={answers}
           onAnswersUpdate={onAnswersUpdate}
           onTriggerDelete={(id) => setDeleteTargetId(id)}
@@ -131,23 +134,86 @@ function AnswerCard({
   answer,
   questionId,
   currentUserId,
+  currentUserEmail,
   allAnswers,
   onAnswersUpdate,
   onTriggerDelete,
 }) {
+  // 🔴 ربط الـ score و الـ user vote بـ الـ state الداخلية للكارد للتحديث الفوري التفاعلي
   const [score, setScore] = React.useState(answer.vote_score ?? 0);
+  const [userVote, setUserVote] = React.useState(
+    answer.current_user_vote || null,
+  ); // "upvote" | "downvote" | null
+  const [voteLoading, setVoteLoading] = useState(false);
+
   const [isEditing, setIsEditing] = useState(false);
   const [editBody, setEditBody] = useState(answer.content || "");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   const user = answer.user || {};
 
-  // 🔴 🔴 المقارنة الرقمية الصريحة والديناميكية بين السيرفر والـ Local Storage:
-  const isOwner = currentUserId && user.id && Number(user.id) === currentUserId;
+  // المقارنة الرقمية الصريحة والديناميكية بين السيرفر والـ Local Storage لمعرفة المالك
+  const isOwner =
+    (currentUserId && user.id && Number(user.id) === currentUserId) ||
+    (currentUserEmail && user.email === currentUserEmail);
 
   const acceptedClasses = answer.is_accepted
     ? "border-emerald-500/40 bg-emerald-500/5 dark:bg-emerald-500/10 shadow-lg shadow-emerald-500/20"
     : "";
+
+  // 🔴 دالة التحكم بالتصويت للأجابات مع منع الـ Owner ورفع الـ Optimistic UI
+  const handleAnswerVote = async (type) => {
+    if (isOwner) return; // حماية إضافية في الـ JS
+    if (voteLoading) return;
+
+    const prevScore = score;
+    const prevVote = userVote;
+    let optimisticScore = score;
+
+    // حساب الـ Optimistic Score المتوقع
+    if (type === "upvote") {
+      if (prevVote === "upvote")
+        optimisticScore -= 1; // Toggle off
+      else if (prevVote === "downvote") optimisticScore += 2;
+      else optimisticScore += 1;
+    } else {
+      if (prevVote === "downvote")
+        optimisticScore += 1; // Toggle off
+      else if (prevVote === "upvote") optimisticScore -= 2;
+      else optimisticScore -= 1;
+    }
+
+    const nextVote = prevVote === type ? null : type;
+
+    // تحديث الواجهة فوراً
+    setScore(optimisticScore);
+    setUserVote(nextVote);
+    setVoteLoading(true);
+
+    try {
+      const res = await voteAnswer(questionId, answer.id, type);
+      if (res && res.data) {
+        // الـ Sync مع الـ data الحقيقية الراجعة من تفعيل السيرفر عندك
+        setScore(
+          typeof res.data.vote_score === "number"
+            ? res.data.vote_score
+            : optimisticScore,
+        );
+        setUserVote(res.data.current_user_vote);
+      }
+    } catch (err) {
+      // Rollback في حالة فشل ريكويست السيرفر لأي سبب
+      setScore(prevScore);
+      setUserVote(prevVote);
+      if (err.response?.status === 401) {
+        toast.error("You must be logged in to vote.");
+      } else {
+        toast.error(err.response?.data?.message || "Failed to submit vote.");
+      }
+    } finally {
+      setVoteLoading(false);
+    }
+  };
 
   const handleSaveEdit = async () => {
     if (!editBody.trim()) return;
@@ -155,9 +221,7 @@ function AnswerCard({
       setIsSavingEdit(true);
       const res = await axiosInstance.put(
         `/questions/${questionId}/answers/${answer.id}`,
-        {
-          content: editBody.trim(),
-        },
+        { content: editBody.trim() },
       );
       if (res.data?.success) {
         toast.success(res.data.message || "Answer updated successfully! 🎉");
@@ -233,20 +297,50 @@ function AnswerCard({
         {/* Action Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-4">
-            {/* Vote group */}
+            {/* Vote group 🔴 (تم تفعيل الـ Disabled والتعديل التفاعلي لبينات اليوزر) */}
             <div className="flex items-center bg-gray-50 dark:bg-bg-secondary-dark p-1 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
               <button
-                onClick={() => setScore((s) => s + 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-primary hover:text-white transition-all text-gray-400 cursor-pointer"
+                disabled={isOwner || voteLoading}
+                onClick={() => handleAnswerVote("upvote")}
+                className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${
+                  userVote === "upvote"
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-gray-400"
+                } ${isOwner ? "disabled:cursor-not-allowed disabled:opacity-30" : "hover:bg-primary hover:text-white cursor-pointer"}`}
+                title={
+                  isOwner
+                    ? "You cannot vote on your own answer."
+                    : "Upvote this answer"
+                }
               >
                 <ArrowBigUp className="w-6 h-6" />
               </button>
-              <span className="px-3 text-sm font-black text-[#0F172A] dark:text-white">
+
+              <span
+                className={`px-3 text-sm font-black transition-colors ${
+                  userVote === "upvote"
+                    ? "text-primary dark:text-text-dark"
+                    : userVote === "downvote"
+                      ? "text-red-500"
+                      : "text-[#0F172A] dark:text-white"
+                }`}
+              >
                 {score}
               </span>
+
               <button
-                onClick={() => setScore((s) => s - 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-red-500 hover:text-white transition-all text-gray-400 cursor-pointer"
+                disabled={isOwner || voteLoading}
+                onClick={() => handleAnswerVote("downvote")}
+                className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${
+                  userVote === "downvote"
+                    ? "bg-red-500 text-white shadow-sm"
+                    : "text-gray-400"
+                } ${isOwner ? "disabled:cursor-not-allowed disabled:opacity-30" : "hover:bg-red-500 hover:text-white cursor-pointer"}`}
+                title={
+                  isOwner
+                    ? "You cannot vote on your own answer."
+                    : "Downvote this answer"
+                }
               >
                 <ArrowBigDown className="w-6 h-6" />
               </button>
@@ -254,7 +348,7 @@ function AnswerCard({
 
             <div className="flex items-center gap-1">
 
-              {/* 🔴 زرار التعديل والدليت هيظهروا ديناميكياً لكل مستخدم على إجاباته الخاصة فقط */}
+              {/* أزرار التحكم تظهر ديناميكياً لكل مستخدم على إجاباته الخاصة فقط */}
               {isOwner && !isEditing && (
                 <>
                   <button
