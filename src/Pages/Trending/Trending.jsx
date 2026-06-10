@@ -6,7 +6,7 @@ import { SuggestedToFollow } from "../../Components/SuggestedToFollow/SuggestedT
 import axiosInstance from "../../config/api";
 
 /* ─────────────────────────────────────────────
-   Tag Chips Component (المستخدم للهيرو وللبوستات)
+    Tag Chips Component (المستخدم للهيرو وللبوستات)
 ───────────────────────────────────────────── */
 const TagChips = ({ tags, active, onChange }) => (
   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -27,7 +27,86 @@ const TagChips = ({ tags, active, onChange }) => (
 );
 
 /* ─────────────────────────────────────────────
-   Tech Trend Card
+    Scrollable Chips Row With Arrows (الجديد الخاص بالبوستات) 🆕
+───────────────────────────────────────────── */
+const ScrollableChipsRow = ({ tags, active, onChange }) => {
+  const rowRef = useRef(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(true);
+
+  const updateArrows = () => {
+    const el = rowRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 2);
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 5);
+  };
+
+  useEffect(() => {
+    const el = rowRef.current;
+    if (!el) return;
+    updateArrows();
+    el.addEventListener("scroll", updateArrows, { passive: true });
+    window.addEventListener("resize", updateArrows);
+
+    return () => {
+      el.removeEventListener("scroll", updateArrows);
+      window.removeEventListener("resize", updateArrows);
+    };
+  }, [tags]);
+
+  const scroll = (direction) => {
+    rowRef.current?.scrollBy({ left: direction * 200, behavior: "smooth" });
+  };
+
+  return (
+    <div className="relative flex items-center group">
+      {/* سهم اليسار */}
+      {canLeft && (
+        <button
+          onClick={() => scroll(-2)}
+          className="absolute left-0 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+        >
+          ‹
+        </button>
+      )}
+
+      {/* شريط العناصر القابل للسحب */}
+      <div
+        ref={rowRef}
+        className="flex gap-2 overflow-x-auto pb-1 w-full scrollbar-hide px-1"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        <style>{`div::-webkit-scrollbar { display: none; }`}</style>
+        {tags.map((t) => (
+          <button
+            key={t}
+            onClick={() => onChange(t)}
+            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+              active === t
+                ? "bg-primary text-white shadow-sm"
+                : "bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {/* سهم اليمين */}
+      {canRight && (
+        <button
+          onClick={() => scroll(3)}
+          className="absolute right-0 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+        >
+          ›
+        </button>
+      )}
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────
+    Tech Trend Card
 ───────────────────────────────────────────── */
 const CARD_GRADIENTS = [
   "from-violet-700 via-indigo-700 to-purple-800",
@@ -94,7 +173,7 @@ const TechTrendCard = ({ item, index, onClick }) => {
 };
 
 /* ─────────────────────────────────────────────
-   Horizontal Scroll Row with Arrows
+    Horizontal Scroll Row with Arrows
 ───────────────────────────────────────────── */
 const ScrollRow = ({ children, loading }) => {
   const ref = useRef(null);
@@ -161,7 +240,7 @@ const ScrollRow = ({ children, loading }) => {
 };
 
 /* ─────────────────────────────────────────────
-   Tech Detail Modal
+    Tech Detail Modal
 ───────────────────────────────────────────── */
 const TechDetailModal = ({ techId, onClose }) => {
   const [detail, setDetail] = useState(null);
@@ -281,7 +360,7 @@ const TechDetailModal = ({ techId, onClose }) => {
 };
 
 /* ─────────────────────────────────────────────
-   MAIN PAGE
+    MAIN PAGE
 ───────────────────────────────────────────── */
 const Trending = () => {
   const [openReactionId, setOpenReactionId] = useState(null);
@@ -296,14 +375,12 @@ const Trending = () => {
 
   const [techItems, setTechItems] = useState([]);
   const [techLoading, setTechLoading] = useState(true);
-  const [activeTechTag, setActiveTechTag] = useState("All"); // تم تمييزه عن فلتر البوستات
+  const [activeTechTag, setActiveTechTag] = useState("All");
   const [selectedTechId, setSelectedTechId] = useState(null);
 
-  // حقول فلترة البوستات الجديدة 🆕
   const [activePostTag, setActivePostTag] = useState("All");
   const [postTagsList, setPostTagsList] = useState(["All"]);
 
-  // مساعد لتنظيف التجات الغريبة القادمة من الـ API (مثل المصفوفات المدمجة كـ String أو نصوص بفاصلة)
   const parseTags = (rawTags) => {
     if (!rawTags) return [];
     if (Array.isArray(rawTags)) {
@@ -311,15 +388,11 @@ const Trending = () => {
     }
     if (typeof rawTags === "string") {
       let trimmed = rawTags.trim();
-      // إذا كانت مصفوفة مكتوبة كـ string مثل: '["react","hook"]'
       if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
         try {
           return JSON.parse(trimmed).map((t) => t.trim().toLowerCase());
-        } catch (e) {
-          // في حال فشل التحليل
-        }
+        } catch (e) {}
       }
-      // إذا كانت مدموجة بفاصلة مثل: "flutter , pushnotifications"
       if (trimmed.includes(",")) {
         return trimmed.split(",").map((t) => t.trim().toLowerCase());
       }
@@ -377,7 +450,6 @@ const Trending = () => {
           date: p.created_at || "",
           readingTime: p.read_time || "",
           image: p.cover_image || p.image_url?.[0] || "",
-          // تنظيف التجات وتوحيدها كمصفوفة عادية جاهزة للفلترة والعرض
           tags: parseTags(p.tags),
           reactionsCount: p.reactions_count || 0,
           commentsCount: p.comments_count || 0,
@@ -388,7 +460,6 @@ const Trending = () => {
         setPostsList((prev) => {
           const newList = page === 1 ? mapped : [...prev, ...mapped];
 
-          // استخراج كافة التجات المتاحة ديناميكياً لبناء أزرار الفلترة 🆕
           const tagsSet = new Set(["All"]);
           newList.forEach((post) => {
             post.tags.forEach((tag) => {
@@ -435,7 +506,6 @@ const Trending = () => {
       ? techItems
       : techItems.filter((i) => i.topic === activeTechTag);
 
-  // فلترة البوستات بناءً على التاج المختار 🆕
   const filteredPosts =
     activePostTag === "All"
       ? postsList
@@ -505,10 +575,10 @@ const Trending = () => {
         {/* ══ POSTS + SIDEBAR ════════════════════ */}
         <div className="mx-auto flex justify-center px-4 lg:px-6">
           <div className="w-full lg:w-[70%] lg:ml-12 my-6 space-y-4">
-            {/* قسم شيبس الفلترة الخاص بالبوستات (زي الصورة تماماً) 🆕 */}
+            {/* تم استبدال الجزء القديم بالـ ScrollableChipsRow الجديد 🆕 */}
             {postTagsList.length > 1 && (
-              <div className="bg-transparent dark:bg-bg-secondary-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50">
-                <TagChips
+              <div className="bg-white dark:bg-bg-secondary-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50">
+                <ScrollableChipsRow
                   tags={postTagsList}
                   active={activePostTag}
                   onChange={setActivePostTag}
@@ -546,7 +616,6 @@ const Trending = () => {
                   <p className="text-sm mt-1">Try selecting another filter!</p>
                 </div>
               ) : (
-                // استخدام المصفوفة المفلترة بدلاً من المصفوفة الأساسية
                 filteredPosts.map((post) => (
                   <Post
                     key={post.id}
@@ -567,7 +636,6 @@ const Trending = () => {
                 ))
               )}
 
-              {/* زر تحميل المزيد يظهر فقط لو مش بنفلتر على تاج معين أو لو لسه فيه داتا */}
               {!postsLoading && hasMore && activePostTag === "All" && (
                 <button
                   onClick={() => setPage((p) => p + 1)}
