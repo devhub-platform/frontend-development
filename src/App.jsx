@@ -32,6 +32,7 @@ import Settings from "./Pages/Settings/Settings";
 import QuestionsByTag from "./Pages/QuestionsByTag/QuestionsByTag";
 import GoogleCallback from "./Pages/Auth/GoogleCallback";
 import GithubCallback from "./Pages/Auth/GithubCallback";
+import SearchResult from "./Pages/SearchResult/SearchResult";
 
 function App() {
   return (
@@ -69,6 +70,7 @@ function App() {
           <Route path="/users/:id/following" element={<UserFollowing />} />
           <Route path="editor-guide" element={<EditorGuide />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="search" element={<SearchResult />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
