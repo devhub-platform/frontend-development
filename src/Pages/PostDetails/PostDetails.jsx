@@ -33,6 +33,37 @@ export default function PostDetails() {
         ]);
 
         const p = postRes.data.data;
+
+        // --- تفكيك وفصل الـ tags بجميع أشكالها المتوقعة من الـ API ---
+        let finalTags = [];
+        
+        if (Array.isArray(p.tags)) {
+          finalTags = p.tags.flatMap((t) => {
+            const tagValue = typeof t === "object" ? t.name : t;
+            if (typeof tagValue === "string" && (tagValue.includes("[") || tagValue.includes(","))) {
+              try {
+                const parsed = JSON.parse(tagValue.replace(/'/g, '"'));
+                return Array.isArray(parsed) ? parsed : [tagValue];
+              } catch (e) {
+                return tagValue.split(",").map(str => str.trim());
+              }
+            }
+            return tagValue;
+          });
+        } else if (typeof p.tags === "string") {
+          try {
+            const parsed = JSON.parse(p.tags.replace(/'/g, '"'));
+            finalTags = Array.isArray(parsed) ? parsed : [p.tags];
+          } catch (e) {
+            finalTags = p.tags.split(",").map(str => str.trim());
+          }
+        }
+
+        // تنظيف التاجز تماماً من أي أقواس أو علامات اقتباس زائدة
+        finalTags = finalTags
+          .map(t => typeof t === "string" ? t.replace(/[\[\]"']/g, "").trim() : t)
+          .filter(Boolean);
+
         setPostData({
           id: p.id,
           title: p.title,
@@ -43,16 +74,15 @@ export default function PostDetails() {
           authorUsername: p.user?.username || "",
           date: p.created_at || "",
           readingTime: p.read_time || "",
-          tags: p.tags?.map((t) => t.name) || [],
+          tags: finalTags, // تمرير المصفوفة النظيفة والمنفصلة هنا
           reactionsCount: Object.values(
             p.reaction?.reaction_with_count || {},
           ).reduce((a, b) => a + b, 0),
           commentsCount: p.reaction?.comments_count || 0,
           views: p.views || 0,
           userId: p.user?.id || null,
-      });
+        });
 
-        
         // استخراج الكومنتات الخام من الـ API
         const rawComments = commentsRes.data.data?.comments || commentsRes.data.comments || [];
         

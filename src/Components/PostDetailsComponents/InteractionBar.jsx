@@ -16,10 +16,9 @@ import axiosInstance from "../../config/api";
 const REACTION_EMOJIS = [
   { emoji: "👍", label: "like" },
   { emoji: "❤️", label: "love" },
-  { emoji: "🤯", label: "exploding_head" },
-  { emoji: "🙌", label: "raised_hands" },
   { emoji: "😮", label: "wow" },
-  { emoji: "👎", label: "dislike" },
+  { emoji: "😢", label: "sad" },
+  { emoji: "😡", label: "angry" },
 ];
 
 export function InteractionBar({ postId, commentsCount, views, content }) {

@@ -98,22 +98,59 @@ const Home = () => {
         });
 
         const raw = data.data || [];
-        const mapped = raw.map((p) => ({
-          id: p.id,
-          title: p.title,
-          excerpt: p.content?.slice(0, 150) || "",
-          author: p.user?.name || "Unknown",
-          avatar: p.user?.avatar_image || null,
-          date: p.created_at || "",
-          readingTime: p.read_time || "",
-          image: p.cover_image || p.image_url?.[0] || "",
-          tags: p.tags?.map((t) => t.name) || [],
-          reactionsCount: Object.values(
-            p.reaction?.reaction_with_count || {},
-          ).reduce((a, b) => a + b, 0),
-          commentsCount: p.reaction?.comments_count || 0,
-          views: p.views || 0,
-        }));
+        const mapped = raw.map((p) => {
+          // هندلة وفصل الـ tags بجميع أشكالها المتوقعة من الـ API
+          let finalTags = [];
+
+          if (Array.isArray(p.tags)) {
+            finalTags = p.tags.flatMap((t) => {
+              const tagValue = typeof t === "object" ? t.name : t;
+              if (
+                typeof tagValue === "string" &&
+                (tagValue.includes("[") || tagValue.includes(","))
+              ) {
+                try {
+                  const parsed = JSON.parse(tagValue.replace(/'/g, '"'));
+                  return Array.isArray(parsed) ? parsed : [tagValue];
+                } catch (e) {
+                  return tagValue.split(",").map((str) => str.trim());
+                }
+              }
+              return tagValue;
+            });
+          } else if (typeof p.tags === "string") {
+            try {
+              const parsed = JSON.parse(p.tags.replace(/'/g, '"'));
+              finalTags = Array.isArray(parsed) ? parsed : [p.tags];
+            } catch (e) {
+              finalTags = p.tags.split(",").map((str) => str.trim());
+            }
+          }
+
+          // تنظيف التاجز تماماً من أي أقواس أو علامات اقتباس زائدة
+          finalTags = finalTags
+            .map((t) =>
+              typeof t === "string" ? t.replace(/[\[\]"']/g, "").trim() : t,
+            )
+            .filter(Boolean);
+
+          return {
+            id: p.id,
+            title: p.title,
+            excerpt: p.content?.slice(0, 150) || "",
+            author: p.user?.name || "Unknown",
+            avatar: p.user?.avatar_image || null,
+            date: p.created_at || "",
+            readingTime: p.read_time || "",
+            image: p.cover_image || p.image_url?.[0] || "",
+            tags: finalTags, // هنا الـ array النضيفة بعد التعديل
+            reactionsCount: Object.values(
+              p.reaction?.reaction_with_count || {},
+            ).reduce((a, b) => a + b, 0),
+            commentsCount: p.reaction?.comments_count || 0,
+            views: p.views || 0,
+          };
+        });
 
         setPostsList((prev) => (page === 1 ? mapped : [...prev, ...mapped]));
         setHasMore(Boolean(data.links?.next));
