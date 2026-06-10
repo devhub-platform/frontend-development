@@ -164,6 +164,7 @@ export default function Write() {
     setPostImagePreviews([]);
   };
 
+  // 🔴 تحديث دالة الـ Publish لتهندلة فلترة المحتوى (Content Moderation)
   const handlePublish = async () => {
     if (!validatePost()) return;
 
@@ -185,15 +186,33 @@ export default function Write() {
       toast.success(res?.message || "Post published successfully!");
       resetForm();
     } catch (err) {
-      console.error(err);
-      const msg =
-        err?.friendlyMessage || "Failed to publish post. Please try again.";
-      toast.error(msg);
+      console.error("Publish error object:", err);
+
+      // 🔴 التشييك السحري على خطأ 422 بتاع الـ Content Moderation الراجع من الباك
+      if (err.response && err.response.status === 422) {
+        const serverError = err.response.data;
+        const mainMessage =
+          serverError.message || "Post content violates policies.";
+        const blockReason = serverError.reasons
+          ? ` (${serverError.reasons})`
+          : "";
+
+        // إظهار توستر أحمر شيك جداً لليوزر بالسبب الحقيقي للمنع
+        toast.error(`${mainMessage}${blockReason}`, {
+          duration: 6000, // نخليه ظاهر شوية عشان اليوزر يلحق يقرأ التنبيه
+        });
+      } else {
+        // أي خطأ عادي آخر
+        const msg =
+          err?.friendlyMessage || "Failed to publish post. Please try again.";
+        toast.error(msg);
+      }
     } finally {
       setIsPublishing(false);
     }
   };
 
+  // 🔴 تحديث دالة الـ Save Draft لتهندلة الفلترة برضه
   const handleSaveDraft = async () => {
     if (!validatePost()) return;
 
@@ -215,10 +234,25 @@ export default function Write() {
       toast.success(res?.message || "Draft saved successfully!");
       resetForm();
     } catch (err) {
-      console.error(err);
-      const msg =
-        err?.friendlyMessage || "Failed to save draft. Please try again.";
-      toast.error(msg);
+      console.error("Draft error object:", err);
+
+      // 🔴 تشييك الـ Content Moderation للدرفت
+      if (err.response && err.response.status === 422) {
+        const serverError = err.response.data;
+        const mainMessage =
+          serverError.message || "Draft violates content policies.";
+        const blockReason = serverError.reasons
+          ? ` (${serverError.reasons})`
+          : "";
+
+        toast.error(`${mainMessage}${blockReason}`, {
+          duration: 6000,
+        });
+      } else {
+        const msg =
+          err?.friendlyMessage || "Failed to save draft. Please try again.";
+        toast.error(msg);
+      }
     } finally {
       setIsSaving(false);
     }
