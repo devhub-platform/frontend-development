@@ -264,7 +264,7 @@ const ReadingListDetails = () => {
       <div className="grid gap-6 my-3">
         {listData.posts?.length > 0 ? (
           listData.posts.map((post) => (
-            <div key={post.id} className="w-full cursor-pointer" onClick={() => navigate(`/post/${post.id}`)}>
+            <div key={post.id} className="w-full cursor-pointer">
               <div className="flex w-full items-center group">
                 <div className="border-l-3 h-10 ml-5 mb-2 border-text-light dark:border-text-dark"></div>
                 <div className="w-full flex h-10 mb-2">
@@ -341,19 +341,20 @@ const ReadingListDetails = () => {
               <div
                 key={post.id}
                 className="relative flex gap-4 bg-white dark:bg-gray-800/40 p-4 rounded-xl border border-gray-100 dark:border-gray-800/40 dark:hover:shadow-xl hover:shadow-md transition-shadow"
+                onClick={() => navigate(`/post/${post.id}`)}
               >
                 <button
-    onClick={() => handleRemovePost(post.id)}
-    disabled={processingId === post.id}
-    className="absolute top-3 right-3 p-2 dark:bg-red-900/20 text-gray-500 rounded-lg opacity-100 group-hover/card:opacity-100 transition-opacity hover:text-red-500 disabled:opacity-50 cursor-pointer"
-    title="Remove from list"
-  >
-    {processingId === post.id ? (
-      <Loader2 size={16} className="animate-spin" />
-    ) : (
-      <Trash size={16} />
-    )}
-  </button>
+                  onClick={() => handleRemovePost(post.id)}
+                  disabled={processingId === post.id}
+                  className="absolute top-3 right-3 p-2 dark:bg-red-900/20 text-gray-500 rounded-lg opacity-100 group-hover/card:opacity-100 transition-opacity hover:text-red-500 disabled:opacity-50 cursor-pointer"
+                  title="Remove from list"
+                >
+                  {processingId === post.id ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Trash size={16} />
+                  )}
+                </button>
                 <img
                   src={post.cover_image}
                   alt={post.title}
