@@ -1,8 +1,11 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useMemo, useState } from "react";
 import { Coffee } from "lucide-react";
 import { NotificationFeed } from "../../Components/Notification/NotificationFeed";
 import { NotificationCard } from "../../Components/Notification/NotificationCard";
 import notificationsApi from "../../services/notificationsApi";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center py-32 text-center animate-in fade-in zoom-in duration-700">
@@ -21,77 +24,138 @@ const EmptyState = () => (
   </div>
 );
 
-// mapping حسب شكل Laravel notifications + mention + follow
+// 🎯 دالة الـ Mapping الحادة والمصححة لمنع تداخل الـ Answer مع الـ Accepted
 const mapApiNotificationToUi = (item) => {
-  const type = item.type; // App\\Notifications\\...
-  const data = item.data || {};
+  const type = item.type || "";
 
   let simpleType = "comment";
   let badgeLabel = "COMMENT";
+  let actor = {};
+  let targetUrl = "/home";
 
-  if (type === "App\\Notifications\\ReactNotification") {
-    simpleType = "reaction";
-    badgeLabel = "REACTION";
-  } else if (type === "App\\Notifications\\NewCommentNotification") {
-    simpleType = "comment";
-    badgeLabel = "COMMENT";
-  } else if (type === "App\\Notifications\\MentionNotification") {
+  if (
+    type.includes("MentionInCommentNotification") ||
+    type.includes("Mention")
+  ) {
     simpleType = "mention";
     badgeLabel = "MENTION";
-  } else if (type === "App\\Notifications\\FollowNotification") {
+
+    actor = item.mentioned_by || item.from || item.author || {};
+
+    if (item.post?.id) {
+      targetUrl = `/post/${item.post.id}`;
+    } else if (item.question?.id) {
+      targetUrl = `/questions/${item.question.id}`;
+    }
+  } else if (type.includes("ReactNotification") || type.includes("Reaction")) {
+    simpleType = "reaction";
+
+    badgeLabel = item.reaction_type === "love" ? "REACTION ❤️" : "REACTION 👍";
+
+    actor = item.from || item.author || {};
+
+    if (item.post?.id) {
+      targetUrl = `/post/${item.post.id}`;
+    } else if (item.question?.id) {
+      targetUrl = `/questions/${item.question.id}`;
+    }
+  } else if (type.includes("FollowNotification") || type.includes("Follower")) {
     simpleType = "follow";
     badgeLabel = "FOLLOW";
-  }
-  // 👇 إضافة الأنواع الثلاثة الجديدة هنا
-  else if (type === "App\\Notifications\\PostCreatedNotification") {
-    simpleType = "post-created";
-    badgeLabel = "NEW POST";
-  } else if (
-    type === "App\\Notifications\\QuestionNotification" ||
-    type === "App\\Notifications\\NewQuestionNotification"
-  ) {
+
+    actor = item.follower || item.from || item.author || {};
+
+    if (actor.id) {
+      targetUrl = `/users/${actor.id}`;
+    }
+  } else if (type.includes("QuestionCreatedNotification")) {
     simpleType = "question";
     badgeLabel = "QUESTION";
-  } else if (
-    type === "App\\Notifications\\AnswerNotification" ||
-    type === "App\\Notifications\\NewAnswerNotification"
-  ) {
+
+    actor = item.asker || item.from || item.author || {};
+
+    if (item.question?.id) {
+      targetUrl = `/questions/${item.question.id}`;
+    }
+  } else if (type.includes("AnswerAcceptedNotification")) {
+    simpleType = "accepted-answer";
+    badgeLabel = "ACCEPTED";
+
+    actor = item.answerer || item.from || item.author || {};
+
+    if (item.question?.id) {
+      targetUrl = `/questions/${item.question.id}`;
+    }
+  }
+
+  // 🔴 2- تعديل شرط الـ Answer ليعتمد على الـ NewAnswerNotification فقط لمنع التداخل
+  else if (type.includes("NewAnswerNotification")) {
     simpleType = "answer";
     badgeLabel = "ANSWER";
+
+    actor = item.answerer || item.from || item.author || {};
+
+    if (item.question?.id) {
+      targetUrl = `/questions/${item.question.id}`;
+    }
+  } else if (
+    type.includes("PostCreatedNotification") ||
+    type.includes("Post")
+  ) {
+    simpleType = "post-created";
+    badgeLabel = "NEW POST";
+
+    actor = item.author || item.user || item.from || {};
+
+    if (item.post?.id) {
+      targetUrl = `/post/${item.post.id}`;
+    }
+  } else {
+    simpleType = "comment";
+    badgeLabel = "COMMENT";
+
+    actor = item.commenter || item.from || item.author || {};
+
+    if (item.post?.id) {
+      targetUrl = item.comment?.id
+        ? `/post/${item.post.id}?comment=${item.comment.id}`
+        : `/post/${item.post.id}`;
+    }
   }
+
+  const cleanAction = item.message
+    ? item.message
+        .replace(/\*\*Title:\*\*/g, "")
+        .replace(/\r?\n|\r/g, " ")
+        .trim()
+    : "triggered an update on your feed";
+
+  const displayName = actor.name || actor.username || "DevHub User";
+
+  const finalAvatar =
+    actor.avatar_url ||
+    actor.avatar ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      displayName,
+    )}&background=random`;
 
   return {
     id: item.id,
     type,
     simpleType,
     badgeLabel,
-    username:
-      data.username || data.user_name || data.author_name || "DevHub User",
-    action:
-      data.message ||
-      data.action ||
-      data.title ||
-      (simpleType === "reaction"
-        ? "reacted to your post"
-        : simpleType === "mention"
-          ? "mentioned you in a discussion"
-          : simpleType === "follow"
-            ? "started following you"
-            : // نصوص افتراضية للأنواع الجديدة لو الـ message مش جاية من الباكيند
-              simpleType === "post-created"
-              ? "published a new post"
-              : simpleType === "question"
-                ? "asked a new question"
-                : simpleType === "answer"
-                  ? "answered your question"
-                  : "left a new comment"),
-    content: data.content || data.body || "",
+    username: displayName,
+    action: cleanAction,
+    content:
+      item.comment?.body ||
+      item.post?.title ||
+      item.question?.title ||
+      item.reaction_type ||
+      "",
     timestamp: item.created_at,
-    avatar:
-      data.avatar_url ||
-      data.avatar ||
-      `https://api.dicebear.com/7.x/thumbs/svg?seed=${item.id}`,
+    avatar: finalAvatar,
     isRead: !!item.read_at,
+    targetUrl,
   };
 };
 
@@ -101,6 +165,8 @@ const Notifications = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   const fetchNotifications = async () => {
     try {
@@ -121,21 +187,46 @@ const Notifications = () => {
     fetchNotifications();
   }, []);
 
+  // 🔴 1- تعديل دالة الـ handleCardNavigation لتعمل كـ Read قبل التوجيه تلقائياً
+  const handleCardNavigation = async (notification) => {
+    if (!notification.isRead) {
+      try {
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.id === notification.id ? { ...n, isRead: true } : n,
+          ),
+        );
+
+        await notificationsApi.markNotificationAsRead(notification.id);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    navigate(notification.targetUrl);
+  };
+
   const handleMarkAsRead = async (id) => {
     try {
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
       );
       await notificationsApi.markNotificationAsRead(id);
+      toast.success("Marked as read");
     } catch (err) {
       console.error(err);
-      fetchNotifications();
+
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: false } : n)),
+      );
+
+      toast.error("Failed to mark notification");
     }
   };
 
   const handleDelete = (id) => {
-    // محلي بس (مفيش delete في الـ API)
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    toast.success("Notification dismissed");
   };
 
   const handleMarkAllAsRead = async () => {
@@ -143,6 +234,7 @@ const Notifications = () => {
       setActionLoading(true);
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       await notificationsApi.markAllNotificationsAsRead();
+      toast.success("All caught up! 🌟");
     } catch (err) {
       console.error(err);
       fetchNotifications();
@@ -171,7 +263,6 @@ const Notifications = () => {
     if (activeFilter === "all") return notifications;
 
     const key = activeFilter;
-
     if (key === "comments")
       return notifications.filter((n) => n.simpleType === "comment");
     if (key === "reactions")
@@ -186,6 +277,10 @@ const Notifications = () => {
       return notifications.filter((n) => n.simpleType === "question");
     if (key === "answers")
       return notifications.filter((n) => n.simpleType === "answer");
+
+    if (key === "accepted") {
+      return notifications.filter((n) => n.simpleType === "accepted-answer");
+    }
 
     return notifications;
   }, [notifications, activeFilter]);
@@ -213,8 +308,6 @@ const Notifications = () => {
         label: "Follows",
         count: notifications.filter((n) => n.simpleType === "follow").length,
       },
-
-      // 👇 أزرار الفلاتر الجديدة اللي هتظهر في الـ UI فوق
       {
         key: "posts",
         label: "Posts",
@@ -230,6 +323,12 @@ const Notifications = () => {
         key: "answers",
         label: "Answers",
         count: notifications.filter((n) => n.simpleType === "answer").length,
+      },
+      {
+        key: "accepted",
+        label: "Accepted",
+        count: notifications.filter((n) => n.simpleType === "accepted-answer")
+          .length,
       },
     ],
     [notifications],
@@ -256,6 +355,7 @@ const Notifications = () => {
               <NotificationCard
                 key={n.id}
                 notification={n}
+                onCardClick={() => handleCardNavigation(n)}
                 onMarkAsRead={handleMarkAsRead}
                 onDelete={handleDelete}
               />
