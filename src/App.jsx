@@ -36,7 +36,7 @@ import SearchResult from "./Pages/SearchResult/SearchResult";
 
 function App() {
   return (
-    <BrowserRouter basename="/frontend-development">
+    <BrowserRouter basename="/">
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
