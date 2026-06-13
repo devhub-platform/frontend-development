@@ -169,3 +169,11 @@ export async function sendAIChatMessage(questionId, message, sessionId = null) {
   });
   return res.data; // بيرجع success, session_id, content, model_used, processing_time_ms
 }
+
+// 🔴 دالة البحث عن سؤال المضافة حديثاً والمتوافقة تماماً مع الـ EndPoint الحقيقية للباك
+export async function searchQuestions(query) {
+  const res = await axiosInstance.get(`/questions/search`, {
+    params: { q: query },
+  });
+  return res.data; // بيرجع success و الـ data مصفوفة الأسئلة المفلترة وسياق الـ meta
+}
